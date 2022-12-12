@@ -1,0 +1,17 @@
+{
+  "name": "1eaf0bbc52c5dd14",
+  "main": "1eaf0bbc52c5dd14@655.js",
+  "version": "655.0.0",
+  "homepage": "https://observablehq.com/d/1eaf0bbc52c5dd14",
+  "author": {
+    "name": "ScottMastro",
+    "url": "https://observablehq.com/@scottmastro"
+  },
+  "type": "module",
+  "peerDependencies": {
+    "@observablehq/runtime": "4 - 5"
+  },
+  "dependencies": {
+    "@observablehq/runtime": "^5.2.1"
+  }
+}
