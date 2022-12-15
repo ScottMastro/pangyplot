@@ -2,7 +2,7 @@ const GFA = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/ma
 const TSV = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.lay.tsv"
 
 const canvasDiv = document.getElementById("canvas");
-console.log(canvas)
+
 const scaleX=12
 const scaleY=10
 const height = 500
@@ -88,8 +88,11 @@ function drawGraph() {
 
     }
     
-    const canvasDiv = document.getElementById("canvas").replaceChildren(svg.node());
+    canvasDiv.replaceChildren(svg.node());
 
+    const newDiv = document.createElement("div");
+    newDiv.textContent = "#nodes = " + nodes.length + " ------- #edges = " + edges.length ;
+    canvasDiv.appendChild(newDiv);
 
     //svg
     //  .selectAll("circle")
