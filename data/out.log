@@ -1,0 +1,13 @@
+[odgi::gfa_to_handle] building nodes:  0.00% @ 2.97e+03/s elapsed: 00:00:00:00 remain: 00:00:00:08[odgi::gfa_to_handle] building nodes: 100.00% @ 9.75e+04/s elapsed: 00:00:00:00 remain: 00:00:00:00
+[odgi::gfa_to_handle] building edges:  0.22% @ 1.42e+04/s elapsed: 00:00:00:00 remain: 00:00:00:01[odgi::gfa_to_handle] building edges: 100.00% @ 9.68e+04/s elapsed: 00:00:00:00 remain: 00:00:00:00
+[odgi::gfa_to_handle] building paths: 100.00% @ 3.55e+01/s elapsed: 00:00:00:00 remain: 00:00:00:00
+[odgi::unchop] unchopped 24406 nodes into 78 new nodes.
+path_sgd_zipf_space_max: 100
+path_sgd_zipf_max_number_of_distributions: 101
+[odgi::path_linear_sgd] calculating linear SGD schedule (0.000416493 1 100 0 0.01)
+[odgi::path_linear_sgd] calculating zetas for 102 zipf distributions
+[odgi::path_linear_sgd] 1D path-guided SGD: 61.22% @ 6.00e+05/s elapsed: 00:00:00:00 remain: 00:00:00:00[odgi::path_linear_sgd] 1D path-guided SGD: 100.00% @ 1.92e+04/s elapsed: 00:00:00:00 remain: 00:00:00:00
+[odgi::groom] grooming: 100.00% @ 9.57e+05/s elapsed: 00:00:00:00 remain: 00:00:00:00
+[odgi::groom] organizing handles: 100.00% @ 2.28e+06/s elapsed: 00:00:00:00 remain: 00:00:00:00
+[odgi::groom] flipped 0 handles
+[odgi::topological_order] sorting nodes:  2.91% @ 5.13e+04/s elapsed: 00:00:00:00 remain: 00:00:00:00[odgi::topological_order] sorting nodes: 100.00% @ 4.12e+02/s elapsed: 00:00:00:00 remain: 00:00:00:00

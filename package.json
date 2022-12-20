@@ -12,6 +12,7 @@
     "@observablehq/runtime": "4 - 5"
   },
   "dependencies": {
-    "@observablehq/runtime": "^5.2.1"
+    "@observablehq/runtime": "^5.2.1",
+    "force-graph": "^1.42.16"
   }
 }

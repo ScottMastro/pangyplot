@@ -1,9 +1,12 @@
-const GFA = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.gfa"
-const TSV = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.lay.tsv"
+const GFA = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/HGSVC_chr22_17119590_17880307.og.gfa"
+//"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.gfa"
+const TSV = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/u.lay.tsv"
+//"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/HGSVC_chr22_17119590_17880307.lay.tsv" 
+//"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.lay.tsv"
 
 const canvasDiv = document.getElementById("canvas");
 
-const scaleX=12
+const scaleX=1000
 const scaleY=10
 const height = 500
 const width = 1200
@@ -80,7 +83,7 @@ function drawGraph() {
 
         svg.append("line")          // attach a line
         .style("stroke", "black")  // colour the line
-        .style("stroke-width", 5)
+        .style("stroke-width", 1)
         .attr("x1", edges[i][0][0]/scaleX)
         .attr("y1", edges[i][0][1]/scaleY)
         .attr("x2", edges[i][1][0]/scaleX)
@@ -93,6 +96,10 @@ function drawGraph() {
     const newDiv = document.createElement("div");
     newDiv.textContent = "#nodes = " + nodes.length + " ------- #edges = " + edges.length ;
     canvasDiv.appendChild(newDiv);
+
+    const newDiv2 = document.createElement("div");
+    newDiv2.textContent = TSV;
+    canvasDiv.appendChild(newDiv2);
 
     //svg
     //  .selectAll("circle")
