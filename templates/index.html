@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>grapher</title>
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename= 'favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">   
+
+    <script src="{{url_for('static', filename='javascript/force-graph.min.js')}}"></script>
+    <script src="{{url_for('static', filename='javascript/d3.js')}}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+
+</head>
+
+<body>
+
+<div id="genome"></div>
+<div id="chromosome"></div>
+
+<script src="{{url_for('static', filename='javascript/cytoband.js')}}"></script>
+
+<h1>hello world</h1>
+<div id="graph"></div>
+
+<script src="{{url_for('static', filename='javascript/graph.js')}}"></script>
+
+</body>
+</html>
+
