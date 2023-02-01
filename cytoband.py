@@ -21,6 +21,8 @@ COLOR_MAP = { "acen": "#CC0000",
               "gvar": "#0DCC00",
               "stalk": "#00CC83" }
 
+CHR_LIST = ["chr"+str(i) for i in range(1, 22)] + ["chrX", "chrY"]
+
 def get_cytoband(chromosome=None):
 
     bandDict = dict()
@@ -31,6 +33,8 @@ def get_cytoband(chromosome=None):
             chr, start, end, name, type = line.split("\t")
             type = type.strip()
             start=int(start); end=int(end)
+
+            if chr not in CHR_LIST: continue
 
             if not chromosome is None:
                 if chr != chromosome: continue 
@@ -45,6 +49,7 @@ def get_cytoband(chromosome=None):
 
             bandDict[chr].append( {k: v for k,v in zip(INFO, info)} )
 
+    
     for chr in bandDict:
         totalSize = max([band[END] for band in bandDict[chr]])
         for i,band in enumerate(bandDict[chr]):
