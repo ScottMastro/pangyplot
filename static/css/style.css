@@ -1,3 +1,42 @@
+:root {
+    --highlight: seagreen;
+    --not-highlight: #33473c;
+
+  }
+
 #chromosome{
     background-color:rosybrown;
+}
+
+.annotation-genome-chr{
+    font-size: 0.8em;
+}
+.annotation-highlight{
+    fill: var(--highlight) !important;
+    fill-opacity: 0.5;
+    rx: 5px;
+}
+.annotation-highlight-label{
+    fill: black;
+}
+.chromosome-selection-highlight{
+    fill: var(--highlight) !important;
+}
+
+.chromosome-selection-genome{
+    fill: var(--not-highlight);
+}
+
+.chromosome-selection-genome:hover{
+    fill: var(--highlight);
+    cursor: pointer;
+}
+
+.chromosome-band{
+    pointer-events: none;
+}
+
+#genome{
+    
+
 }
