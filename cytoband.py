@@ -1,5 +1,6 @@
 CYTOBAND_FILE="./static/annotations/cytoBand_hg38.txt"
 
+CHR="chr"
 SIZE="size"
 BAND="band"
 START="start"
@@ -12,14 +13,14 @@ COLOR="color"
 # "acen" is centromeric; 
 # "stalk" refers to the short arm of acrocentric chromosomes chr13,14,15,21,22; 
 # "gvar" bands tend to be heterochomatin, either pericentric or telomeric.
-COLOR_MAP = { "acen": "#CC0000",
-              "gneg": "#FFFFFF",
+COLOR_MAP = { "acen":    "#CC0000",
+              "gneg":    "#FFFFFF",
               "gpos100": "#000000",
-              "gpos25": "#CCCCCC",
-              "gpos50":"#7F7F7F",
-              "gpos75":"#333333",
-              "gvar": "#0DCC00",
-              "stalk": "#00CC83" }
+              "gpos25":  "#CCCCCC",
+              "gpos50":  "#7F7F7F",
+              "gpos75":  "#333333",
+              "gvar":    "#0DCC00",
+              "stalk":   "#00CC83" }
 
 CHR_LIST = ["chr"+str(i) for i in range(1, 22)] + ["chrX", "chrY"]
 
@@ -44,8 +45,8 @@ def get_cytoband(chromosome=None):
                 bandDict[chr] = []
 
             band = len(bandDict[chr])
-            INFO=[BAND, START, END, NAME, TYPE, COLOR]
-            info = [band, start, end, name, type, color]
+            INFO=[BAND, START, END, NAME, TYPE, COLOR, CHR]
+            info = [band, start, end, name, type, color, chr]
 
             bandDict[chr].append( {k: v for k,v in zip(INFO, info)} )
 
