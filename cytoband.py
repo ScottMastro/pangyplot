@@ -1,4 +1,5 @@
 CYTOBAND_FILE="./static/annotations/cytoBand_hg38.txt"
+CHR_LIST = ["chr"+str(i) for i in range(1, 22)] + ["chrX", "chrY"]
 
 CHR="chr"
 SIZE="size"
@@ -9,6 +10,7 @@ END="end"
 NAME="name"
 TYPE="type"
 COLOR="color"
+ORDER="order"
 
 # "acen" is centromeric; 
 # "stalk" refers to the short arm of acrocentric chromosomes chr13,14,15,21,22; 
@@ -22,12 +24,10 @@ COLOR_MAP = { "acen":    "#CC0000",
               "gvar":    "#0DCC00",
               "stalk":   "#00CC83" }
 
-CHR_LIST = ["chr"+str(i) for i in range(1, 22)] + ["chrX", "chrY"]
 
-def get_cytoband(chromosome=None):
+def get_cytoband(chromosome=None, include_order=None):
 
     bandDict = dict()
-
     with open(CYTOBAND_FILE) as file:
 
         for line in file.readlines():
@@ -49,12 +49,14 @@ def get_cytoband(chromosome=None):
             info = [band, start, end, name, type, color, chr]
 
             bandDict[chr].append( {k: v for k,v in zip(INFO, info)} )
-
     
     for chr in bandDict:
         totalSize = max([band[END] for band in bandDict[chr]])
         for i,band in enumerate(bandDict[chr]):
             bandDict[chr][i][SIZE] = (band[END]-band[START])/totalSize
             bandDict[chr][i][X] = band[START]/totalSize
+
+    if include_order is not None and include_order:
+        bandDict[ORDER]=CHR_LIST
 
     return bandDict
