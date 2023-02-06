@@ -9,7 +9,7 @@
 
     <script src="{{url_for('static', filename='javascript/force-graph.min.js')}}"></script>
     <script src="{{url_for('static', filename='javascript/d3.js')}}"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-annotation/2.5.1/d3-annotation.min.js"></script>
+    <script src="{{url_for('static', filename='javascript/d3-annotation.min.js')}}"></script>
 
 </head>
 
@@ -20,10 +20,13 @@
 
 <script src="{{url_for('static', filename='javascript/cytoband.js')}}"></script>
 
+<div id="filter"></div>
+
+
 <h1>hello world</h1>
 <div id="graph"></div>
 
-<script src="{{url_for('static', filename='javascript/graph.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/filter.js')}}"></script>
 
 </body>
 </html>

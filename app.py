@@ -1,20 +1,20 @@
 from flask import Flask, render_template, request, make_response, redirect
 from cytoband import get_cytoband 
+import gfa
 
 app = Flask(__name__)
 
 
-@app.route('/select', methods=["chromosome"])
+@app.route('/select', methods=["GET"])
 def select():
     chromosome = request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
 
-
+    gfa.test()
+    
     resultDict = dict()
     return resultDict, 200
-
-
 
 @app.route('/cytoband', methods=["GET"])
 def cytobands():
