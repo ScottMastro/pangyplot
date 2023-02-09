@@ -11,7 +11,7 @@ def select():
     start = request.args.get("start")
     end = request.args.get("end")
 
-    gfa.test()
+    gfa.test(chromosome, start, end)
     
     resultDict = dict()
     return resultDict, 200

@@ -1,6 +1,9 @@
-function fetch(chromosome=null) {
+function fetch(chromosome, start, end) {
 
     let url = "/select?chromosome=" + chromosome;
+    url = url + "&start=" + start;
+    url = url + "&end=" + end;
+
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
@@ -12,4 +15,4 @@ function fetch(chromosome=null) {
     xmlHttp.send();
 }
 
-fetch()
+fetch("chr18", 0, 100000)
