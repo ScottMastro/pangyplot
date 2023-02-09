@@ -1,10 +1,19 @@
 import gfapy
+import subprocess
 
-GFA="./static/data/DRB1-3123_sorted.gfa"
-TSV="./static/data/DRB1-3123_sorted.tsv"
+GFATOOLS="/home/scott/bin/gfatools/gfatools"
+
+GFA="./static/data/chr18.smooth.final.gfa"
+TSV="./static/data/chr18.smooth.final.tsv"
 
 
-def test():
+def test(chr, start, end):
+    region = chr + "-" + str(start) + ":" + str(end)
+
+    result = subprocess.run([GFATOOLS, "view", GFA, "-R", region], capture_output=True, text=True).stdout.strip("\n")
+    print(result)
+    
+    print("result")
 
     gfa = gfapy.Gfa.from_file(GFA)
     print(len(gfa.lines))
