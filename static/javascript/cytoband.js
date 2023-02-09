@@ -41,7 +41,6 @@ function highlight_genome_chr(chr_name) {
 
 function draw_genome_(data, chr_order) {
 
-    console.log(data)
     //---- Adjustable params ----
 
     let chr_height = 200;
