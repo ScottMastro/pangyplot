@@ -11,9 +11,19 @@ def select():
     start = request.args.get("start")
     end = request.args.get("end")
 
-    gfa.test(chromosome, start, end)
+    #gfa.test(chromosome, start, end)
     
-    resultDict = dict()
+    #temp
+    TSV = "static/data/DRB1-3123_sorted.lay.tsv"
+    GFA = "static/data/DRB1-3123_sorted.gfa"
+
+    print("making graph")
+    nodes = gfa.tsv_layout(TSV)
+    links = gfa.create_edges(nodes, GFA)
+
+    resultDict = {"nodes": nodes, "links": links}
+    print("done")
+
     return resultDict, 200
 
 @app.route('/cytoband', methods=["GET"])

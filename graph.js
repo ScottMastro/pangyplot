@@ -1,10 +1,18 @@
 
+var xmlHttp = new XMLHttpRequest();
+xmlHttp.onreadystatechange = function() { 
+    if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+        console.log(xmlHttp.responseText);
+}
+xmlHttp.open("GET", "/cytoband", true);
+xmlHttp.send(null);
 
-const GFA = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/HGSVC_chr22_17119590_17880307.og.gfa"
-//"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.gfa"
-const TSV = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/u.lay.tsv"
-//"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/HGSVC_chr22_17119590_17880307.lay.tsv" 
-//"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.lay.tsv"
+console.log("hi")
+
+
+const GFA = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.gfa"
+const TSV = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.lay.tsv"
+
 
 const canvasDiv = document.getElementById("canvas");
 
