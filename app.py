@@ -16,10 +16,15 @@ def select():
     #temp
     TSV = "static/data/DRB1-3123_sorted.lay.tsv"
     GFA = "static/data/DRB1-3123_sorted.gfa"
+    BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
 
     print("making graph")
     nodes = gfa.tsv_layout(TSV)
     links = gfa.create_edges(nodes, GFA)
+    bubbles = gfa.bubble_json(BUBBLE)
+
+    nodes = gfa.poke_bubbles(nodes, bubbles)
+
 
     resultDict = {"nodes": nodes, "links": links}
     print("done")
