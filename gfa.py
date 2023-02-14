@@ -1,7 +1,8 @@
 from math import floor
-import gfapy
+#import gfapy
 import subprocess
 import pandas as pd
+import json
 
 GFATOOLS="/home/scott/bin/gfatools/gfatools"
 ODGI="/home/scott/bin/odgi/bin/odgi"
@@ -10,7 +11,7 @@ ODGI="/home/scott/bin/odgi/bin/odgi"
 
 TSV = "static/data/DRB1-3123_sorted.lay.tsv"
 GFA = "static/data/DRB1-3123_sorted.gfa"
-
+BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
 
 
 OG="./static/data/chr6.pan.fa.a2fb268.4030258.b5c839f.smooth.gfa.og"
@@ -62,7 +63,6 @@ def test(chr, start, end):
 
 
 
-
 def tsv_layout(tsv):
 
     nodes = []
@@ -74,11 +74,15 @@ def tsv_layout(tsv):
             else:
                 cols = line.strip().split("\t")
                 i = int(cols[0])
-                node = {"id": i, "nodeid": floor(i/2), "x": float(cols[1]), "y": float(cols[2]),
-                    "group": 3, "description": "desc"}
+                node = {"id": i, "nodeid": floor(i/2), "x": float(cols[1])*10, "y": float(cols[2])*5,
+                    "group": 3, "description": "desc", "size": 6}
                 nodes.append(node)
 
     return nodes
+
+def distance(n1, n2):
+    return ((n2["x"] - n1["x"])**2 + (n2["y"] - n1["y"])**2)**0.5
+
 
 def create_edges(nodes, gfa):
     edges = []
@@ -86,7 +90,7 @@ def create_edges(nodes, gfa):
     for i,node in enumerate(nodes):
         if i % 2 ==0 :
             d = {"source": node["id"], "target": nodes[i+1]["id"],
-                    "group": 3, "width": 10}
+                    "group": 3, "width": 10, "length":distance(node, nodes[i+1])}
             edges.append(d)
 
 
@@ -98,8 +102,38 @@ def create_edges(nodes, gfa):
 
                 source = n1*2 + 1
                 target = n2*2
-                d = {"source": source, "target": target, "group": 2, "width": 3}
+                d = {"source": source, "target": target, "group": 2, "width": 1, "length":10}
                 edges.append(d)
                 
     return(edges)
 
+def bubble_json(file):
+
+    with open(file) as f:
+        bubbles = json.load(f)
+        print(bubbles)
+        return bubbles
+
+def poke_bubbles(nodes, bubbles):
+    ends = set()
+    colour = dict()
+    for i in bubbles:
+        bubble = bubbles[i]
+        s,e = bubble["ends"]
+        ends.add(int(s))
+        ends.add(int(e))
+        colour[int(s)] = int(i)
+        colour[int(e)] = int(i)
+
+
+    print(ends)
+
+    for node in nodes:
+        #print(node["nodeid"], node["nodeid"] in ends)
+
+        if node["nodeid"] in ends:
+            node["group"] = colour[node["nodeid"]]
+
+            #print(node["nodeid"])
+
+    return nodes

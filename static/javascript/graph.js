@@ -1,113 +1,52 @@
-
-const GFA = //"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.gfa"
-"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/HGSVC_chr22_17119590_17880307.og.gfa"
-
-const TSV = //"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/data/DRB1-3123_sorted.lay.tsv" 
-//"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/u.lay.tsv"
-"https://raw.githubusercontent.com/ScottMastro/example_graph_data/master/HGSVC_chr22_17119590_17880307.lay.tsv" 
-//
-//"nodes": [
-//{
-//  "id": "4062045",
-//  "user": "mbostock",
-//  "description": "Force-Directed Graph"
-//},
-
-function parseTabSeparatedLayout(tsv, type2) {
- let nodes = [];
- let i = 0; let j = 0;
-
- if (! type2){
-   d3.tsv(tsv, function(data) {
-     if (i % 2 == 0){
-       j = j+1
-       nodes.push({"id": j, "x1": parseFloat(data.X), "y1": parseFloat(data.Y),
-       "user": "hi", "description":"desc"});
-     } else {
-         nodes[nodes.length - 1]["x2"] = parseFloat(data.X)
-         nodes[nodes.length - 1]["y2"] = parseFloat(data.Y)
-     }    
-     i = i+1;
-   });
-
-   return nodes;
-
- } else{
-   let edges = [];
-
-   d3.tsv(tsv, function(data) {
-     i = i+1;
-     nodes.push({"id": i, "x": parseFloat(data.X)/100, "y": parseFloat(data.Y),
-     "user": "hi", "description":"desc", "group":3});
-
-     if (i % 2 == 0){
-         edges.push({"source": i, "target": i-1, "group":3, "width":10})
-         j=j+1
-       }
-   });
-
-   return [nodes, edges];
-
- }
-}
-
-let layout = parseTabSeparatedLayout(TSV, true)
-
-//console.log(layout)
-
-//"links": [
-//{
-//  "source": "950642",
-//  "target": "4062045"
-//},
-
-
-function parseGfa(gfa, type2, layout) {
- let edges = [];
-
- if (! type2){
-   d3.tsv(gfa, function(data) {
-       if (data["#0"] == "L"){
-           let n1 = parseInt(data["1"]);
-           let n2 = parseInt(data["3"]);
-               
-           edges.push({"source": n1, "target": n2})
-       }
-   });
-  } else{
-   d3.tsv(gfa, function(data) {
-       if (data["#0"] == "L"){
-           let n1 = parseInt(data["1"]);
-           let n2 = parseInt(data["3"]);
-
-           edges.push({"source": n1*2, "target": n2*2-1, "group": 0, "width":1})
-           console.log("x")
-
-       }
-   });
+function force(alpha) {
+    for (let i = 0, n = nodes.length, node, k = alpha * 0.1; i < n; ++i) {
+      node = nodes[i];
+      node.vx -= node.x * k;
+      node.vy -= node.y * k;
+    }
   }
- return edges
+
+function draw_graph(graph){
+    const canvas = document.getElementById('graph');
+
+    //console.log({"nodes": layout[0], "links": layout[1].concat(edges)})
+    
+    console.log(graph)
+
+    const Graph = ForceGraph()(canvas)
+        .backgroundColor('#101020')
+        .nodeVal(node => node["size"])
+        .nodeRelSize(6)
+        .nodeAutoColorBy('group')
+        .linkAutoColorBy("group")
+        .linkWidth("width")
+        .linkDirectionalParticles(1)
+        .graphData(graph)
+        .d3Force('link').distance(link => link["length"] )
+
+        //.warmupTicks(3)
+       //.nodeLabel(node => `${node.user}: ${node.description}`)
+
 }
 
-let edges = parseGfa(GFA, type2=true, layout)
-console.log({"nodes": layout[0], "links": layout[1].concat(edges)})
 
+function fetch(chromosome, start, end) {
 
-//console.log(graph)
+    let url = "/select?chromosome=" + chromosome;
+    url = url + "&start=" + start;
+    url = url + "&end=" + end;
 
-fetch('https://raw.githubusercontent.com/vasturiano/force-graph/master/example/datasets/blocks.json').then(res => res.json()).then(data => {
- const elem = document.getElementById('graph');
- 
- console.log({"nodes": layout[0], "links": layout[1].concat(edges)})
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+            var data = JSON.parse(xmlHttp.response)
+            console.log(data)
+            draw_graph(data)
+        }
+    }
+    xmlHttp.open("GET", url, true);
+    xmlHttp.send();
+}
 
- data={"nodes": layout[0], "links": layout[1].concat(edges)}
- const Graph = ForceGraph()(elem)
-   .backgroundColor('#101020')
-   .nodeRelSize(6)
-   .nodeLabel(node => `${node.user}: ${node.description}`)
-   .nodeAutoColorBy('group')
-   .linkAutoColorBy("group")
-   .linkWidth("width")
-   .linkDirectionalParticles(1)
-   .graphData(data);
- });
+fetch("chr18", 0, 100000)
+
