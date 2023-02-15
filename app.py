@@ -19,14 +19,19 @@ def select():
     BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
 
     print("making graph")
-    nodes = gfa.tsv_layout(TSV)
-    links = gfa.create_edges(nodes, GFA)
-    bubbles = gfa.bubble_json(BUBBLE)
 
-    nodes = gfa.poke_bubbles(nodes, links, bubbles)
+    bubbles = gfa.bubble_dict(BUBBLE)
+    layout = gfa.layout_dict(TSV)
+    graph = gfa.graph_dict(GFA)
 
+    nodes, nodeLinks, bubbleGraph = gfa.create_nodes(layout, bubbles)
+    links, bubbleGraph = gfa.create_links(graph, bubbles, bubbleGraph)
 
-    resultDict = {"nodes": nodes, "links": links}
+    bubbleNodes, bubbleLinks = gfa.replace_bubbles(bubbles, bubbleGraph)
+
+    #nodes = gfa.poke_bubbles(nodes, links, bubbles)
+
+    resultDict = {"nodes": nodes+bubbleNodes, "links": nodeLinks+links+bubbleLinks}
     print("done")
 
     return resultDict, 200

@@ -25,9 +25,11 @@ function draw_graph(graph){
         .linkWidth("width")
         .graphData(graph)
         .d3Force('link').distance(link => link["length"] )
+
+        //.linkDirectionalParticles(10)
+
         //.warmupTicks(3)
         //.nodeLabel(node => `${node.user}: ${node.description}`)
-        //.linkDirectionalParticles(1)
 
 }
 
