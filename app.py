@@ -23,7 +23,7 @@ def select():
     links = gfa.create_edges(nodes, GFA)
     bubbles = gfa.bubble_json(BUBBLE)
 
-    nodes = gfa.poke_bubbles(nodes, bubbles)
+    nodes = gfa.poke_bubbles(nodes, links, bubbles)
 
 
     resultDict = {"nodes": nodes, "links": links}

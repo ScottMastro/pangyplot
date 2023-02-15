@@ -17,15 +17,17 @@ function draw_graph(graph){
         .backgroundColor('#101020')
         .nodeVal(node => node["size"])
         .nodeRelSize(6)
+        .nodeId('id')
+        .nodeLabel('nodeid')
+        .linkLabel('group')
         .nodeAutoColorBy('group')
         .linkAutoColorBy("group")
         .linkWidth("width")
-        .linkDirectionalParticles(1)
         .graphData(graph)
         .d3Force('link').distance(link => link["length"] )
-
         //.warmupTicks(3)
-       //.nodeLabel(node => `${node.user}: ${node.description}`)
+        //.nodeLabel(node => `${node.user}: ${node.description}`)
+        //.linkDirectionalParticles(1)
 
 }
 

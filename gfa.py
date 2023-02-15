@@ -74,8 +74,8 @@ def tsv_layout(tsv):
             else:
                 cols = line.strip().split("\t")
                 i = int(cols[0])
-                node = {"id": i, "nodeid": floor(i/2), "x": float(cols[1])*10, "y": float(cols[2])*5,
-                    "group": 3, "description": "desc", "size": 6}
+                node = {"id": i, "nodeid": floor(i/2)+1, "x": float(cols[1])*10, "y": float(cols[2])*5,
+                    "group": 3, "description": "desc", "size": 3}
                 nodes.append(node)
 
     return nodes
@@ -86,23 +86,32 @@ def distance(n1, n2):
 
 def create_edges(nodes, gfa):
     edges = []
-    
+    node_dict = dict()
+    for node in nodes:
+        nodeid = node["nodeid"]
+        if nodeid not in node_dict:
+            node_dict[nodeid] = [node]
+        else:
+            node_dict[nodeid].append(node)
+
     for i,node in enumerate(nodes):
-        if i % 2 ==0 :
+        if i % 2 == 0 :
             d = {"source": node["id"], "target": nodes[i+1]["id"],
-                    "group": 3, "width": 10, "length":distance(node, nodes[i+1])}
+                    "group": 3, "width": 10, "length":distance(node, nodes[i+1]), "type": "node"}
             edges.append(d)
 
+
+    #todo: flip direction for "negative" strand ex 2078
 
     with open(gfa) as g:
         for line in g:
             cols = line.split("\t")
             if cols[0] == "L":
-                n1 = int(cols[1])-1 ; n2 = int(cols[3])-1
+                n1 = int(cols[1]) ; n2 = int(cols[3])
 
-                source = n1*2 + 1
-                target = n2*2
-                d = {"source": source, "target": target, "group": 2, "width": 1, "length":10}
+                source = node_dict[n1][1]["id"]
+                target = node_dict[n2][0]["id"]
+                d = {"source": source, "target": target, "group": 2, "width": 1, "length": 30, "type": "edge"}
                 edges.append(d)
                 
     return(edges)
@@ -111,29 +120,48 @@ def bubble_json(file):
 
     with open(file) as f:
         bubbles = json.load(f)
-        print(bubbles)
         return bubbles
 
-def poke_bubbles(nodes, bubbles):
+def poke_bubbles(nodes, links, bubbles):
     ends = set()
     colour = dict()
     for i in bubbles:
         bubble = bubbles[i]
-        s,e = bubble["ends"]
-        ends.add(int(s))
-        ends.add(int(e))
-        colour[int(s)] = int(i)
-        colour[int(e)] = int(i)
+        
+        print("---------------------------")
+
+        # simple, insertion, super
+        for b in bubble["bubbles"]:
+            print(b)
+            if b["type"] == "super":
+                for x in b["inside"]:
+                    ends.add(int(x))
+                    colour[int(x)] = int(i)
+            if b["type"] == "simple":
+                for x in b["inside"]:
+                    ends.add(int(x))
+                    colour[int(x)] = 0
+    
 
 
-    print(ends)
 
     for node in nodes:
         #print(node["nodeid"], node["nodeid"] in ends)
+
 
         if node["nodeid"] in ends:
             node["group"] = colour[node["nodeid"]]
 
             #print(node["nodeid"])
+
+    for link in links:
+
+        if link["type"] == "node":
+            n1 = nodes[link["source"]]["nodeid"]
+            n2 = nodes[link["target"]]["nodeid"]
+
+            if n1 in colour and n2 in colour and colour[n1] == colour[n2]:
+                link["group"] = colour[n1]
+
 
     return nodes
