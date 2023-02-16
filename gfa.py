@@ -17,7 +17,7 @@ BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
 
 OG="./static/data/chr6.pan.fa.a2fb268.4030258.b5c839f.smooth.gfa.og"
 
-COLLAPSE_SIMPLE = False
+COLLAPSE_SIMPLE = True
 
 def bubble_dict(file):
 
