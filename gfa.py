@@ -1,23 +1,21 @@
 from math import floor
 #import gfapy
 import subprocess
-import pandas as pd
 import json
 
 from cytoband import X
 
 GFATOOLS="/home/scott/bin/gfatools/gfatools"
 ODGI="/home/scott/bin/odgi/bin/odgi"
-#GFA="./static/data/chr18.smooth.final.gfa"
-#TSV="./static/data/chr18.smooth.final.tsv"
-
-TSV = "static/data/DRB1-3123_sorted.lay.tsv"
-GFA = "static/data/DRB1-3123_sorted.gfa"
-BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
 
 OG="./static/data/chr6.pan.fa.a2fb268.4030258.b5c839f.smooth.gfa.og"
 
 COLLAPSE_SIMPLE = True
+
+def get_id(nodeId, side=0):
+    return str((int(nodeId)-1)*2 + side)
+def get_node(id):
+    return str(floor(int(id)/2)+1)
 
 def bubble_dict(file):
 
@@ -25,9 +23,12 @@ def bubble_dict(file):
         bubbles = json.load(f)
         return bubbles
 
-def layout_dict(file, skipFirst=True):
+def distance(node1, node2):
+    return ((node2["x"] - node1["x"])**2 + (node2["y"] - node1["y"])**2)**0.5
 
-    layout = dict()
+def nodes_dict(file, skipFirst=True):
+
+    nodes = dict()
     with open(file) as t:
         for line in t:
             if skipFirst:
@@ -35,23 +36,28 @@ def layout_dict(file, skipFirst=True):
             else:
                 # idx,X,Y,component
                 cols = line.strip().split("\t")
-                idx = int(cols[0])
+                id = cols[0]
                 xpos = float(cols[1])*10
                 ypos = float(cols[2])*5
 
-                nodeId =  floor(idx/2)+1
+                nodeId =  get_node(id)
                 
-                if nodeId not in layout:
-                    node = {"x1": xpos, "y1": ypos}
-                    layout[nodeId] = node
-                else:
-                    layout[nodeId]["x2"] = xpos
-                    layout[nodeId]["y2"] = ypos
+                node = {"nodeid": nodeId, "id": id, "x": xpos, "y": ypos, "group": 3, "description": "desc", "size": 3}
 
-    return layout
+                if nodeId not in nodes:
+                    nodes[nodeId] = {"nodes": [], "links": []}
+                
+                nodes[nodeId]["nodes"].append(node)
 
-def graph_dict(file):
-    graph = dict()
+    for nodeId in nodes:
+        n1,n2= nodes[nodeId]["nodes"]
+        link = {"source": n1["id"], "target": n2["id"], "group": 3, "width": 10, "length":distance(n1,n2), "type": "node"}
+        nodes[nodeId]["links"].append(link)
+
+    return nodes
+
+def link_dict(file):
+    links = dict()
 
     #todo: flip direction for "negative" strand ex 2078
 
@@ -59,27 +65,43 @@ def graph_dict(file):
         for line in f:
             cols = line.split("\t")
             if cols[0] == "L":
-                n1 = int(cols[1]) ; n2 = int(cols[3])
+                nodeIdFrom = cols[1] ; nodeIdTo = cols[3]
+                link = {"source": get_id(nodeIdFrom, 1), "target": get_id(nodeIdTo, 0),
+                            "group": 2, "width": 1, "length": 30, "type": "edge"}
 
-                if n1 not in graph:
-                    graph[n1] = {"to": [], "from": []}
-                if n2 not in graph:
-                    graph[n2] = {"to": [], "from": []}
+                if nodeIdFrom not in links:
+                    links[nodeIdFrom] = {"to": [], "from": []}
+                if nodeIdTo not in links:
+                    links[nodeIdTo] = {"to": [], "from": []}
 
-                graph[n1]["to"].append(n2)
-                graph[n2]["from"].append(n1)
+                links[nodeIdFrom]["to"].append(link)
+                links[nodeIdTo]["from"].append(link)
+
+    return(links)
+
+
+def replace_bubbles(nodes, links, bubbles):
+
+    bubbleGraph = dict()
+
+    for bubbleId in bubbles:
+        for bubble in bubbles[bubbleId]["bubbles"]:
+            print(bubble)
+            
+
+            if bubble["type"] == "simple":
+                bid = bubble["id"]
+                bubbleGraph[bid] = {"nodes":[], "links":[]}
+                for nodeId in bubble["inside"]:
+                    node = nodes.pop(nodeId)
+
+                    print(node)
+
+
+
+
+    return nodes, links
     
-    return(graph)
-
-
-def get_id(nodeId, side=1):
-    return int(nodeId)*2 + side-1
-def get_node(id):
-    return floor(id/2)
-
-
-def distance(node):
-    return ((node["x2"] - node["x1"])**2 + (node["y2"] - node["y1"])**2)**0.5
 
 
 def node_to_bubble_dict(bubbles):
@@ -104,32 +126,61 @@ def init_bubble_graphs(nodeToBubble):
                 bubbleGraph[bubbleId] = {"nodes": [], "links": []}
     return bubbleGraph
 
-def create_nodes(layout, bubbles):
+def create_graph(layout, gfa):
     
-    nodes = []
-    nodeLinks = []
+    nodes = dict()
+    links = dict()
 
-    nodeToBubble = node_to_bubble_dict(bubbles)
-    bubbleGraph = init_bubble_graphs(nodeToBubble)
+    #nodeToBubble = node_to_bubble_dict(bubbles)
+    #bubbleGraph = init_bubble_graphs(nodeToBubble)
 
     for nodeId in layout:
+        
+        nodes[nodeId] = {"nodes": [], "links": []}
+
         e = layout[nodeId]
-        id1 = get_id(nodeId,1)
-        id2 = get_id(nodeId,2)
+        id1 = get_id(nodeId,0)
+        id2 = get_id(nodeId,1)
 
         n1 = {"nodeid": nodeId, "id": id1, "x": e["x1"], "y": e["y1"], "group": 3, "description": "desc", "size": 3}
         n2 = {"nodeid": nodeId, "id": id2, "x": e["x2"], "y": e["y2"], "group": 3, "description": "desc", "size": 3}
         link = {"source": id1, "target": id2, "group": 3, "width": 10, "length":distance(e), "type": "node"}
 
-        if COLLAPSE_SIMPLE and nodeId in nodeToBubble:
+        nodes[nodeId] = {"nodes": [n1,n2], "links": [link]}
 
-            for bid in nodeToBubble[nodeId]:
-                bubbleGraph[bid]["nodes"].extend([n1,n2])
-                bubbleGraph[bid]["links"].append(link)
-        else:
-            nodes.append(n1)
-            nodes.append(n2)
-            nodeLinks.append(link)
+    for nodeId in gfa:
+        for nodeIdTo in gfa[nodeId]["to"]:
+
+            link = {"source": get_id(nodeId, 1), "target": get_id(nodeIdTo, 0),
+                        "group": 2, "width": 1, "length": 30, "type": "edge"}
+
+            if nodeId not in links:
+                links[nodeId] = {"to": [], "from": [] }
+
+
+
+            if COLLAPSE_SIMPLE and nodeIdTo in nodeToBubble:
+                for bid in nodeToBubble[nodeIdTo]:
+                    bubbleGraph[bid]["links"].append(link)
+            elif COLLAPSE_SIMPLE and nodeId in nodeToBubble:
+                for bid in nodeToBubble[nodeId]:
+                    bubbleGraph[bid]["links"].append(link)
+
+            else:
+                links.append(link)
+    
+    return links, bubbleGraph
+
+
+        #if COLLAPSE_SIMPLE and nodeId in nodeToBubble:
+
+        #    for bid in nodeToBubble[nodeId]:
+        #        bubbleGraph[bid]["nodes"].extend([n1,n2])
+        #        bubbleGraph[bid]["links"].append(link)
+        #else:
+        #    nodes.append(n1)
+        #    nodes.append(n2)
+        #    nodeLinks.append(link)
 
     return nodes, nodeLinks, bubbleGraph
 
@@ -141,7 +192,7 @@ def create_links(graph, bubbles, bubbleGraph):
     for nodeId in graph:
         for nodeIdTo in graph[nodeId]["to"]:
 
-            link = {"source": get_id(nodeId, 2), "target": get_id(nodeIdTo, 1),
+            link = {"source": get_id(nodeId, 1), "target": get_id(nodeIdTo, 0),
                         "group": 2, "width": 1, "length": 30, "type": "edge"}
 
             if COLLAPSE_SIMPLE and nodeIdTo in nodeToBubble:
@@ -157,7 +208,7 @@ def create_links(graph, bubbles, bubbleGraph):
     return links, bubbleGraph
 
 
-def replace_bubbles(bubbles, bubbleGraph):
+def replace_bubbles2(bubbles, bubbleGraph):
 
     nodeToBubble = node_to_bubble_dict(bubbles)
 
