@@ -26,13 +26,16 @@ def bubble_dict(file):
 def distance(node1, node2):
     return ((node2["x"] - node1["x"])**2 + (node2["y"] - node1["y"])**2)**0.5
 
-def nodes_dict(file, skipFirst=True):
+def new_subgraph():
+    return {"nodes": [], "nodeLinks": [], "toLinks": [], "fromLinks": [], "subgraph": []}
 
-    nodes = dict()
-    with open(file) as t:
+def graph_dict(gfa, layout, skipFirstLayoutLine=True):
+
+    graph = dict()
+    with open(layout) as t:
         for line in t:
-            if skipFirst:
-                skipFirst=False
+            if skipFirstLayoutLine:
+                skipFirstLayoutLine=False
             else:
                 # idx,X,Y,component
                 cols = line.strip().split("\t")
@@ -44,24 +47,17 @@ def nodes_dict(file, skipFirst=True):
                 
                 node = {"nodeid": nodeId, "id": id, "x": xpos, "y": ypos, "group": 3, "description": "desc", "size": 3}
 
-                if nodeId not in nodes:
-                    nodes[nodeId] = {"nodes": [], "links": []}
+                if nodeId not in graph:
+                    graph[nodeId] = new_subgraph()
                 
-                nodes[nodeId]["nodes"].append(node)
+                graph[nodeId]["nodes"].append(node)
 
-    for nodeId in nodes:
-        n1,n2= nodes[nodeId]["nodes"]
+    for nodeId in graph:
+        n1,n2= graph[nodeId]["nodes"]
         link = {"source": n1["id"], "target": n2["id"], "group": 3, "width": 10, "length":distance(n1,n2), "type": "node"}
-        nodes[nodeId]["links"].append(link)
+        graph[nodeId]["nodeLinks"].append(link)
 
-    return nodes
-
-def link_dict(file):
-    links = dict()
-
-    #todo: flip direction for "negative" strand ex 2078
-
-    with open(file) as f:
+    with open(gfa) as f:
         for line in f:
             cols = line.split("\t")
             if cols[0] == "L":
@@ -69,200 +65,81 @@ def link_dict(file):
                 link = {"source": get_id(nodeIdFrom, 1), "target": get_id(nodeIdTo, 0),
                             "group": 2, "width": 1, "length": 30, "type": "edge"}
 
-                if nodeIdFrom not in links:
-                    links[nodeIdFrom] = {"to": [], "from": []}
-                if nodeIdTo not in links:
-                    links[nodeIdTo] = {"to": [], "from": []}
-
-                links[nodeIdFrom]["to"].append(link)
-                links[nodeIdTo]["from"].append(link)
-
-    return(links)
+                graph[nodeIdFrom]["toLinks"].append(link)
+                graph[nodeIdTo]["fromLinks"].append(link)
 
 
-def replace_bubbles(nodes, links, bubbles):
+    return graph
 
-    bubbleGraph = dict()
+def combine_subgraphs(subgraphs):
+    combined = new_subgraph()
+    for x in ["nodes", "nodeLinks", "toLinks", "fromLinks", "subgraph"]:
+        for subgraph in subgraphs:
+            combined[x].extend(subgraph[x])
+    return combined
+
+def graph_center(graph):
+    xpos = 0 ; ypos = 0 ; n = 0
+    for nodeId in graph:
+        xpos += sum([n["x"] for n in graph[nodeId]["nodes"]])
+        ypos += sum([n["y"] for n in graph[nodeId]["nodes"]])
+        n += len(graph[nodeId]["nodes"])
+    return (xpos/n, ypos/n)
+
+def generate_bubble_node(bid, subgraph):
+
+    (xpos, ypos) = graph_center(subgraph)
+    bnode = {"nodeid": "snp", "id": bid, "x": xpos, "y": ypos, "group": 12, "description": "desc", "size": 15}
+    
+    bubbleNode = new_subgraph()
+    bubbleNode["subgraph"] = subgraph
+    bubbleNode["nodes"].append(bnode)
+    return bubbleNode
+
+def add_bubble_subgraph(bubble, graph):
+    bid = "b"+str(bubble["id"])
+    subgraph = dict()
+    insideIds = []
+
+    #loop over every node inside the bubble
+    for nodeId in bubble["inside"]:
+        if nodeId in graph:
+            subgraph[nodeId] = graph.pop(nodeId)
+            insideIds.extend([node["id"] for node in subgraph[nodeId]["nodes"]])
+
+    
+
+    bubbleGraph = generate_bubble_node(bid, subgraph)
+
+    #redraw links to bubble
+    for nodeId in bubble["ends"]:
+
+        for link in graph[nodeId]["toLinks"]:
+            if link["target"] in insideIds:
+                link["target"] = bid
+                bubbleGraph["fromLinks"].append(link)
+
+        for link in graph[nodeId]["fromLinks"]:
+            if link["source"] in insideIds:
+                link["source"] = bid
+                bubbleGraph["toLinks"].append(link)
+
+    graph[bid] = bubbleGraph
+    return graph
+
+def replace_bubbles(graph, bubbles):
 
     for bubbleId in bubbles:
+
+        if "parent_chain" in bubbles[bubbleId]:
+            print(bubbles[bubbleId]["parent_chain"])
+        
         for bubble in bubbles[bubbleId]["bubbles"]:
-            print(bubble)
-            
 
-            if bubble["type"] == "simple":
-                bid = bubble["id"]
-                bubbleGraph[bid] = {"nodes":[], "links":[]}
-                for nodeId in bubble["inside"]:
-                    node = nodes.pop(nodeId)
+            if bubble["type"] == "super":
+                graph = add_bubble_subgraph(bubble, graph)
 
-                    print(node)
-
-
-
-
-    return nodes, links
-    
-
-
-def node_to_bubble_dict(bubbles):
-    nodeToBubble = dict()
-    
-    for superBubbleId in bubbles:     
-        for bubble in bubbles[superBubbleId]["bubbles"]:
-            bid = int(bubble["id"])
-            if bubble["type"] == "simple":
-                for nodeId in bubble["inside"]:
-                    nid = int(nodeId)
-                    if nid not in nodeToBubble:
-                        nodeToBubble[nid] = []
-                    nodeToBubble[nid].append(bid)
-    return nodeToBubble
-
-def init_bubble_graphs(nodeToBubble):
-    bubbleGraph = dict()
-    for nodeId in nodeToBubble:
-        for bubbleId in nodeToBubble[nodeId]:
-            if bubbleId not in bubbleGraph:
-                bubbleGraph[bubbleId] = {"nodes": [], "links": []}
-    return bubbleGraph
-
-def create_graph(layout, gfa):
-    
-    nodes = dict()
-    links = dict()
-
-    #nodeToBubble = node_to_bubble_dict(bubbles)
-    #bubbleGraph = init_bubble_graphs(nodeToBubble)
-
-    for nodeId in layout:
-        
-        nodes[nodeId] = {"nodes": [], "links": []}
-
-        e = layout[nodeId]
-        id1 = get_id(nodeId,0)
-        id2 = get_id(nodeId,1)
-
-        n1 = {"nodeid": nodeId, "id": id1, "x": e["x1"], "y": e["y1"], "group": 3, "description": "desc", "size": 3}
-        n2 = {"nodeid": nodeId, "id": id2, "x": e["x2"], "y": e["y2"], "group": 3, "description": "desc", "size": 3}
-        link = {"source": id1, "target": id2, "group": 3, "width": 10, "length":distance(e), "type": "node"}
-
-        nodes[nodeId] = {"nodes": [n1,n2], "links": [link]}
-
-    for nodeId in gfa:
-        for nodeIdTo in gfa[nodeId]["to"]:
-
-            link = {"source": get_id(nodeId, 1), "target": get_id(nodeIdTo, 0),
-                        "group": 2, "width": 1, "length": 30, "type": "edge"}
-
-            if nodeId not in links:
-                links[nodeId] = {"to": [], "from": [] }
-
-
-
-            if COLLAPSE_SIMPLE and nodeIdTo in nodeToBubble:
-                for bid in nodeToBubble[nodeIdTo]:
-                    bubbleGraph[bid]["links"].append(link)
-            elif COLLAPSE_SIMPLE and nodeId in nodeToBubble:
-                for bid in nodeToBubble[nodeId]:
-                    bubbleGraph[bid]["links"].append(link)
-
-            else:
-                links.append(link)
-    
-    return links, bubbleGraph
-
-
-        #if COLLAPSE_SIMPLE and nodeId in nodeToBubble:
-
-        #    for bid in nodeToBubble[nodeId]:
-        #        bubbleGraph[bid]["nodes"].extend([n1,n2])
-        #        bubbleGraph[bid]["links"].append(link)
-        #else:
-        #    nodes.append(n1)
-        #    nodes.append(n2)
-        #    nodeLinks.append(link)
-
-    return nodes, nodeLinks, bubbleGraph
-
-def create_links(graph, bubbles, bubbleGraph):
-
-    nodeToBubble = node_to_bubble_dict(bubbles)
-    
-    links = []
-    for nodeId in graph:
-        for nodeIdTo in graph[nodeId]["to"]:
-
-            link = {"source": get_id(nodeId, 1), "target": get_id(nodeIdTo, 0),
-                        "group": 2, "width": 1, "length": 30, "type": "edge"}
-
-            if COLLAPSE_SIMPLE and nodeIdTo in nodeToBubble:
-                for bid in nodeToBubble[nodeIdTo]:
-                    bubbleGraph[bid]["links"].append(link)
-            elif COLLAPSE_SIMPLE and nodeId in nodeToBubble:
-                for bid in nodeToBubble[nodeId]:
-                    bubbleGraph[bid]["links"].append(link)
-
-            else:
-                links.append(link)
-    
-    return links, bubbleGraph
-
-
-def replace_bubbles2(bubbles, bubbleGraph):
-
-    nodeToBubble = node_to_bubble_dict(bubbles)
-
-    bubbleNodes=[]
-    bubbleLinks=[]
-
-    for bid in bubbleGraph:
-        bgraph = bubbleGraph[bid]
-        if len(bgraph["nodes"]) == 0: continue
-        
-        bstring = "b"+str(bid)
-        
-        xpos = sum([n["x"] for n in bgraph["nodes"]])/len(bgraph["nodes"])
-        ypos = sum([n["y"] for n in bgraph["nodes"]])/len(bgraph["nodes"])
-
-        bnode = {"nodeid": "snp", "id": bstring, "x": xpos, "y": ypos, "group": 12, "description": "desc", "size": 15}
-        bubbleNodes.append(bnode)
-
-        links = bubbleGraph[bid]["links"]
-        for link in links:
-            sourceNodeId = get_node(link["source"])
-            targetNodeId = get_node(link["target"])
-
-            if sourceNodeId not in nodeToBubble:
-                blink =  {"source": link["source"], "target": bstring,
-                        "group": 5, "width": 3, "length": 30, "type": "edge"}
-                bubbleLinks.append(blink)
-            if targetNodeId not in nodeToBubble:
-                blink =  {"source": bstring, "target": link["target"],
-                        "group": 6, "width": 3, "length": 30, "type": "edge"}
-                bubbleLinks.append(blink)
-
-    return bubbleNodes, bubbleLinks
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return graph
 
 
 
