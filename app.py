@@ -22,9 +22,9 @@ def select():
 
     bubbles = gfa.bubble_dict(BUBBLE)
     nodes = gfa.nodes_dict(TSV)
-    links = gfa.link_dict(GFA)
+    nodes = gfa.link_dict(GFA, nodes)
 
-    nodes, links = gfa.replace_bubbles(nodes, links, bubbles)
+    #nodes, links = gfa.replace_bubbles(nodes, links, bubbles)
 
     #nodes, nodeLinks, bubbleGraph = gfa.create_graph(layout, gfa)
     #links, bubbleGraph = gfa.create_links(gfa, bubbles, bubbleGraph)
@@ -33,13 +33,10 @@ def select():
     graphNodes = []
     graphLinks = []
     for nodeId in nodes:
-        graphNodes.extend(nodes[nodeId]["nodes"])
-        graphLinks.extend(nodes[nodeId]["links"])
+        print(nodes[nodeId].to_node_dict())
+        graphNodes.extend(nodes[nodeId].to_node_dict())
+        graphLinks.extend(nodes[nodeId].to_link_dict())
     
-    for nodeId in links:
-        graphLinks.extend(links[nodeId]["to"])
-
-
     resultDict = {"nodes": graphNodes, "links": graphLinks}
     print("done")
 

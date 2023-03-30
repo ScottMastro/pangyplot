@@ -4,6 +4,8 @@ import subprocess
 import json
 
 from cytoband import X
+from segment import Segment
+
 
 GFATOOLS="/home/scott/bin/gfatools/gfatools"
 ODGI="/home/scott/bin/odgi/bin/odgi"
@@ -18,7 +20,6 @@ def get_node(id):
     return str(floor(int(id)/2)+1)
 
 def bubble_dict(file):
-
     with open(file) as f:
         bubbles = json.load(f)
         return bubbles
@@ -26,7 +27,7 @@ def bubble_dict(file):
 def distance(node1, node2):
     return ((node2["x"] - node1["x"])**2 + (node2["y"] - node1["y"])**2)**0.5
 
-def nodes_dict(file, skipFirst=True):
+def nodes_dict_old(file, skipFirst=True):
 
     nodes = dict()
     with open(file) as t:
@@ -56,7 +57,31 @@ def nodes_dict(file, skipFirst=True):
 
     return nodes
 
-def link_dict(file):
+def nodes_dict(file, skipFirst=True):
+
+    nodes = dict()
+    with open(file) as t:
+        for line in t:
+            if skipFirst:
+                skipFirst=False
+            else:
+                # idx,X,Y,component
+                cols = line.strip().split("\t")
+                id = cols[0]
+                xpos = float(cols[1])*10
+                ypos = float(cols[2])*5
+                
+                nodeId =  get_node(id)
+
+                if nodeId not in nodes:
+                    node = Segment(nodeId, group=3, description="desc", size=3)
+                    node.add_source_node(xpos,ypos)
+                    nodes[nodeId] = node
+                else:
+                    nodes[nodeId].add_sink_node(xpos,ypos)
+    return nodes
+
+def link_dict_old(file):
     links = dict()
 
     #todo: flip direction for "negative" strand ex 2078
@@ -79,6 +104,23 @@ def link_dict(file):
 
     return(links)
 
+
+def link_dict(file, nodes):
+
+    #todo: flip direction for "negative" strand ex 2078
+
+    with open(file) as f:
+        for line in f:
+            cols = line.split("\t")
+            if cols[0] == "L":
+                nodeIdFrom = cols[1] ; nodeIdTo = cols[3]
+                nodeFrom = nodes[nodeIdFrom]
+                nodeTo = nodes[nodeIdTo]
+
+                nodeFrom.add_link_to(nodeTo)
+                nodeTo.add_link_from(nodeFrom)
+
+    return(nodes)
 
 def replace_bubbles(nodes, links, bubbles):
 
