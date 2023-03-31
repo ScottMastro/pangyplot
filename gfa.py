@@ -19,47 +19,14 @@ def get_id(nodeId, side=0):
 def get_node(id):
     return str(floor(int(id)/2)+1)
 
-def bubble_dict(file):
-    with open(file) as f:
-        bubbles = json.load(f)
-        return bubbles
 
-def distance(node1, node2):
-    return ((node2["x"] - node1["x"])**2 + (node2["y"] - node1["y"])**2)**0.5
 
-def nodes_dict_old(file, skipFirst=True):
+def add_nodes(file, skipFirst=True):
 
-    nodes = dict()
-    with open(file) as t:
-        for line in t:
-            if skipFirst:
-                skipFirst=False
-            else:
-                # idx,X,Y,component
-                cols = line.strip().split("\t")
-                id = cols[0]
-                xpos = float(cols[1])*10
-                ypos = float(cols[2])*5
+    def get_node(id):
+        return str(floor(int(id)/2)+1)
 
-                nodeId =  get_node(id)
-                
-                node = {"nodeid": nodeId, "id": id, "x": xpos, "y": ypos, "group": 3, "description": "desc", "size": 3}
-
-                if nodeId not in nodes:
-                    nodes[nodeId] = {"nodes": [], "links": []}
-                
-                nodes[nodeId]["nodes"].append(node)
-
-    for nodeId in nodes:
-        n1,n2= nodes[nodeId]["nodes"]
-        link = {"source": n1["id"], "target": n2["id"], "group": 3, "width": 10, "length":distance(n1,n2), "type": "node"}
-        nodes[nodeId]["links"].append(link)
-
-    return nodes
-
-def nodes_dict(file, skipFirst=True):
-
-    nodes = dict()
+    graph = dict()
     with open(file) as t:
         for line in t:
             if skipFirst:
@@ -73,39 +40,15 @@ def nodes_dict(file, skipFirst=True):
                 
                 nodeId =  get_node(id)
 
-                if nodeId not in nodes:
+                if nodeId not in graph:
                     node = Segment(nodeId, group=3, description="desc", size=3)
                     node.add_source_node(xpos,ypos)
-                    nodes[nodeId] = node
+                    graph[nodeId] = node
                 else:
-                    nodes[nodeId].add_sink_node(xpos,ypos)
-    return nodes
+                    graph[nodeId].add_sink_node(xpos,ypos)
+    return graph
 
-def link_dict_old(file):
-    links = dict()
-
-    #todo: flip direction for "negative" strand ex 2078
-
-    with open(file) as f:
-        for line in f:
-            cols = line.split("\t")
-            if cols[0] == "L":
-                nodeIdFrom = cols[1] ; nodeIdTo = cols[3]
-                link = {"source": get_id(nodeIdFrom, 1), "target": get_id(nodeIdTo, 0),
-                            "group": 2, "width": 1, "length": 30, "type": "edge"}
-
-                if nodeIdFrom not in links:
-                    links[nodeIdFrom] = {"to": [], "from": []}
-                if nodeIdTo not in links:
-                    links[nodeIdTo] = {"to": [], "from": []}
-
-                links[nodeIdFrom]["to"].append(link)
-                links[nodeIdTo]["from"].append(link)
-
-    return(links)
-
-
-def link_dict(file, nodes):
+def add_links(file, graph):
 
     #todo: flip direction for "negative" strand ex 2078
 
@@ -114,35 +57,37 @@ def link_dict(file, nodes):
             cols = line.split("\t")
             if cols[0] == "L":
                 nodeIdFrom = cols[1] ; nodeIdTo = cols[3]
-                nodeFrom = nodes[nodeIdFrom]
-                nodeTo = nodes[nodeIdTo]
+                nodeFrom = graph[nodeIdFrom]
+                nodeTo = graph[nodeIdTo]
 
                 nodeFrom.add_link_to(nodeTo)
                 nodeTo.add_link_from(nodeFrom)
 
-    return(nodes)
+    return(graph)
 
-def replace_bubbles(nodes, links, bubbles):
 
-    bubbleGraph = dict()
+def replace_bubbles(file, graph):
+
+    with open(file) as f:
+        bubbles = json.load(f)
 
     for bubbleId in bubbles:
         for bubble in bubbles[bubbleId]["bubbles"]:
             print(bubble)
             
-
             if bubble["type"] == "simple":
-                bid = bubble["id"]
-                bubbleGraph[bid] = {"nodes":[], "links":[]}
+                bid = "bubble_" + str(bubble["id"])
+                
+                nodes = []
                 for nodeId in bubble["inside"]:
-                    node = nodes.pop(nodeId)
+                    nodes.append(graph.pop(nodeId))
 
-                    print(node)
+                node = Segment(bid, group=2, description="desc", size=5,
+                        subgraph=nodes)
 
+                graph[bid] = node
 
-
-
-    return nodes, links
+    return graph
     
 
 
@@ -296,6 +241,9 @@ def replace_bubbles2(bubbles, bubbleGraph):
 
 
 
+def distance(node1, node2):
+    return ((node2["x"] - node1["x"])**2 + (node2["y"] - node1["y"])**2)**0.5
+
 
 
 
@@ -396,5 +344,59 @@ def poke_bubbles(nodes, links, bubbles):
             if n1 in colour and n2 in colour and colour[n1] == colour[n2]:
                 link["group"] = colour[n1]
 
+
+    return nodes
+
+
+
+def link_dict_old(file):
+    links = dict()
+
+    #todo: flip direction for "negative" strand ex 2078
+
+    with open(file) as f:
+        for line in f:
+            cols = line.split("\t")
+            if cols[0] == "L":
+                nodeIdFrom = cols[1] ; nodeIdTo = cols[3]
+                link = {"source": get_id(nodeIdFrom, 1), "target": get_id(nodeIdTo, 0),
+                            "group": 2, "width": 1, "length": 30, "type": "edge"}
+
+                if nodeIdFrom not in links:
+                    links[nodeIdFrom] = {"to": [], "from": []}
+                if nodeIdTo not in links:
+                    links[nodeIdTo] = {"to": [], "from": []}
+
+                links[nodeIdFrom]["to"].append(link)
+                links[nodeIdTo]["from"].append(link)
+
+    return(links)
+def nodes_dict_old(file, skipFirst=True):
+
+    nodes = dict()
+    with open(file) as t:
+        for line in t:
+            if skipFirst:
+                skipFirst=False
+            else:
+                # idx,X,Y,component
+                cols = line.strip().split("\t")
+                id = cols[0]
+                xpos = float(cols[1])*10
+                ypos = float(cols[2])*5
+
+                nodeId =  get_node(id)
+                
+                node = {"nodeid": nodeId, "id": id, "x": xpos, "y": ypos, "group": 3, "description": "desc", "size": 3}
+
+                if nodeId not in nodes:
+                    nodes[nodeId] = {"nodes": [], "links": []}
+                
+                nodes[nodeId]["nodes"].append(node)
+
+    for nodeId in nodes:
+        n1,n2= nodes[nodeId]["nodes"]
+        link = {"source": n1["id"], "target": n2["id"], "group": 3, "width": 10, "length":distance(n1,n2), "type": "node"}
+        nodes[nodeId]["links"].append(link)
 
     return nodes
