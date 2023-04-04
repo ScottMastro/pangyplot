@@ -73,10 +73,9 @@ def replace_bubbles(file, graph):
 
     for bubbleId in bubbles:
         for bubble in bubbles[bubbleId]["bubbles"]:
-            print(bubble)
             
             if bubble["type"] == "simple":
-                bid = "bubble_" + str(bubble["id"])
+                bid = "snp_" + str(bubble["id"])
                 
                 nodes = []
                 for nodeId in bubble["inside"]:
@@ -89,7 +88,50 @@ def replace_bubbles(file, graph):
 
     return graph
     
+def replace_insertion(file, graph):
 
+    with open(file) as f:
+        bubbles = json.load(f)
+
+    for bubbleId in bubbles:
+        for bubble in bubbles[bubbleId]["bubbles"]:
+            
+            if bubble["type"] == "insertion":
+                bid = "ins_" + str(bubble["id"])
+                
+                nodes = []
+                for nodeId in bubble["inside"]:
+                    nodes.append(graph.pop(nodeId))
+
+                node = Segment(bid, group=1, description="desc", size=5,
+                        subgraph=nodes)
+
+                graph[bid] = node
+
+    return graph
+
+    
+def replace_superbubbles(file, graph):
+
+    with open(file) as f:
+        bubbles = json.load(f)
+
+    for bubbleId in bubbles:
+        for bubble in bubbles[bubbleId]["bubbles"]:
+            
+            if bubble["type"] == "super":
+                bid = "bubble_" + str(bubble["id"])
+                
+                nodes = []
+                for nodeId in bubble["inside"]:
+                    nodes.append(graph.pop(nodeId))
+
+                node = Segment(bid, group=2, description="desc", size=5,
+                        subgraph=nodes)
+
+                graph[bid] = node
+
+    return graph
 
 def node_to_bubble_dict(bubbles):
     nodeToBubble = dict()
