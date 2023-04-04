@@ -1,10 +1,11 @@
+from cgitb import small
 from math import floor
 #import gfapy
 import subprocess
 import json
 
 from cytoband import X
-from segment import Segment
+from segment import SimpleSegment,Bubble
 
 
 GFATOOLS="/home/scott/bin/gfatools/gfatools"
@@ -41,7 +42,7 @@ def add_nodes(file, skipFirst=True):
                 nodeId =  get_node(id)
 
                 if nodeId not in graph:
-                    node = Segment(nodeId, group=3, description="desc", size=3)
+                    node = SimpleSegment(nodeId, group=3, description="desc", size=3)
                     node.add_source_node(xpos,ypos)
                     graph[nodeId] = node
                 else:
@@ -68,45 +69,81 @@ def add_links(file, graph):
 
 def replace_bubbles(file, graph):
 
+    bubbles={}
     with open(file) as f:
-        bubbles = json.load(f)
+        bubbleJson = json.load(f)
 
-    for bubbleId in bubbles:
-        for bubble in bubbles[bubbleId]["bubbles"]:
-            
-            if bubble["type"] == "simple":
-                bid = "snp_" + str(bubble["id"])
-                
-                nodes = []
+    bubble_count = {}
+    for bubbleId in bubbleJson:
+        for bubble in bubbleJson[bubbleId]["bubbles"]:
+
+            if bubble["type"] == "super":
+                print(bubble)
                 for nodeId in bubble["inside"]:
-                    nodes.append(graph.pop(nodeId))
+                    if nodeId not in bubble_count:
+                        bubble_count[nodeId] = 0
+                    bubble_count[nodeId]+=1
 
-                node = Segment(bid, group=2, description="desc", size=5,
-                        subgraph=nodes)
+                bid = "bubble_" + str(bubble["id"])
+                
+                subgraph = []
+                for nodeId in bubble["inside"]:
+                    subgraph.append(graph[nodeId])
+                source = graph[bubble["ends"][0]]
+                sink = graph[bubble["ends"][1]]
 
-                graph[bid] = node
+                bubble = Bubble(bid, source, sink, subgraph, 
+                                group=2, description="desc", size=5)
 
-    return graph
+                bubbles[bid] = bubble
+
+    return bubbles
+
+
+def group_bubble(bubbles):
+    bubble_dict = {}
+
+    def remove_from_bubble_dict(bubble):
+        for segment in bubble.subgraph:
+            bubble_dict[segment.id].remove(bubble.id)
+
+
+    for bid in bubbles:
+        bubble = bubbles[bid]
+        for node in bubble.subgraph:
+            if node.id not in bubble_dict:
+                bubble_dict[node.id] = []
+            bubble_dict[node.id].append(bid)
     
-def replace_insertion(file, graph):
 
-    with open(file) as f:
-        bubbles = json.load(f)
-
-    for bubbleId in bubbles:
-        for bubble in bubbles[bubbleId]["bubbles"]:
+    for id in bubble_dict:
+        while len(bubble_dict[id]) > 1:
+            print("before")
+            print(bubble_dict[id])
+            smallest = None
+            for bid in bubble_dict[id]:
+                if smallest is None or len(bubbles[bid].subgraph) < len(smallest.subgraph):
+                    print(bid)
+                    smallest = bubbles[bid]
             
-            if bubble["type"] == "insertion":
-                bid = "ins_" + str(bubble["id"])
-                
-                nodes = []
-                for nodeId in bubble["inside"]:
-                    nodes.append(graph.pop(nodeId))
+            remove_from_bubble_dict(smallest)
+            print("after")
+            print(bubble_dict[id])
 
-                node = Segment(bid, group=1, description="desc", size=5,
-                        subgraph=nodes)
 
-                graph[bid] = node
+
+
+
+    return bubbles
+
+
+
+def annotate_graph(bubbles, graph):
+    
+    for bid in bubbles:
+        bubble = bubbles[bid]
+        for node in bubble.subgraph:
+            graph[node.id].group +=1
 
     return graph
 
@@ -128,6 +165,11 @@ def replace_superbubbles(file, graph):
 
                 node = Segment(bid, group=2, description="desc", size=5,
                         subgraph=nodes)
+
+                for nodeId in bubble["inside"]:
+                    graph[nodeId] = PointerSegment(nodeId, node)
+
+
 
                 graph[bid] = node
 
