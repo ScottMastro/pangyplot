@@ -24,6 +24,8 @@ def select():
     graph = gfa.add_links(GFA, graph)
 
     graph = gfa.replace_bubbles(BUBBLE, graph)
+    graph = gfa.replace_insertion(BUBBLE, graph)
+    graph = gfa.replace_superbubbles(BUBBLE, graph)
 
     #nodes, nodeLinks, bubbleGraph = gfa.create_graph(layout, gfa)
     #links, bubbleGraph = gfa.create_links(gfa, bubbles, bubbleGraph)
