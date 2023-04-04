@@ -23,13 +23,15 @@ def select():
     graph = gfa.add_nodes(TSV)
     graph = gfa.add_links(GFA, graph)
 
-    graph = gfa.replace_bubbles(BUBBLE, graph)
-    graph = gfa.replace_insertion(BUBBLE, graph)
-    graph = gfa.replace_superbubbles(BUBBLE, graph)
+    bubbles = gfa.replace_bubbles(BUBBLE, graph)
+    bubbles = gfa.group_bubble(bubbles)
 
-    #nodes, nodeLinks, bubbleGraph = gfa.create_graph(layout, gfa)
-    #links, bubbleGraph = gfa.create_links(gfa, bubbles, bubbleGraph)
-    #nodes = gfa.poke_bubbles(nodes, links, bubbles)
+
+    #graph = gfa.replace_insertion(BUBBLE, graph)
+    #graph = gfa.replace_superbubbles(BUBBLE, graph)
+
+    graph = gfa.annotate_graph(bubbles, graph)
+
 
     graphNodes = []
     graphLinks = []
