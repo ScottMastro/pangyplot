@@ -23,24 +23,13 @@ def select():
     graph = gfa.add_nodes(TSV)
     graph = gfa.add_links(GFA, graph)
 
-    bubbles = gfa.replace_bubbles(BUBBLE, graph)
+    bubbles = gfa.make_bubbles(BUBBLE, graph)
     bubbles = gfa.group_bubble(bubbles)
-
-
-    #graph = gfa.replace_insertion(BUBBLE, graph)
-    #graph = gfa.replace_superbubbles(BUBBLE, graph)
 
     graph = gfa.annotate_graph(bubbles, graph)
 
+    resultDict = gfa.graph_dictionary(bubbles, graph)
 
-    graphNodes = []
-    graphLinks = []
-    for nodeId in graph:
-        
-        graphNodes.extend(graph[nodeId].to_node_dict())
-        graphLinks.extend(graph[nodeId].to_link_dict())
-    
-    resultDict = {"nodes": graphNodes, "links": graphLinks}
     print("done")
 
     return resultDict, 200

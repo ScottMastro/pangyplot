@@ -22,6 +22,16 @@ class Bubble:
         self.group = group
         self.description = description
         self.size = size
+        self.parent = None 
+        self.children = set() 
+
+    def add_parent(self, other):
+        self.parent = other
+        other.children.add(self)
+
+    def add_child(self, other):
+        self.children.add(other)
+        other.parent = self
 
     def subgraph_size(self):
         if len(self.subgraph) == 0:
@@ -29,32 +39,33 @@ class Bubble:
         return sum([x.subgraph_size() for x in self.subgraph])
 
     def subgraph_center(self):
-        if len(self.subgraph) == 0:
-            return ((self.x1+self.x2)/2, (self.y1+self.y2)/2)
-        n = self.subgraph_size()
         xcenter, ycenter = 0,0
-        for sg in self.subgraph:
-            sx,sy = sg.subgraph_center()
-            w = sg.subgraph_size()/n
-            xcenter += sx * w
-            ycenter += sy * w
-        return (xcenter, ycenter)
+        for segment in self.subgraph:
+            x,y = segment.center()
+            xcenter += x
+            ycenter += y
+        n=len(self.subgraph)
+        return (xcenter/n, ycenter/n)
 
-        if len(self.subgraph) > 0:
-            center = self.subgraph_center()
-            node = {"nodeid": self.id, "id": self.id, 
+    def to_dict(self):
+        return {"id": self.id, "source": self.source.id, "sink": self.sink.id, 
+        "subgraph" : [x.id for x in self.subgraph]}
+
+    def to_node_dict(self):
+        center = self.subgraph_center()
+        return [{"nodeid": self.id, "id": self.id, 
                 "x": center[0], "y": center[1], "group": self.group, \
-                "description": self.description, "size": self.size}
-            return [node]
-        if len(self.subgraph) > 0:
-            links_to = self.all_to_links()
-            to_ids = set([link.sink_node_id() for link in links_to])
-            for id in to_ids:
-                links.append( {"source": self.source_node_id(), "target": id,
-                "group": self.group, "width": 1, "length":30, "type": "node"} )
+                "description": self.description, "size": self.size}]
 
-                            
-            return links
+    def to_link_dict(self):
+        links = []
+        
+        links.append( {"source": self.source.sink_node_id(), "target": self.id,
+            "group": self.group, "width": 1, "length":30, "type": "edge"})
+        links.append( {"source": self.id, "target": self.sink.source_node_id(),
+            "group": self.group, "width": 1, "length":30, "type": "edge"})
+
+        return links
 
     def __str__(self):
         return str(["bubble", {"source": self.source.id, "sink": self.sink.id}])
@@ -77,6 +88,8 @@ class SimpleSegment:
         
         self.link_to = []
         self.link_from = []
+        
+        self.remember_link_from = []
 
     def add_source_node(self, xpos, ypos):
         self.x1 = xpos
@@ -84,6 +97,8 @@ class SimpleSegment:
     def add_sink_node(self, xpos, ypos):
         self.x2 = xpos
         self.y2 = ypos
+    def center(self):
+        return ((self.x1+self.x2)/2, (self.y1+self.y2)/2)
 
     def source_node_id(self):
         return self.id + "_0"
@@ -132,7 +147,7 @@ class SimpleSegment:
                 "description": self.description, "size": self.size}
         return [node1, node2] + middle_nodes
 
-    def to_link_dict(self):
+    def to_link_dict(self, all=False):
         links = []
 
         midcoords=self.get_mid_coords()
@@ -154,10 +169,23 @@ class SimpleSegment:
                 "group": self.group, "width": 10, "length":self.get_distance(), "type": "node"} )
 
         for other in self.link_to:
-            links.append( {"source": self.source_node_id(), "target": other.sink_node_id(),
-                "group": self.group, "width": 1, "length":30, "type": "edge"})
+            if all or other.id not in self.remember_link_from:
+                links.append( {"source": self.source_node_id(), "target": other.sink_node_id(),
+                    "group": self.group, "width": 1, "length":30, "type": "edge"})
         
         return links
+
+    def from_links_dict(self, remember=False, excludeIds=set()):
+        links = []
+
+        for other in self.link_from:
+            if other.id not in excludeIds:
+                links.append( {"source": other.source_node_id(), "target": self.sink_node_id(),
+                    "group": self.group, "width": 1, "length":30, "type": "edge"})
+                if remember:
+                    other.remember_link_from.append(self.id)
+        return links
+
 
     def __str__(self):
         return str(["segment", {"source": self.source_node_id(), "target": self.sink_node_id()}])

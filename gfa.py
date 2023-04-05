@@ -38,7 +38,6 @@ def add_nodes(file, skipFirst=True):
                 id = cols[0]
                 xpos = float(cols[1])*10
                 ypos = float(cols[2])*5
-                
                 nodeId =  get_node(id)
 
                 if nodeId not in graph:
@@ -51,8 +50,6 @@ def add_nodes(file, skipFirst=True):
 
 def add_links(file, graph):
 
-    #todo: flip direction for "negative" strand ex 2078
-
     with open(file) as f:
         for line in f:
             cols = line.split("\t")
@@ -61,13 +58,18 @@ def add_links(file, graph):
                 nodeFrom = graph[nodeIdFrom]
                 nodeTo = graph[nodeIdTo]
 
-                nodeFrom.add_link_to(nodeTo)
-                nodeTo.add_link_from(nodeFrom)
+                shouldFlip = (cols[2] == "-" and cols[4] == "-")
 
+                if shouldFlip:
+                    nodeTo.add_link_to(nodeFrom)
+                    nodeFrom.add_link_from(nodeTo)
+                else:
+                    nodeFrom.add_link_to(nodeTo)
+                    nodeTo.add_link_from(nodeFrom)
     return(graph)
 
 
-def replace_bubbles(file, graph):
+def make_bubbles(file, graph):
 
     bubbles={}
     with open(file) as f:
@@ -77,25 +79,25 @@ def replace_bubbles(file, graph):
     for bubbleId in bubbleJson:
         for bubble in bubbleJson[bubbleId]["bubbles"]:
 
-            if bubble["type"] == "super":
-                print(bubble)
-                for nodeId in bubble["inside"]:
-                    if nodeId not in bubble_count:
-                        bubble_count[nodeId] = 0
-                    bubble_count[nodeId]+=1
+            #if bubble["type"] == "super":
+            print(bubble)
+            for nodeId in bubble["inside"]:
+                if nodeId not in bubble_count:
+                    bubble_count[nodeId] = 0
+                bubble_count[nodeId]+=1
 
-                bid = "bubble_" + str(bubble["id"])
-                
-                subgraph = []
-                for nodeId in bubble["inside"]:
-                    subgraph.append(graph[nodeId])
-                source = graph[bubble["ends"][0]]
-                sink = graph[bubble["ends"][1]]
+            bid = "bubble_" + str(bubble["id"])
+            
+            subgraph = []
+            for nodeId in bubble["inside"]:
+                subgraph.append(graph[nodeId])
+            source = graph[bubble["ends"][0]]
+            sink = graph[bubble["ends"][1]]
 
-                bubble = Bubble(bid, source, sink, subgraph, 
-                                group=2, description="desc", size=5)
+            bubble = Bubble(bid, source, sink, subgraph, 
+                            group=int(bubble["id"]), description="desc", size=5)
 
-                bubbles[bid] = bubble
+            bubbles[bid] = bubble
 
     return bubbles
 
@@ -103,10 +105,12 @@ def replace_bubbles(file, graph):
 def group_bubble(bubbles):
     bubble_dict = {}
 
-    def remove_from_bubble_dict(bubble):
-        for segment in bubble.subgraph:
-            bubble_dict[segment.id].remove(bubble.id)
+    def remove_from_bubble_dict(bid):
+        for segment in bubbles[bid].subgraph:
+            bubble_dict[segment.id].remove(bid)
 
+    def is_contained(smaller, larger):
+        return all(x in larger.subgraph for x in smaller.subgraph)
 
     for bid in bubbles:
         bubble = bubbles[bid]
@@ -114,25 +118,23 @@ def group_bubble(bubbles):
             if node.id not in bubble_dict:
                 bubble_dict[node.id] = []
             bubble_dict[node.id].append(bid)
-    
 
     for id in bubble_dict:
-        while len(bubble_dict[id]) > 1:
-            print("before")
-            print(bubble_dict[id])
-            smallest = None
-            for bid in bubble_dict[id]:
-                if smallest is None or len(bubbles[bid].subgraph) < len(smallest.subgraph):
-                    print(bid)
-                    smallest = bubbles[bid]
+
+        if len(bubble_dict[id]) > 1:
+
+            sortedBids = sorted(bubble_dict[id], key=lambda x: len(bubbles[x].subgraph))
             
-            remove_from_bubble_dict(smallest)
-            print("after")
-            print(bubble_dict[id])
-
-
-
-
+            i=0
+            while len(sortedBids) > i+1:
+                smallest = sortedBids[i]
+                for bid in sortedBids[i+1:]:
+                    if is_contained(bubbles[smallest], bubbles[bid]):
+                        bubbles[smallest].add_parent(bubbles[bid])
+                        print(str(bid) +" is parent to " + str(smallest))
+                        remove_from_bubble_dict(smallest)
+                        break
+                i+=1
 
     return bubbles
 
@@ -143,37 +145,65 @@ def annotate_graph(bubbles, graph):
     for bid in bubbles:
         bubble = bubbles[bid]
         for node in bubble.subgraph:
-            graph[node.id].group +=1
+            graph[node.id].group += bubble.group
 
     return graph
 
-    
-def replace_superbubbles(file, graph):
+def graph_dictionary(bubbles, graph):
 
-    with open(file) as f:
-        bubbles = json.load(f)
+    nodesDone = set()
 
-    for bubbleId in bubbles:
-        for bubble in bubbles[bubbleId]["bubbles"]:
-            
-            if bubble["type"] == "super":
-                bid = "bubble_" + str(bubble["id"])
-                
-                nodes = []
-                for nodeId in bubble["inside"]:
-                    nodes.append(graph.pop(nodeId))
+    def bubble_dict(bubble):
+        
+        nodes = []
+        links = []
+        ids = set()
+        resultDict = {"children": []}
+        for child in bubble.children:
+            childDict, cids = bubble_dict(child)
+            ids.update(cids)
+            resultDict["children"].append(childDict)
 
-                node = Segment(bid, group=2, description="desc", size=5,
-                        subgraph=nodes)
+        for segment in bubble.subgraph:
+            id = segment.id
+            if id in ids: continue
+            ids.add(id)
+            nodes.extend(segment.to_node_dict())
+            links.extend(segment.to_link_dict())
+            links.extend(segment.from_links_dict(remember=True, excludeIds=ids))
+            nodesDone.add(segment.id)
 
-                for nodeId in bubble["inside"]:
-                    graph[nodeId] = PointerSegment(nodeId, node)
+            resultDict["expand_nodes"] = nodes
+            resultDict["expand_links"] = links
 
+        resultDict["nodes"] = bubble.to_node_dict()
+        resultDict["links"] = bubble.to_link_dict()
 
+        return [resultDict, ids]
 
-                graph[bid] = node
+    #top level graph
+    nodes = []
+    links = []
 
-    return graph
+    bubbleDict = []
+    for bid in bubbles:
+        if bubbles[bid].parent is None:
+            d,ids = bubble_dict(bubbles[bid])
+            bubbleDict.append(d)
+            nodes.extend(d["nodes"])
+            links.extend(d["links"])
+
+    for nodeId in graph:
+        if nodeId in nodesDone:
+            continue
+        nodes.extend(graph[nodeId].to_node_dict())
+        links.extend(graph[nodeId].to_link_dict())
+
+    resultDict = {"nodes": nodes, "links": links}
+
+    print(nodes)
+
+    return resultDict
 
 def node_to_bubble_dict(bubbles):
     nodeToBubble = dict()

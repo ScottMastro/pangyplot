@@ -6,7 +6,15 @@ function force(alpha) {
     }
   }
 
+function replace_bubbles(data){
+    console.log(data["bubbles"])
+
+
+}
+
 function draw_graph(graph){
+    replace_bubbles(graph)
+
     const canvas = document.getElementById('graph');
 
     //console.log({"nodes": layout[0], "links": layout[1].concat(edges)})
@@ -24,6 +32,7 @@ function draw_graph(graph){
         .linkAutoColorBy("group")
         .linkWidth("width")
         .graphData(graph)
+        .velocityDecay(0.1)
         .d3Force('link').distance(link => link["length"] )
 
         //.linkDirectionalParticles(10)
