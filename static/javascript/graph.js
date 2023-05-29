@@ -61,5 +61,5 @@ function fetch(chromosome, start, end) {
     xmlHttp.send();
 }
 
-fetch("chr18", 0, 100000)
+fetch("chr7", 142747350, 142775343)
 
