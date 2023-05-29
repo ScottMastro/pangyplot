@@ -1,4 +1,4 @@
-const DEFAULT_CHR="chr18"
+const DEFAULT_CHR="chr7"
 
 function get_longest_size(data) {
     let longest = -1;

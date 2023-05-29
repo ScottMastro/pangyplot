@@ -1,9 +1,28 @@
 from flask import Flask, render_template, request, make_response, redirect
 from cytoband import get_cytoband 
 import gfa
+import db
 
 app = Flask(__name__)
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///graph_data.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhost:5432/graph'
+db.init(app)
 
+#temp
+#TSV = "static/data/DRB1-3123_sorted.lay.tsv"
+#GFA = "static/data/DRB1-3123_sorted.gfa"
+#BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
+
+TSV = "static/data/chr7-test-pg.lay.tsv"
+GFA = "static/data/chr7-test-pg.gfa"
+BUBBLE= "static/data/chr7-test-pg.bchains.json"
+
+
+#db.populate_gfa(app, GFA)
+#db.populate_tsv(app, TSV)
+#db.populate_bubbles(app, BUBBLE)
+
+db.print_tables(app)
 
 @app.route('/select', methods=["GET"])
 def select():
@@ -13,10 +32,6 @@ def select():
 
     #gfa.test(chromosome, start, end)
     
-    #temp
-    TSV = "static/data/DRB1-3123_sorted.lay.tsv"
-    GFA = "static/data/DRB1-3123_sorted.gfa"
-    BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
 
     print("making graph")
 
