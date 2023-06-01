@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, make_response, redirect
 from cytoband import get_cytoband 
 import gfa
 import db
+import graph_helper as helper
 
 app = Flask(__name__)
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///graph_data.db'
@@ -9,15 +10,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhos
 db.init(app)
 
 #temp
-#TSV = "static/data/DRB1-3123_sorted.lay.tsv"
-#GFA = "static/data/DRB1-3123_sorted.gfa"
-#BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
+TSV = "static/data/DRB1-3123_sorted.lay.tsv"
+GFA = "static/data/DRB1-3123_sorted.gfa"
+BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
 
-TSV = "static/data/chr7-test-pg.lay.tsv"
-GFA = "static/data/chr7-test-pg.gfa"
-BUBBLE= "static/data/chr7-test-pg.bchains.json"
+#TSV = "static/data/chr7-test-pg.lay.tsv"
+#GFA = "static/data/chr7-test-pg.gfa"
+#BUBBLE= "static/data/chr7-test-pg.bchains.json"
 
 
+#db.drop_all(app)
 #db.populate_gfa(app, GFA)
 #db.populate_tsv(app, TSV)
 #db.populate_bubbles(app, BUBBLE)
@@ -32,18 +34,22 @@ def select():
 
     #gfa.test(chromosome, start, end)
     
-
     print("making graph")
 
-    graph = gfa.add_nodes(TSV)
-    graph = gfa.add_links(GFA, graph)
+    graph = dict()
+    graph = db.get_nodes(graph)
+    graph = db.get_edges(graph)
 
-    bubbles = gfa.make_bubbles(BUBBLE, graph)
-    bubbles = gfa.group_bubble(bubbles)
+    annotations = []
+    annotations = db.get_annotations(annotations)
 
-    graph = gfa.annotate_graph(bubbles, graph)
+    bubbles = dict()
+    bubbles = db.get_bubbles(bubbles, graph)
+    bubbles = helper.group_bubbles(bubbles)
 
-    resultDict = gfa.graph_dictionary(bubbles, graph)
+    graph = helper.annotate_graph(bubbles, graph)
+
+    resultDict = helper.get_graph_dictionary(graph, bubbles, annotations)
 
     print("done")
 

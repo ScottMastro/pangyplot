@@ -1,25 +1,27 @@
+from pickle import TRUE
 from types import TracebackType
 from unittest.result import failfast
 from flask_sqlalchemy import SQLAlchemy
 import sys
 import json
+import db_queries as query
 
 db = SQLAlchemy()
 
-def drop_all(app):
+def get_nodes(graph):
+    return query.get_nodes(segment, graph)
+def get_edges(graph):
+    return query.get_edges(link, graph)
+def get_bubbles(bubbles, graph):
+    return query.get_bubbles(bubble, bubble_inside, bubbles, graph)
+def get_annotations(annotations):
+    return query.get_annotations(None, annotations)
 
-    drop(app, "gfa_link")
-    drop(app, "gfa_segment")
-    drop(app, "layout")
-    drop(app, "bubble")
-    drop(app, "chain")
-    drop(app, "bubble_inside")
+
 
 
 def init(app):
     db.init_app(app)
-    
-    #drop_all(app)
 
     with app.app_context():
 
@@ -32,57 +34,120 @@ def init(app):
                 print(f"- {column['name']}: {column['type']}")
 
 
+## ============================================================
+## graph
+## ============================================================
 
-class gfa_segment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    seq = db.Column(db.String)
-
-    def __init__(self, id, seq):
-        self.id = int(id)
-        self.seq = seq
-
-    def __repr__(self):
-        return str(self.id)
-
-class gfa_link(db.Model):
+class link(db.Model):
     id = db.Column(db.String, primary_key=True)
     from_strand = db.Column(db.Boolean)
     to_strand = db.Column(db.Boolean)
-    from_id = db.Column(db.Integer)
-    to_id = db.Column(db.Integer)
+    from_id = db.Column(db.String)
+    to_id = db.Column(db.String)
     #overlap = db.Column(db.String)
 
     def __init__(self, from_id, from_strand, to_id, to_strand):
-        self.id = str(from_id) + "_" + str(to_id)
-        self.from_id = int(from_id)
+        self.id = str(from_id) + from_strand + str(to_id) + to_strand
+        self.from_id = str(from_id)
         self.from_strand = strand2bin(from_strand)
-        self.to_id = int(to_id)
+        self.to_id = str(to_id)
         self.to_strand = strand2bin(to_strand)
 
     def __repr__(self):
         info = [self.from_id, bin2strand(self.from_strand), self.to_id, bin2strand(self.to_strand)]
         return "\t".join([str(x) for x in info])
 
-class layout(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    x = db.Column(db.Float)
-    y = db.Column(db.Float)
+class segment(db.Model):
+    id = db.Column(db.String, primary_key=True)
+    seq = db.Column(db.String)
+    x1 = db.Column(db.Float)
+    y1 = db.Column(db.Float)
+    x2 = db.Column(db.Float)
+    y2 = db.Column(db.Float)
+
     component = db.Column(db.Integer)
 
-    def __init__(self, id, x, y, component):
-        self.id = int(id)
-        self.x = float(x)
-        self.y = float(y)
-        self.component = int(component)
+    def __init__(self, id, seq):
+        self.id = str(id)
+        self.seq = seq
+        self.x1 = None
+        self.y1 = None
+        self.x2 = None
+        self.y2 = None
+
+    def update_layout(self, x1, y1, x2, y2):
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
+        db.session.commit()
 
     def __repr__(self):
-        return str(self.id) + "\t" + str(self.x) + "\t" + str(self.y)
+        sequence = self.seq[:min(10,len(self.seq))].strip()
+        if len(self.seq) > 10: 
+            sequence += "\t...(+" +str(len(self.seq)-10) + " bases)" 
+        else:
+            sequence += "\t\t\t"
 
+        coords = " -> (" + str(round(self.x1)) + "," + str(round(self.y2)) + "), " + \
+            "(" + str(round(self.x2)) + "," + str(round(self.y2)) + ")"
+        return str(self.id) + "\t" + sequence + "\t" + coords
 
-def strand2bin(strand):
-    return 1 if strand == "+" else 0
-def bin2strand(strand):
-    return "+" if strand == 1 else "-"
+## ============================================================
+## bubbles
+## ============================================================
+
+class chain(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    start = db.Column(db.Integer)
+    end = db.Column(db.Integer)
+    parent_sb = db.Column(db.Integer)
+    parent_chain = db.Column(db.Integer)
+
+    def __init__(self, id, start, end, parent_sb, parent_chain):
+        self.id = int(id)
+        self.start = int(start)
+        self.end = int(end)
+        self.parent_sb = None if parent_sb is None else int(parent_sb)
+        self.parent_chain = None if parent_chain is None else int(parent_chain)
+
+    def __repr__(self):
+        return str(self.id) + "\t[" + str(self.start) + ", " + str(self.end) + "]"
+
+class bubble(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    chain_id = db.Column(db.Integer)
+
+    type = db.Column(db.String)
+    start = db.Column(db.String)
+    end = db.Column(db.String)
+
+    def __init__(self, id, chain_id, type, start, end):
+        self.id = int(id)
+        self.chain_id = int(chain_id)        
+        self.type = type
+        self.start = str(start)
+        self.end = str(end)
+        
+    def __repr__(self):
+        return self.type + "\t" + str(self.id) + "\t[" + str(self.start) + ", " + str(self.end) + "]"
+
+class bubble_inside(db.Model):
+    id = db.Column(db.String, primary_key=True)
+    node_id = db.Column(db.String)
+    bubble_id = db.Column(db.Integer)
+
+    def __init__(self, id, bubble_id):
+        self.id = str(id) + "_" + str(bubble_id)
+        self.node_id = str(id)
+        self.bubble_id = int(bubble_id)        
+        
+    def __repr__(self):
+        return str(self.id) + " -> " + str(self.bubble_id)
+
+## ============================================================
+## helpers
+## ============================================================
 
 def drop(app, tablename):
 
@@ -98,30 +163,29 @@ def drop(app, tablename):
         your_table.drop(connection)
         connection.close()
 
+def drop_all(app):
+    drop(app, "link")
+    drop(app, "segment")
+    drop(app, "bubble")
+    drop(app, "chain")
+    drop(app, "bubble_inside")
+
 
 def print_tables(app):
     
     with app.app_context():
 
-        rows = gfa_link.query.limit(5).all()
-        row_count = gfa_link.query.count()
-        print("gfa_link\t", row_count)
+        rows = link.query.limit(5).all()
+        row_count = link.query.count()
+        print("link\t", row_count)
         print("--------")
         for row in rows:
             print(row)
         print("--------")
 
-        rows = gfa_segment.query.limit(5).all()
-        row_count = gfa_segment.query.count()
-        print("gfa_segment\t", row_count)
-        print("--------")
-        for row in rows:
-            print(row)
-        print("--------")
-
-        rows = layout.query.limit(5).all()
-        row_count = layout.query.count()
-        print("layout\t", row_count)
+        rows = segment.query.limit(5).all()
+        row_count = segment.query.count()
+        print("segment\t", row_count)
         print("--------")
         for row in rows:
             print(row)
@@ -151,18 +215,25 @@ def print_tables(app):
             print(row)
         print("--------")
 
+## ============================================================
+## GFA populate
+## ============================================================
 
-def add_row_to_gfa_link(line):
+def strand2bin(strand):
+    return 1 if strand == "+" else 0
+def bin2strand(strand):
+    return "+" if strand == 1 else "-"
+
+def add_row_to_segment(line):
     cols = line.split("\t")
-    new_row = gfa_link(from_id=cols[1], from_strand=cols[2],
+    new_row = segment(id=cols[1], seq=cols[2])
+    db.session.add(new_row)
+
+def add_row_to_link(line):
+    cols = line.split("\t")
+    new_row = link(from_id=cols[1], from_strand=cols[2],
         to_id=cols[3], to_strand=cols[4])
     db.session.add(new_row)
-    
-def add_row_to_gfa_segment(line):
-    cols = line.split("\t")
-    new_row = gfa_segment(id=cols[1], seq=cols[2])
-    db.session.add(new_row)
-
 
 def populate_gfa(app, gfa):
     Lcount = 0
@@ -173,7 +244,7 @@ def populate_gfa(app, gfa):
         with open(gfa) as f:
             for line in f:
                 if line[0] == "L":
-                    add_row_to_gfa_link(line)
+                    add_row_to_link(line)
                     Lcount += 1
                     if Lcount % 100000 == 0:
                         sys.stdout.write('L')
@@ -181,7 +252,7 @@ def populate_gfa(app, gfa):
                         db.session.commit()
 
                 if line[0] == "S":
-                    add_row_to_gfa_segment(line)
+                    add_row_to_segment(line)
                     Scount += 1
                     if Scount % 100000 == 0:
                         sys.stdout.write('S')
@@ -190,77 +261,47 @@ def populate_gfa(app, gfa):
 
         db.session.commit()
 
-def add_row_to_layout(line):
-    cols = line.split("\t")
-    new_row = layout(id=cols[0], x=cols[1], y=cols[2], component=cols[3])
-    db.session.add(new_row)
+## ============================================================
+## odgi layout populate
+## ============================================================
+
+
+def update_row_with_layout(line1, line2):
+    cols1 = line1.split("\t")
+    cols2 = line2.split("\t")
+    id = int(int(cols1[0])/2 + 1)
+    id = str(id)
+    row = segment.query.get_or_404(id)
+    row.update_layout(x1=cols1[1], y1=cols1[2], x2=cols2[1], y2=cols2[2])
+
 
 def populate_tsv(app, tsv):
     count = 0
-
+    
+    skipFirst=True
+    prevLine=None
+    lineNumber=0
     with app.app_context():
-        skipFirst=True
 
         with open(tsv) as f:
             for line in f:
                 if skipFirst:
                     skipFirst=False
                     continue
-                add_row_to_layout(line)
-                count += 1
-                if count % 100000 == 0:
-                    sys.stdout.write('.')
-                    sys.stdout.flush()
-                    db.session.commit()
 
-class chain(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    start = db.Column(db.Integer)
-    end = db.Column(db.Integer)
-    parent_sb = db.Column(db.Integer)
-    parent_chain = db.Column(db.Integer)
+                lineNumber += 1
+                if lineNumber % 2 == 0:
+                    update_row_with_layout(prevLine, line)
+                    count += 1
+                    if count % 100000 == 0:
+                        sys.stdout.write('.')
+                        sys.stdout.flush()
+                prevLine = line
 
-    def __init__(self, id, start, end, parent_sb, parent_chain):
-        self.id = int(id)
-        self.start = int(start)
-        self.end = int(end)
-        self.parent_sb = None if parent_sb is None else int(parent_sb)
-        self.parent_chain = None if parent_chain is None else int(parent_chain)
 
-    def __repr__(self):
-        return str(self.id) + "\t[" + str(self.start) + ", " + str(self.end) + "]"
-
-class bubble(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    chain_id = db.Column(db.Integer)
-
-    type = db.Column(db.String)
-    start = db.Column(db.Integer)
-    end = db.Column(db.Integer)
-
-    def __init__(self, id, chain_id, type, start, end):
-        self.id = int(id)
-        self.chain_id = int(chain_id)        
-        self.type = type
-        self.start = int(start)
-        self.end = int(end)
-        
-    def __repr__(self):
-        return str(self.id) + "\t[" + str(self.start) + ", " + str(self.end) + "]"
-
-class bubble_inside(db.Model):
-    id = db.Column(db.String, primary_key=True)
-    node_id = db.Column(db.Integer, primary_key=True)
-    bubble_id = db.Column(db.Integer)
-
-    def __init__(self, id, bubble_id):
-        self.id = str(id) + "_" + str(bubble_id)
-        self.node_id = int(id)
-        self.bubble_id = int(bubble_id)        
-        
-    def __repr__(self):
-        return str(self.id) + " -> " + str(self.bubble_id)
-
+## ============================================================
+## bubble json populate
+## ============================================================
 
 def populate_bubbles(app, jsonFile):
     count = 0
@@ -293,3 +334,6 @@ def populate_bubbles(app, jsonFile):
                     sys.stdout.write('B')
                     sys.stdout.flush()
                     db.session.commit()
+        db.session.commit()
+
+

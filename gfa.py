@@ -20,8 +20,6 @@ def get_id(nodeId, side=0):
 def get_node(id):
     return str(floor(int(id)/2)+1)
 
-
-
 def add_nodes(file, skipFirst=True):
 
     def get_node(id):
@@ -80,7 +78,7 @@ def make_bubbles(file, graph):
         for bubble in bubbleJson[bubbleId]["bubbles"]:
 
             #if bubble["type"] == "super":
-            print(bubble)
+            #print(bubble)
             for nodeId in bubble["inside"]:
                 if nodeId not in bubble_count:
                     bubble_count[nodeId] = 0
@@ -131,79 +129,12 @@ def group_bubble(bubbles):
                 for bid in sortedBids[i+1:]:
                     if is_contained(bubbles[smallest], bubbles[bid]):
                         bubbles[smallest].add_parent(bubbles[bid])
-                        print(str(bid) +" is parent to " + str(smallest))
+                        #print(str(bid) +" is parent to " + str(smallest))
                         remove_from_bubble_dict(smallest)
                         break
                 i+=1
 
     return bubbles
-
-
-
-def annotate_graph(bubbles, graph):
-    
-    for bid in bubbles:
-        bubble = bubbles[bid]
-        for node in bubble.subgraph:
-            graph[node.id].group += bubble.group
-
-    return graph
-
-def graph_dictionary(bubbles, graph):
-
-    nodesDone = set()
-
-    def bubble_dict(bubble):
-        
-        nodes = []
-        links = []
-        ids = set()
-        resultDict = {"children": []}
-        for child in bubble.children:
-            childDict, cids = bubble_dict(child)
-            ids.update(cids)
-            resultDict["children"].append(childDict)
-
-        for segment in bubble.subgraph:
-            id = segment.id
-            if id in ids: continue
-            ids.add(id)
-            nodes.extend(segment.to_node_dict())
-            links.extend(segment.to_link_dict())
-            links.extend(segment.from_links_dict(remember=True, excludeIds=ids))
-            nodesDone.add(segment.id)
-
-            resultDict["expand_nodes"] = nodes
-            resultDict["expand_links"] = links
-
-        resultDict["nodes"] = bubble.to_node_dict()
-        resultDict["links"] = bubble.to_link_dict()
-
-        return [resultDict, ids]
-
-    #top level graph
-    nodes = []
-    links = []
-
-    bubbleDict = []
-    for bid in bubbles:
-        if bubbles[bid].parent is None:
-            d,ids = bubble_dict(bubbles[bid])
-            bubbleDict.append(d)
-            nodes.extend(d["nodes"])
-            links.extend(d["links"])
-
-    for nodeId in graph:
-        if nodeId in nodesDone:
-            continue
-        nodes.extend(graph[nodeId].to_node_dict())
-        links.extend(graph[nodeId].to_link_dict())
-
-    resultDict = {"nodes": nodes, "links": links}
-
-    print(nodes)
-
-    return resultDict
 
 def node_to_bubble_dict(bubbles):
     nodeToBubble = dict()
