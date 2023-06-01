@@ -77,7 +77,7 @@ class Bubble:
 
 class SimpleSegment:
     def __init__(self, id, group=0, description="", size=1):
-        self.id = id
+        self.id = str(id)
 
         self.group = group
         self.description = description
@@ -101,7 +101,7 @@ class SimpleSegment:
         return ((self.x1+self.x2)/2, (self.y1+self.y2)/2)
 
     def source_node_id(self):
-        return self.id + "_0"
+        return str(self.id) + "_0"
 
     def sink_node_id(self):
         return self.id + "_1"
