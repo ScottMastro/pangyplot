@@ -18,8 +18,6 @@ def get_annotations(annotations):
     return query.get_annotations(None, annotations)
 
 
-
-
 def init(app):
     db.init_app(app)
 
