@@ -71,6 +71,9 @@ def get_graph_dictionary(graph, bubbles, annotations):
             resultDict["expand_links"] = links
 
         resultDict["nodes"] = bubble.to_node_dict()
+        resultDict["nodes"][0]["expand_nodes"] = resultDict["expand_nodes"]
+        resultDict["nodes"][0]["expand_links"] = resultDict["expand_links"]
+
         resultDict["links"] = bubble.to_link_dict()
 
         return [resultDict, ids]
@@ -79,32 +82,40 @@ def get_graph_dictionary(graph, bubbles, annotations):
     nodes = []
     links = []
     annotations = []
+    tracks = []
 
 
     links.append({"source": "2048_0", "target": "2048_1",
-                    "group": 10, "width": 30, "length":100, "type": "annotation"})
+                    "group": 10, "width": 80, "length":100, "type": "annotation"})
     links.append({"source": "2048_1", "target": "bubble_805",
-                    "group": 10, "width": 30, "length":100, "type": "annotation"})
+                    "group": 10, "width": 80, "length":100, "type": "annotation"})
     links.append({"source": "bubble_805", "target": "2055_1",
-                    "group": 10, "width": 30, "length":100, "type": "annotation"})
+                    "group": 10, "width": 80, "length":100, "type": "annotation"})
     links.append({"source": "2055_1", "target": "2055_0",
-                    "group": 10, "width": 30, "length":100, "type": "annotation"})
+                    "group": 10, "width": 80, "length":100, "type": "annotation"})
     links.append({"source": "2055_0", "target": "bubble_804",
-                    "group": 10, "width": 30, "length":100, "type": "annotation"})
+                    "group": 10, "width": 80, "length":100, "type": "annotation"})
     links.append({"source": "bubble_804", "target": "2058_1",
-                    "group": 10, "width": 30, "length":100, "type": "annotation"})
+                    "group": 10, "width": 80, "length":100, "type": "annotation"})
     links.append({"source": "2058_1", "target": "2058_0",
-                    "group": 10, "width": 30, "length":100, "type": "annotation"})
+                    "group": 10, "width": 80, "length":100, "type": "annotation"})
 
     #bounding box
     example = {"type": "gene", "name": "example", "nodes":["415_0", "415_1", "417_0", "417_1", "420_0", "420_1", "423_0", "423_1",
     "428_0", "428_1", "430_0", "430_1", "432_0", "432_1", "436_0", "436_1","440_0", "440_1", "442_0", "442_1", "444_0", "444_1",]  }
     annotations.append(example)
 
+    #track
+    exampletrack = {"type": "gene", "name": "example", "nodes":["2017", "2111", "2115", "2118", "2121", "2126"]  }
+    tracks.append(exampletrack)
+
+
     bubbleDict = []
+
     for bid in bubbles:
         if bubbles[bid].parent is None:
             d,ids = bubble_dict(bubbles[bid])
+
             bubbleDict.append(d)
             nodes.extend(d["nodes"])
             links.extend(d["links"])
@@ -112,12 +123,28 @@ def get_graph_dictionary(graph, bubbles, annotations):
     for nodeId in graph:
         if nodeId in nodesDone:
             continue
-        nodes.extend(graph[nodeId].to_node_dict())
-        links.extend(graph[nodeId].to_link_dict())
+        newNodes = graph[nodeId].to_node_dict()
+        newLinks = graph[nodeId].to_link_dict()
+
+        for n in newNodes:
+            if nodeId in exampletrack["nodes"]:
+                n["track"] = 1
+            else:
+                n["track"] =0
+
+
+        for l in newLinks:
+            if nodeId in exampletrack["nodes"]:
+                l["track"] = 1
+            else:
+                l["track"] = 0
+        nodes.extend(newNodes)
+        links.extend(newLinks)
 
 
 
-    resultDict = {"nodes": nodes, "links": links, "annotations": annotations}
+
+    resultDict = {"nodes": nodes, "links": links, "annotations": annotations, "tracks": tracks}
 
     #print(nodes)
 

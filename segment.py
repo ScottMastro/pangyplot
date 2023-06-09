@@ -61,9 +61,9 @@ class Bubble:
         links = []
         
         links.append( {"source": self.source.sink_node_id(), "target": self.id,
-            "group": self.group, "width": 1, "length":30, "type": "edge"})
+            "group": self.group, "width": 1, "length":21, "type": "edge"})
         links.append( {"source": self.id, "target": self.sink.source_node_id(),
-            "group": self.group, "width": 1, "length":30, "type": "edge"})
+            "group": self.group, "width": 1, "length":21, "type": "edge"})
 
         return links
 
@@ -156,22 +156,22 @@ class SimpleSegment:
             LEN=self.get_distance()/(len(midcoords)+1)
 
             links.append( {"source": self.source_node_id(), "target": self.mid_node_id(0),
-            "group": self.group, "width": 10, "length":LEN, "type": "node"} )
+            "group": self.group, "width": 21, "length":LEN, "type": "node"} )
             links.append( {"source": self.mid_node_id(len(midcoords)-1), "target": self.sink_node_id(),
-            "group": self.group, "width": 10, "length":LEN, "type": "node"} )
+            "group": self.group, "width": 21, "length":LEN, "type": "node"} )
 
             for i,mid in enumerate(midcoords[:-1]):
                 links.append( {"source": self.mid_node_id(i), "target": self.mid_node_id(i+1),
-                "group": self.group, "width": 10, "length":LEN, "type": "node"} )
+                "group": self.group, "width": 21, "length":LEN, "type": "node"} )
 
         else:
             links.append( {"source": self.source_node_id(), "target": self.sink_node_id(),
-                "group": self.group, "width": 10, "length":self.get_distance(), "type": "node"} )
+                "group": self.group, "width": 21, "length":self.get_distance(), "type": "node"} )
 
         for other in self.link_to:
             if all or other.id not in self.remember_link_from:
                 links.append( {"source": self.source_node_id(), "target": other.sink_node_id(),
-                    "group": self.group, "width": 1, "length":30, "type": "edge"})
+                    "group": self.group, "width": 1, "length":1, "type": "edge"})
         
         return links
 
@@ -181,7 +181,7 @@ class SimpleSegment:
         for other in self.link_from:
             if other.id not in excludeIds:
                 links.append( {"source": other.source_node_id(), "target": self.sink_node_id(),
-                    "group": self.group, "width": 1, "length":30, "type": "edge"})
+                    "group": self.group, "width": 1, "length":1, "type": "edge"})
                 if remember:
                     other.remember_link_from.append(self.id)
         return links

@@ -13,9 +13,11 @@ function force(Graph, alpha) {
     for (let i = 0, n = nodes.length, node, k = alpha * 0.1; i < n; ++i) {
         node = nodes[i];
         node.vx += node.x * k;
-        node.vy += node.y * k/2;
+        node.vy += node.y * k/6;
     }
 }
+
+
 
 function draw_graph(graph){
 
@@ -25,24 +27,28 @@ function draw_graph(graph){
 
     let nodeIdCounter = 0, linkIdCounter = 0;
     let nodes = [], links = [];
+    console.log(graph);
 
-    
     const updateGraphData = () => {
+        const lastZoom = 1;
+        console.log(graph["nodes"])
         Graph.graphData({ nodes: graph["nodes"], links: graph["links"] });
         };
     
-        function linkStrength(link) 
+
+
+        function linkWidth(link) 
         {
-          var stnval = 1 / (link.length);
-          
-          return 1;
+            return Math.max(2, lastZoom*link["width"]);
         }
 
-        function linkDistance(link) 
-        {
-            return link.length/10;
-        }
+        const highlightNodes = new Set();
+        const highlightLinks = new Set();
+        let hoverNode = null;
         
+        SHIFT=0
+        
+
         const Graph = ForceGraph()
         (document.getElementById('graph'))
             .graphData(graph)
@@ -54,9 +60,46 @@ function draw_graph(graph){
             .linkLabel('group')
             .nodeAutoColorBy('group')
             .linkAutoColorBy("group")
-            .linkWidth("width")
-            .d3VelocityDecay(0.1);
+            .linkWidth(linkWidth)
+            .d3VelocityDecay(0.2)
+            .nodeCanvasObjectMode(node => node.track == 1 ? 'before' : undefined)
+            .nodeCanvasObject((node, ctx) => {
+                // add ring just for highlighted nodes
+                ctx.beginPath();
+                ctx.arc(node.x+SHIFT, node.y+SHIFT, 12, 0, 2 * Math.PI, false);
+                ctx.fillStyle = "red";
+                ctx.fill();
+              })
+              .linkCanvasObjectMode(link => link.track == 1 ? 'before' : undefined)
+              .linkCanvasObject((link, ctx) => {
+                //console.log(link.source.x, link.source.y, link.target.x+80, link.target.y+80);
+                ctx.beginPath();
+                ctx.moveTo(link.source.x+SHIFT, link.source.y+SHIFT);
+                ctx.lineTo(link.target.x+SHIFT, link.target.y+SHIFT);
+                ctx.lineWidth = 100;
+                ctx.strokeStyle = "red";
+                ctx.stroke();
+            })
+            .autoPauseRedraw(false) // keep redrawing after engine has stopped
+            .onNodeClick(node => {
+                console.log(node);
 
+                newNodes = node["expand_nodes"]
+                for (let i = 0, n = newNodes.length; i < n; ++i) {
+                    newNode = newNodes[i];
+                    newNode.x = node.x
+                    newNode.y = node.y
+                    
+                }
+    
+                graph["nodes"] = graph["nodes"].concat(newNodes);
+                graph["links"] = graph["links"].concat(node["expand_links"]);
+
+                updateGraphData();
+
+            });
+
+                
             //.onBackgroundClick(event => {
             //    console.log(Graph.graphData());
             //    force(Graph, 1)
@@ -65,12 +108,57 @@ function draw_graph(graph){
             //    graph["nodes"].push({ id: nodeId, x: coords.x, y: coords.y, name: 'newnode_' + nodeId });
             //    updateGraphData();
             //});
+            //.linkWidth(link => {console.log(link); return 4})
 
-        Graph.d3Force('link').strength(linkStrength).distance(linkDistance)
+            // .onNodeHover(node => {
+            //  highlightNodes.clear();
+            //  highlightLinks.clear();
+            //  if (node) {
+            //    highlightNodes.add(node);
+            //    //node.neighbors.forEach(neighbor => highlightNodes.add(neighbor));
+            //    //node.toNodes.forEach(link => highlightLinks.add(link));
+            //  }
+            //  hoverNode = node || null;
+            //});
+
+
+        function linkStrength(link) 
+        {
+
+            scale=0.5
+            if (link.type == "node"){
+                return (1/4)/scale;
+            }
+            if (link.type == "edge"){
+                return (1/2)/scale;
+            }
+
+            return (1/2)/scale;
+        }
+
+        function linkDistance(link) 
+        {
+            if (link.type == "node"){
+                return link.length;
+            }
+            if (link.type == "edge"){
+                return 5;
+            }
+            return 5;
+        }
+
+        Graph.d3Force('link').distance(linkDistance).iterations(4)
+        //Graph.d3Force('center').strength(0.00005);
+        
+        //Graph.d3Force('link').distance(link => link["length"] )
+        //Graph.d3Force('collide', d3.forceCollide(5))
+        Graph.d3Force('collide', null)
+
+        //Graph.d3Force('charge').strength(-30).distanceMax(500)
+
         Graph.minZoom(0.01)
         Graph.maxZoom(1e100)
-
-        //console.log(Graph.nodeId("1914_1"))
+        console.log(Graph.graphData().links)
 
         Graph.onRenderFramePre((ctx, scale) => {
 
@@ -85,13 +173,13 @@ function draw_graph(graph){
                 }
                 
             }
-
-
+            
             group_box = Graph.getGraphBbox((node) => node.annotate == 2);
-            console.log(ctx)
+            //console.log(ctx.canvas.__zoom);
+            lastZoom = ctx.canvas.__zoom["k"];
             ctx.save();
         
-            console.log(group_box)
+            //console.log(group_box)
             const x = group_box.x[0];
             const y = group_box.y[0];
             const width = group_box.x[1] - group_box.x[0];
@@ -107,6 +195,7 @@ function draw_graph(graph){
             ctx.fillStyle = 'darkgrey';
             ctx.fillText('genename ', x + width/2, y + height/2);
     
+            
             ctx.restore();
          });
 
