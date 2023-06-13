@@ -13,6 +13,7 @@ db.init(app)
 TSV = "static/data/DRB1-3123_sorted.lay.tsv"
 GFA = "static/data/DRB1-3123_sorted.gfa"
 BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
+GFF3= "static/data/gencode.v43.basic.annotation.gff3.gz"
 
 #TSV = "static/data/chr7-test-pg.lay.tsv"
 #GFA = "static/data/chr7-test-pg.gfa"
@@ -20,6 +21,9 @@ BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
 
 
 #db.drop_all(app)
+
+db.populate_annotations(app, GFF3)
+
 #db.populate_gfa(app, GFA)
 #db.populate_tsv(app, TSV)
 #db.populate_bubbles(app, BUBBLE)

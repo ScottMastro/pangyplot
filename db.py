@@ -1,3 +1,4 @@
+from operator import countOf
 from pickle import TRUE
 from types import TracebackType
 from unittest.result import failfast
@@ -5,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 import sys
 import json
 import db_queries as query
+import gzip
 
 db = SQLAlchemy()
 
@@ -30,6 +32,33 @@ def init(app):
             print(f"Table: {table_name}")
             for column in inspector.get_columns(table_name):
                 print(f"- {column['name']}: {column['type']}")
+
+## ============================================================
+## annotation
+## ============================================================
+
+class annotation(db.Model):
+    id = db.Column(db.String, primary_key=True)
+    chrom = db.Column(db.String)
+    start = db.Column(db.Integer)
+    end = db.Column(db.Integer)
+    source = db.Column(db.String)
+    type = db.Column(db.String)
+    gene = db.Column(db.String)
+    info = db.Column(db.String)
+
+    def __init__(self, id, chrom, start, end, source, type, gene, info):
+        self.id = str(id)
+        self.chrom = str(chrom)
+        self.start = str(start)
+        self.end = str(end)
+        self.source = str(source)
+        self.type = str(type)
+        self.gene = str(gene)
+        self.info = str(info)
+
+    def __repr__(self):
+        return "\t".join([str(x) for x in [self.id, self.type, self.chrom, self.start, self.end]])
 
 
 ## ============================================================
@@ -212,6 +241,59 @@ def print_tables(app):
         for row in rows:
             print(row)
         print("--------")
+
+## ============================================================
+## Annotations populate
+## ============================================================
+
+def add_row_to_annotations(line):
+    cols = line.strip().split("\t")
+    infoCols = cols[8].split(";")
+    print(infoCols)
+    id = None ; gene = None ; exon = None
+
+    for c in infoCols:
+        if c.startswith("ID"):
+            id = c.split("=")[1]
+        if c.startswith("gene"):
+            gene = c.split("=")[1]
+        if c.startswith("exon_number"):
+            exon = c.split("=")[1]
+
+    print(exon, id)
+    new_row = annotation(id=id, chrom=cols[0], start=cols[3], end=cols[4],
+                             source=cols[1], type=cols[2], gene=gene, info=cols[8])
+    db.session.add(new_row)
+
+
+
+def populate_annotations(app, gff3):
+    count = 0
+
+    def do_line(line, count):
+        if line.startswith("#"):
+            return count
+    
+        add_row_to_annotations(line)
+        count += 1
+        if count % 1000 == 0:
+            sys.stdout.write('L')
+            sys.stdout.flush()
+            db.session.commit()
+        return count
+
+    with app.app_context():
+
+        if gff3.endswith(".gz"):
+            with gzip.open(gff3, 'rt') as f:
+                for line in f:
+                    count = do_line(line, count)
+        else:
+            with open(gff3) as f:
+                for line in f:
+                    count = do_line(line, count)
+
+        db.session.commit()
 
 ## ============================================================
 ## GFA populate
