@@ -17,7 +17,6 @@ def get_bubbles(bubbles, graph):
 def get_annotations(annotations):
     return query.get_annotations(None, annotations)
 
-
 def init(app):
     db.init_app(app)
 
@@ -30,6 +29,7 @@ def init(app):
             print(f"Table: {table_name}")
             for column in inspector.get_columns(table_name):
                 print(f"- {column['name']}: {column['type']}")
+
 
 
 ## ============================================================
@@ -62,12 +62,17 @@ class segment(db.Model):
     y1 = db.Column(db.Float)
     x2 = db.Column(db.Float)
     y2 = db.Column(db.Float)
+    chrom = db.Column(db.String)
+    pos = db.Column(db.Integer)
 
     component = db.Column(db.Integer)
 
-    def __init__(self, id, seq):
+    def __init__(self, id, seq, chrom, pos):
         self.id = str(id)
         self.seq = seq
+        self.chrom = chrom
+        self.pos = pos
+
         self.x1 = None
         self.y1 = None
         self.x2 = None
@@ -222,9 +227,9 @@ def strand2bin(strand):
 def bin2strand(strand):
     return "+" if strand == 1 else "-"
 
-def add_row_to_segment(line):
+def add_row_to_segment(line, position):
     cols = line.split("\t")
-    new_row = segment(id=cols[1], seq=cols[2])
+    new_row = segment(id=cols[1], seq=cols[2], chrom="chr1", pos=position)
     db.session.add(new_row)
 
 def add_row_to_link(line):
@@ -236,7 +241,8 @@ def add_row_to_link(line):
 def populate_gfa(app, gfa):
     Lcount = 0
     Scount = 0
-
+    position = 0
+    
     with app.app_context():
 
         with open(gfa) as f:
@@ -250,7 +256,10 @@ def populate_gfa(app, gfa):
                         db.session.commit()
 
                 if line[0] == "S":
-                    add_row_to_segment(line)
+                    cols = line.split("\t")
+                    
+                    add_row_to_segment(line, position)
+                    position += len(cols[2])
                     Scount += 1
                     if Scount % 100000 == 0:
                         sys.stdout.write('S')
