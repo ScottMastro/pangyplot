@@ -42,9 +42,6 @@ function draw_graph(graph){
             return Math.max(2, lastZoom*link["width"]);
         }
 
-        const highlightNodes = new Set();
-        const highlightLinks = new Set();
-        let hoverNode = null;
         
         SHIFT=0
         
@@ -110,17 +107,6 @@ function draw_graph(graph){
             //});
             //.linkWidth(link => {console.log(link); return 4})
 
-            // .onNodeHover(node => {
-            //  highlightNodes.clear();
-            //  highlightLinks.clear();
-            //  if (node) {
-            //    highlightNodes.add(node);
-            //    //node.neighbors.forEach(neighbor => highlightNodes.add(neighbor));
-            //    //node.toNodes.forEach(link => highlightLinks.add(link));
-            //  }
-            //  hoverNode = node || null;
-            //});
-
 
         function linkStrength(link) 
         {
@@ -162,6 +148,13 @@ function draw_graph(graph){
 
         Graph.onRenderFramePre((ctx, scale) => {
 
+            lastZoom = ctx.canvas.__zoom["k"];
+            ctx.save();
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'darkgrey';
+
             //for (let i = 0, n = annotation["nodes"].length; i < n; ++i) {
             let annotation = graph["annotations"][0];
             
@@ -171,13 +164,11 @@ function draw_graph(graph){
                 if (annotation["nodes"].includes(node.id)){
                     node["annotate"] = 2;
                 }
-                
             }
+            
             
             group_box = Graph.getGraphBbox((node) => node.annotate == 2);
             //console.log(ctx.canvas.__zoom);
-            lastZoom = ctx.canvas.__zoom["k"];
-            ctx.save();
         
             //console.log(group_box)
             const x = group_box.x[0];
@@ -190,14 +181,72 @@ function draw_graph(graph){
             ctx.fillRect(x, y, width, height);
 
             ctx.font = '72px Sans-Serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
             ctx.fillStyle = 'darkgrey';
             ctx.fillText('genename ', x + width/2, y + height/2);
+
     
             
             ctx.restore();
          });
+
+
+         let highlightNodes = [];
+         let highlightLinks = [];
+         let hoverNode = null;
+
+         
+        Graph.onRenderFramePost((ctx, scale) => {
+
+            ctx.save();
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = 'darkgrey';
+            ctx.font = '12px Sans-Serif';
+
+            for (let i = 0, n = highlightNodes.length, node; i < n; ++i) {
+                node = highlightNodes[i];
+                ctx.beginPath();
+                console.log(node)
+                ctx.arc(node.x+SHIFT, node.y+SHIFT, 20, 0, 2 * Math.PI, false);
+                ctx.fillStyle = "green";
+                ctx.fill();
+
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; // Shadow color
+                ctx.shadowBlur = 4; // How much the shadow should blur
+                ctx.shadowOffsetX = 5; // Horizontal distance of the shadow from the text
+                ctx.shadowOffsetY = 5; // Vertical distance of the shadow from the text
+                ctx.fillText(node["pos"], node.x, node.y);
+
+            }
+
+            //for (let i = 0, n = annotation["nodes"].length; i < n; ++i) {
+            let annotation = graph["annotations"][0];
+            
+            let nodes = Graph.graphData()["nodes"]
+            for (let i = 0, n = nodes.length, node; i < n; ++i) {
+                node = nodes[i];
+                if (annotation["nodes"].includes(node.id)){
+                    node["annotate"] = 2;
+                }
+
+            }
+                        
+            ctx.restore();
+         });
+
+
+
+        Graph.onNodeHover(node => {
+            highlightNodes = [];
+            highlightLinks = [];
+            if (node) {
+                highlightNodes.push(node);
+                //node.toNodes.forEach(link => highlightLinks.add(link));
+            }
+            hoverNode = node || null;
+          });
+
 
 
          //.linkDirectionalParticles(10)

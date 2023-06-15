@@ -1,6 +1,7 @@
 
 from math import floor
 
+
 class PointerSegment:
     def __init__(self, id, pointTo):
         self.id = id
@@ -54,7 +55,7 @@ class Bubble:
     def to_node_dict(self):
         center = self.subgraph_center()
         return [{"nodeid": self.id, "id": self.id, 
-                "x": center[0], "y": center[1], "group": self.group, \
+                "x": center[0]*XSCALE_NODE, "y": center[1], "group": self.group, \
                 "description": self.description, "size": self.size}]
 
     def to_link_dict(self):
@@ -74,9 +75,16 @@ class Bubble:
         return str(self.id)
 
 
+XSCALE_NODE=1
+def createNode(segment, id, x, y):
+    return {"nodeid": segment.id, "id": id, 
+            "x": x*XSCALE_NODE, "y": y, "group": segment.group, 
+            "description": segment.description, "size": segment.size,
+            "chrom": segment.chrom, "pos": segment.pos }
+
 
 class SimpleSegment:
-    def __init__(self, id, group=0, description="", size=1):
+    def __init__(self, id, group=0, description="", size=1, chrom=None, pos=None):
         self.id = str(id)
 
         self.group = group
@@ -90,6 +98,9 @@ class SimpleSegment:
         self.link_from = []
         
         self.remember_link_from = []
+
+        self.chrom = chrom
+        self.pos = pos
 
     def add_source_node(self, xpos, ypos):
         self.x1 = xpos
@@ -133,18 +144,13 @@ class SimpleSegment:
     def to_node_dict(self):
 
         middle_nodes =[]
-
+        
         for i,mid in enumerate(self.get_mid_coords()):
-            middle_nodes.append({"nodeid": self.id, "id": self.mid_node_id(i), 
-                "x": mid[0], "y": mid[1], "group": self.group, \
-                "description": self.description, "size": 1})
-    
-        node1 = {"nodeid": self.id, "id": self.source_node_id(), 
-                "x": self.x1, "y": self.y1, "group": self.group, \
-                "description": self.description, "size": self.size}
-        node2 = {"nodeid": self.id, "id": self.sink_node_id(), 
-                "x": self.x2, "y": self.y2, "group": self.group, \
-                "description": self.description, "size": self.size}
+            middle_nodes.append( createNode(self, self.mid_node_id(i), mid[0], mid[1]) )
+
+        node1 = createNode(self, self.source_node_id(), self.x1, self.y1)
+        node2 = createNode(self, self.sink_node_id(), self.x2, self.y2)
+
         return [node1, node2] + middle_nodes
 
     def to_link_dict(self, all=False):

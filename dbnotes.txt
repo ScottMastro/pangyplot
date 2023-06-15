@@ -1,0 +1,19 @@
+pip install flask_sqlalchemy
+pip install psycopg2
+
+sudo apt install postgresql
+sudo apt install postgresql-client
+sudo apt install postgresql-client-common
+
+sudo -u postgres psql template1
+ALTER USER postgres with encrypted password 'password';
+
+
+sudo -i -u postgres
+psql
+createdb graph
+
+sudo systemctl restart postgresql.service
+
+
+
