@@ -85,20 +85,20 @@ def get_graph_dictionary(graph, bubbles, annotations):
     tracks = []
 
 
-    links.append({"source": "2048_0", "target": "2048_1",
-                    "group": 10, "width": 80, "length":100, "type": "annotation"})
-    links.append({"source": "2048_1", "target": "bubble_805",
-                    "group": 10, "width": 80, "length":100, "type": "annotation"})
-    links.append({"source": "bubble_805", "target": "2055_1",
-                    "group": 10, "width": 80, "length":100, "type": "annotation"})
-    links.append({"source": "2055_1", "target": "2055_0",
-                    "group": 10, "width": 80, "length":100, "type": "annotation"})
-    links.append({"source": "2055_0", "target": "bubble_804",
-                    "group": 10, "width": 80, "length":100, "type": "annotation"})
-    links.append({"source": "bubble_804", "target": "2058_1",
-                    "group": 10, "width": 80, "length":100, "type": "annotation"})
-    links.append({"source": "2058_1", "target": "2058_0",
-                    "group": 10, "width": 80, "length":100, "type": "annotation"})
+    #links.append({"source": "2048_0", "target": "2048_1",
+    #                "group": 10, "width": 80, "length":100, "type": "annotation"})
+    #links.append({"source": "2048_1", "target": "bubble_805",
+    #                "group": 10, "width": 80, "length":100, "type": "annotation"})
+    #links.append({"source": "bubble_805", "target": "2055_1",
+    #                "group": 10, "width": 80, "length":100, "type": "annotation"})
+    #links.append({"source": "2055_1", "target": "2055_0",
+    #                "group": 10, "width": 80, "length":100, "type": "annotation"})
+    #links.append({"source": "2055_0", "target": "bubble_804",
+    #                "group": 10, "width": 80, "length":100, "type": "annotation"})
+    #links.append({"source": "bubble_804", "target": "2058_1",
+    #                "group": 10, "width": 80, "length":100, "type": "annotation"})
+    #links.append({"source": "2058_1", "target": "2058_0",
+    #                "group": 10, "width": 80, "length":100, "type": "annotation"})
 
     #bounding box
     example = {"type": "gene", "name": "example", "nodes":["415_0", "415_1", "417_0", "417_1", "420_0", "420_1", "423_0", "423_1",

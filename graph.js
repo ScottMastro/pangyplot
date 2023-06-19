@@ -16,8 +16,8 @@ const TSV = "https://raw.githubusercontent.com/ScottMastro/example_graph_data/ma
 
 const canvasDiv = document.getElementById("canvas");
 
-const scaleX=1000
-const scaleY=10
+const scaleX = 1000
+const scaleY = 10
 const height = 500
 const width = 1200
 
