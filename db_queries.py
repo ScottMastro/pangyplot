@@ -3,11 +3,11 @@ from segment import SimpleSegment,Bubble
 def get_nodes(segment, graph, chr=None, start=None, end=None):
     rows = segment.query.all()
     for row in rows:
-        node = SimpleSegment(row.id, group=3, description="desc", size=3,
+        node = SimpleSegment(row.nodeid, group=3, description="desc", size=3,
         chrom=row.chrom, pos=row.pos)
         node.add_source_node(row.x1, row.y1)
         node.add_sink_node(row.x2, row.y2)
-        graph[row.id] = node
+        graph[row.nodeid] = node
 
     return graph
 

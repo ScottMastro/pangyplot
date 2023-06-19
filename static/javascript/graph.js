@@ -18,6 +18,45 @@ function force(Graph, alpha) {
 }
 
 
+function highlight_node(node, ctx, shift, size, color) {
+    ctx.beginPath();
+    ctx.arc(node.x+shift, node.y+shift, size, 0, 2 * Math.PI, false);
+    ctx.fillStyle = color;
+    ctx.fill();
+}
+
+function highlight_link(link, ctx, shift, width, color) {
+    ctx.beginPath();
+    ctx.moveTo(link.source.x+shift, link.source.y+shift);
+    ctx.lineTo(link.target.x+shift, link.target.y+shift);
+    ctx.lineWidth = width;
+    ctx.strokeStyle = color;
+    ctx.stroke();
+}
+
+function add_text(text, ctx, size, color, x, y) {
+    ctx.beginPath();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'darkgrey';
+
+    ctx.font = size.toString() + 'px Sans-Serif';
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+}
+
+function add_rect(text, ctx, size, color, x, y) {
+    ctx.beginPath();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'darkgrey';
+
+    ctx.font = size.toString() + 'px Sans-Serif';
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y);
+    ctx.restore();
+}
 
 function draw_graph(graph){
 
@@ -31,7 +70,6 @@ function draw_graph(graph){
 
     const updateGraphData = () => {
         const lastZoom = 1;
-        console.log(graph["nodes"])
         Graph.graphData({ nodes: graph["nodes"], links: graph["links"] });
         };
     
@@ -60,23 +98,7 @@ function draw_graph(graph){
             .linkWidth(linkWidth)
             .d3VelocityDecay(0.2)
             .nodeCanvasObjectMode(node => node.track == 1 ? 'before' : undefined)
-            .nodeCanvasObject((node, ctx) => {
-                // add ring just for highlighted nodes
-                ctx.beginPath();
-                ctx.arc(node.x+SHIFT, node.y+SHIFT, 12, 0, 2 * Math.PI, false);
-                ctx.fillStyle = "red";
-                ctx.fill();
-              })
-              .linkCanvasObjectMode(link => link.track == 1 ? 'before' : undefined)
-              .linkCanvasObject((link, ctx) => {
-                //console.log(link.source.x, link.source.y, link.target.x+80, link.target.y+80);
-                ctx.beginPath();
-                ctx.moveTo(link.source.x+SHIFT, link.source.y+SHIFT);
-                ctx.lineTo(link.target.x+SHIFT, link.target.y+SHIFT);
-                ctx.lineWidth = 100;
-                ctx.strokeStyle = "red";
-                ctx.stroke();
-            })
+            .nodeCanvasObject(highlight_node)
             .autoPauseRedraw(false) // keep redrawing after engine has stopped
             .onNodeClick(node => {
                 console.log(node);
@@ -108,6 +130,7 @@ function draw_graph(graph){
             //.linkWidth(link => {console.log(link); return 4})
 
 
+
         function linkStrength(link) 
         {
 
@@ -133,7 +156,7 @@ function draw_graph(graph){
             return 5;
         }
 
-        Graph.d3Force('link').distance(linkDistance).iterations(4)
+        Graph.d3Force('link').distance(linkDistance).iterations(2)
         //Graph.d3Force('center').strength(0.00005);
         
         //Graph.d3Force('link').distance(link => link["length"] )
@@ -144,7 +167,6 @@ function draw_graph(graph){
 
         Graph.minZoom(0.01)
         Graph.maxZoom(1e100)
-        console.log(Graph.graphData().links)
 
         Graph.onRenderFramePre((ctx, scale) => {
 
@@ -164,27 +186,41 @@ function draw_graph(graph){
                 if (annotation["nodes"].includes(node.id)){
                     node["annotate"] = 2;
                 }
+
+
+                if (node["track"] ==1){
+                    highlight_node(node, ctx, 0, 12, "red");
+                }
+
+
+
+            }
+            let links = Graph.graphData()["links"]
+            for (let i = 0, n = links.length, link; i < n; ++i) {
+                link = links[i];
+                if (link["track"] ==1){
+                    highlight_link(link, ctx, 0, 50, "red");
+                }
+
+
             }
             
-            
-            group_box = Graph.getGraphBbox((node) => node.annotate == 2);
+            //group_box = Graph.getGraphBbox((node) => node.annotate == 2);
             //console.log(ctx.canvas.__zoom);
         
             //console.log(group_box)
-            const x = group_box.x[0];
-            const y = group_box.y[0];
-            const width = group_box.x[1] - group_box.x[0];
-            const height = group_box.y[1] - group_box.y[0];
-            const color = "blue";
+            //const x = group_box.x[0];
+            //const y = group_box.y[0];
+            //const width = group_box.x[1] - group_box.x[0];
+            //const height = group_box.y[1] - group_box.y[0];
+            //const color = "blue";
 
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, width, height);
+            //ctx.fillStyle = color;
+           // ctx.fillRect(x, y, width, height);
 
-            ctx.font = '72px Sans-Serif';
-            ctx.fillStyle = 'darkgrey';
-            ctx.fillText('genename ', x + width/2, y + height/2);
+            //add_text('genename', ctx, 72, "lightgrey", x + width/2, y + height/2)
 
-    
+        
             
             ctx.restore();
          });
@@ -206,11 +242,7 @@ function draw_graph(graph){
 
             for (let i = 0, n = highlightNodes.length, node; i < n; ++i) {
                 node = highlightNodes[i];
-                ctx.beginPath();
-                console.log(node)
-                ctx.arc(node.x+SHIFT, node.y+SHIFT, 20, 0, 2 * Math.PI, false);
-                ctx.fillStyle = "green";
-                ctx.fill();
+                highlight_node(highlightNodes[i], ctx, 0, 20, "pink")
 
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; // Shadow color
                 ctx.shadowBlur = 4; // How much the shadow should blur

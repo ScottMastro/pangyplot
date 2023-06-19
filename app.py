@@ -15,18 +15,26 @@ GFA = "static/data/DRB1-3123_sorted.gfa"
 BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
 GFF3= "static/data/gencode.v43.basic.annotation.gff3.gz"
 
+
+TSV = "static/data/hprc-v1.0-mc-grch38.chrM.lay.tsv"
+GFA = "static/data/hprc-v1.0-mc-grch38.chrM.gfa"
+BUBBLE= "static/data/hprc-v1.0-mc-grch38.chrM.json"
+GFF3= "static/data/gencode.v43.basic.annotation.gff3.gz"
+
+
 #TSV = "static/data/chr7-test-pg.lay.tsv"
 #GFA = "static/data/chr7-test-pg.gfa"
 #BUBBLE= "static/data/chr7-test-pg.bchains.json"
 
 
 #db.drop_all(app)
+db.clear_all(app)
 
-db.populate_annotations(app, GFF3)
+#db.populate_annotations(app, GFF3)
 
-#db.populate_gfa(app, GFA)
-#db.populate_tsv(app, TSV)
-#db.populate_bubbles(app, BUBBLE)
+db.populate_gfa(app, GFA)
+db.populate_tsv(app, TSV)
+db.populate_bubbles(app, BUBBLE)
 
 db.print_tables(app)
 

@@ -85,7 +85,9 @@ class link(db.Model):
         return "\t".join([str(x) for x in info])
 
 class segment(db.Model):
-    id = db.Column(db.String, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    nodeid = db.Column(db.String)
+
     seq = db.Column(db.String)
     x1 = db.Column(db.Float)
     y1 = db.Column(db.Float)
@@ -96,8 +98,9 @@ class segment(db.Model):
 
     component = db.Column(db.Integer)
 
-    def __init__(self, id, seq, chrom, pos):
-        self.id = str(id)
+    def __init__(self, id, nodeid, seq, chrom, pos):
+        self.id = id
+        self.nodeid = str(nodeid)
         self.seq = seq
         self.chrom = chrom
         self.pos = pos
@@ -186,14 +189,23 @@ def drop(app, tablename):
     with app.app_context():
 
         connection = db.engine.connect()
-
-        # Define the table to be dropped
         metadata = db.MetaData(bind=db.engine)
         your_table = db.Table(tablename, metadata, autoload=True)
-
-        # Drop the table
         your_table.drop(connection)
+        db.session.commit()
         connection.close()
+
+def clear(app, tablename):
+
+    with app.app_context():
+
+        connection = db.engine.connect()
+        metadata = db.MetaData(bind=db.engine)
+        your_table = db.Table(tablename, metadata, autoload=True)
+        db.session.query(your_table).delete()
+        db.session.commit()
+        connection.close()
+
 
 def drop_all(app):
     drop(app, "link")
@@ -201,6 +213,12 @@ def drop_all(app):
     drop(app, "bubble")
     drop(app, "chain")
     drop(app, "bubble_inside")
+def clear_all(app):
+    clear(app, "link")
+    clear(app, "segment")
+    clear(app, "bubble")
+    clear(app, "chain")
+    clear(app, "bubble_inside")
 
 
 def print_tables(app):
@@ -309,9 +327,9 @@ def strand2bin(strand):
 def bin2strand(strand):
     return "+" if strand == 1 else "-"
 
-def add_row_to_segment(line, position):
+def add_row_to_segment(line, i, position):
     cols = line.split("\t")
-    new_row = segment(id=cols[1], seq=cols[2], chrom="chr1", pos=position)
+    new_row = segment(id=i, nodeid=cols[1], seq=cols[2], chrom="chr1", pos=position)
     db.session.add(new_row)
 
 def add_row_to_link(line):
@@ -338,11 +356,11 @@ def populate_gfa(app, gfa):
                         db.session.commit()
 
                 if line[0] == "S":
+                    Scount += 1
                     cols = line.split("\t")
                     
-                    add_row_to_segment(line, position)
+                    add_row_to_segment(line, Scount, position)
                     position += len(cols[2])
-                    Scount += 1
                     if Scount % 100000 == 0:
                         sys.stdout.write('S')
                         sys.stdout.flush()
