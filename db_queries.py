@@ -4,7 +4,7 @@ def get_nodes(segment, graph, chr=None, start=None, end=None):
     rows = segment.query.all()
     for row in rows:
         node = SimpleSegment(row.nodeid, group=3, description="desc", size=3,
-        chrom=row.chrom, pos=row.pos)
+        chrom=row.chrom, pos=row.pos, length=row.length)
         node.add_source_node(row.x1, row.y1)
         node.add_sink_node(row.x2, row.y2)
         graph[row.nodeid] = node
@@ -21,12 +21,20 @@ def get_edges(link, graph, chr=None, start=None, end=None):
 
     return graph
 
-def get_annotations(tablename, annotations):
-    gene1 = {"name": "gene1", "start": 1000, "end": 2000}
-    gene2 = {"name": "gene2", "start": 6000, "end": 10000}
+def get_annotations(table, annotations, chromosome, start, end):
 
-    return [gene1, gene2]
+    rows = table.query.filter(
+        table.chrom == chromosome,
+        table.start >= start,
+        table.end <= end
+    ).all()
+    
+    for row in rows:
+        d = {"index": row.id, "id": row.aid, "chrom": row.chrom, "start": row.start, "end": row.end,
+        "type": row.type, "info": row.info}  
+        annotations.append(d)
 
+    return annotations
 
 
 def get_bubbles(bubble, bubble_inside, bubbles, graph, chr=None, start=None, end=None):
