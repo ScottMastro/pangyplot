@@ -1,6 +1,4 @@
-
 from math import floor
-
 
 class PointerSegment:
     def __init__(self, id, pointTo):
@@ -24,15 +22,16 @@ class Bubble:
         self.description = description
         self.size = size
         self.parent = None 
-        self.children = set() 
+        self.children = set()
+
+        self.annotations = []
+        for child in subgraph:
+            self.annotations = list(set(self.annotations) | set(child.annotations))
+
 
     def add_parent(self, other):
         self.parent = other
         other.children.add(self)
-
-    def add_child(self, other):
-        self.children.add(other)
-        other.parent = self
 
     def subgraph_size(self):
         if len(self.subgraph) == 0:
@@ -56,15 +55,18 @@ class Bubble:
         center = self.subgraph_center()
         return [{"nodeid": self.id, "id": self.id, 
                 "x": center[0]*XSCALE_NODE, "y": center[1], "group": self.group, \
-                "description": self.description, "size": self.size}]
+                "description": self.description, "size": self.size, "annotations": self.annotations}]
 
     def to_link_dict(self):
         links = []
-        
+
+        sharedAnnotations = list(set(self.annotations) & set(self.source.annotations))
         links.append( {"source": self.source.sink_node_id(), "target": self.id,
-            "group": self.group, "width": 1, "length":21, "type": "edge"})
+            "group": self.group, "width": 1, "length":21, "type": "edge", "annotations": sharedAnnotations})
+
+        sharedAnnotations = list(set(self.annotations) & set(self.sink.annotations))
         links.append( {"source": self.id, "target": self.sink.source_node_id(),
-            "group": self.group, "width": 1, "length":21, "type": "edge"})
+            "group": self.group, "width": 1, "length":21, "type": "edge", "annotations": sharedAnnotations})
 
         return links
 
@@ -80,11 +82,12 @@ def createNode(segment, id, x, y):
     return {"nodeid": segment.id, "id": id, 
             "x": x*XSCALE_NODE, "y": y, "group": segment.group, 
             "description": segment.description, "size": segment.size,
-            "chrom": segment.chrom, "pos": segment.pos }
+            "chrom": segment.chrom, "pos": segment.pos, "length": segment.length,
+            "annotations": segment.annotations}
 
 
 class SimpleSegment:
-    def __init__(self, id, group=0, description="", size=1, chrom=None, pos=None):
+    def __init__(self, id, group=0, description="", size=1, chrom=None, pos=None, length=None):
         self.id = str(id)
 
         self.group = group
@@ -101,6 +104,8 @@ class SimpleSegment:
 
         self.chrom = chrom
         self.pos = pos
+        self.length = length
+        self.annotations = []
 
     def add_source_node(self, xpos, ypos):
         self.x1 = xpos
@@ -141,6 +146,9 @@ class SimpleSegment:
             coords.append((midx, midy))
         return coords
 
+    def add_annotation(self, annotationIndex):
+        self.annotations.append(annotationIndex)
+
     def to_node_dict(self):
 
         middle_nodes =[]
@@ -162,22 +170,24 @@ class SimpleSegment:
             LEN=self.get_distance()/(len(midcoords)+1)
 
             links.append( {"source": self.source_node_id(), "target": self.mid_node_id(0),
-            "group": self.group, "width": 21, "length":LEN, "type": "node"} )
+            "group": self.group, "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
             links.append( {"source": self.mid_node_id(len(midcoords)-1), "target": self.sink_node_id(),
-            "group": self.group, "width": 21, "length":LEN, "type": "node"} )
+            "group": self.group, "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
 
             for i,mid in enumerate(midcoords[:-1]):
                 links.append( {"source": self.mid_node_id(i), "target": self.mid_node_id(i+1),
-                "group": self.group, "width": 21, "length":LEN, "type": "node"} )
+                "group": self.group, "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
 
         else:
             links.append( {"source": self.source_node_id(), "target": self.sink_node_id(),
-                "group": self.group, "width": 21, "length":self.get_distance(), "type": "node"} )
+                "group": self.group, "width": 21, "length":self.get_distance(), "type": "node", "annotations": self.annotations} )
 
         for other in self.link_to:
             if all or other.id not in self.remember_link_from:
+
+                sharedAnnotations = list(set(self.annotations) & set(other.annotations))
                 links.append( {"source": self.source_node_id(), "target": other.sink_node_id(),
-                    "group": self.group, "width": 1, "length":1, "type": "edge"})
+                    "group": self.group, "width": 1, "length":1, "type": "edge", "annotations": sharedAnnotations})
         
         return links
 
@@ -185,9 +195,12 @@ class SimpleSegment:
         links = []
 
         for other in self.link_from:
+
+            sharedAnnotations = list(set(self.annotations) & set(other.annotations))
+
             if other.id not in excludeIds:
                 links.append( {"source": other.source_node_id(), "target": self.sink_node_id(),
-                    "group": self.group, "width": 1, "length":1, "type": "edge"})
+                    "group": self.group, "width": 1, "length":1, "type": "edge", "annotations": sharedAnnotations})
                 if remember:
                     other.remember_link_from.append(self.id)
         return links

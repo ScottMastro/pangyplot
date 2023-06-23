@@ -29,13 +29,7 @@ GFF3= "static/data/gencode.v43.basic.annotation.gff3.gz"
 
 #db.drop_all(app)
 db.clear_all(app)
-
-#db.populate_annotations(app, GFF3)
-
-db.populate_gfa(app, GFA)
-db.populate_tsv(app, TSV)
-db.populate_bubbles(app, BUBBLE)
-
+db.populate_all(app, GFA, TSV, BUBBLE, GFF3)
 db.print_tables(app)
 
 @app.route('/select', methods=["GET"])
@@ -53,13 +47,14 @@ def select():
     graph = db.get_edges(graph)
 
     annotations = []
-    annotations = db.get_annotations(annotations)
+    annotations = db.get_annotations(annotations, chromosome, start, end)
+    graph = helper.add_annotations(annotations, graph)
 
     bubbles = dict()
     bubbles = db.get_bubbles(bubbles, graph)
     bubbles = helper.group_bubbles(bubbles)
 
-    graph = helper.annotate_graph(bubbles, graph)
+    graph = helper.label_group(bubbles, graph)
 
     resultDict = helper.get_graph_dictionary(graph, bubbles, annotations)
 

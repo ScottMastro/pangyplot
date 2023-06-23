@@ -58,6 +58,33 @@ function add_rect(text, ctx, size, color, x, y) {
     ctx.restore();
 }
 
+function intToColor(seed) {
+    var a = 1664525;
+    var c = 1013904223;
+    var m = Math.pow(2, 32);
+
+    // Generate three random numbers between 0 and 255
+    var red = (seed * a + c) % m;
+    seed = (red * a + c) % m;
+    var green = seed;
+    seed = (green * a + c) % m;
+    var blue = seed;
+
+    // Normalize to the range 0-255
+    red = Math.floor((red / m) * 256);
+    green = Math.floor((green / m) * 256);
+    blue = Math.floor((blue / m) * 256);
+
+    // Convert to a hexadecimal string and pad with zeros if necessary
+    red = ("00" + red.toString(16)).slice(-2);
+    green = ("00" + green.toString(16)).slice(-2);
+    blue = ("00" + blue.toString(16)).slice(-2);
+
+    // Combine into a single color string
+    var color = "#" + red + green + blue;
+    return color;
+}
+
 function draw_graph(graph){
 
     const canvas = document.getElementById('graph');
@@ -68,6 +95,21 @@ function draw_graph(graph){
     let nodes = [], links = [];
     console.log(graph);
 
+
+    for (let j = 0, m = graph.annotations.length, annotation; j < m; ++j) {
+        annotation = graph.annotations[j];
+
+        for (let i = 0, n = graph.nodes.length, node; i < n; ++i) {
+            node = graph.nodes[i];
+
+            if (annotation.start <= node.pos && annotation.end >= node.pos){
+                node["annotate"] = 2;
+            }
+
+        }
+    }
+
+    
     const updateGraphData = () => {
         const lastZoom = 1;
         Graph.graphData({ nodes: graph["nodes"], links: graph["links"] });
@@ -177,30 +219,31 @@ function draw_graph(graph){
             ctx.textBaseline = 'middle';
             ctx.fillStyle = 'darkgrey';
 
-            //for (let i = 0, n = annotation["nodes"].length; i < n; ++i) {
-            let annotation = graph["annotations"][0];
-            
             let nodes = Graph.graphData()["nodes"]
             for (let i = 0, n = nodes.length, node; i < n; ++i) {
                 node = nodes[i];
-                if (annotation["nodes"].includes(node.id)){
-                    node["annotate"] = 2;
+
+                node.annotations.sort(function(a, b) {
+                    return a - b;
+                  });
+
+                for (let j = 0, m = node.annotations.length; j < m; ++j) {
+                    highlight_node(node, ctx, 0, Math.max(40, 40*(1/lastZoom/10)), intToColor(node.annotations[j]));
                 }
-
-
-                if (node["track"] ==1){
-                    highlight_node(node, ctx, 0, 12, "red");
-                }
-
-
-
             }
+            
             let links = Graph.graphData()["links"]
             for (let i = 0, n = links.length, link; i < n; ++i) {
-                link = links[i];
-                if (link["track"] ==1){
-                    highlight_link(link, ctx, 0, 50, "red");
+                 link = links[i];
+
+                 link.annotations.sort(function(a, b) {
+                    return a - b;
+                  });
+
+                for (let j = 0, m = link.annotations.length; j < m; ++j) {
+                    highlight_link(link, ctx, 0, Math.max(80, 80*(1/lastZoom/10)), intToColor(link.annotations[j]));
                 }
+
 
 
             }
@@ -248,21 +291,13 @@ function draw_graph(graph){
                 ctx.shadowBlur = 4; // How much the shadow should blur
                 ctx.shadowOffsetX = 5; // Horizontal distance of the shadow from the text
                 ctx.shadowOffsetY = 5; // Vertical distance of the shadow from the text
-                ctx.fillText(node["pos"], node.x, node.y);
+                ctx.fillText(node["chrom"]+":"+node["pos"], node.x, node.y);
 
             }
 
             //for (let i = 0, n = annotation["nodes"].length; i < n; ++i) {
-            let annotation = graph["annotations"][0];
             
-            let nodes = Graph.graphData()["nodes"]
-            for (let i = 0, n = nodes.length, node; i < n; ++i) {
-                node = nodes[i];
-                if (annotation["nodes"].includes(node.id)){
-                    node["annotate"] = 2;
-                }
 
-            }
                         
             ctx.restore();
          });
@@ -309,5 +344,5 @@ function fetch(chromosome, start, end) {
     xmlHttp.send();
 }
 
-fetch("chr7", 142747350, 142775343)
+fetch("chrM", 0, 142775343)
 

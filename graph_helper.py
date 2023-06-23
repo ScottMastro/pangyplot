@@ -34,12 +34,24 @@ def group_bubbles(bubbles):
 
     return bubbles
 
-def annotate_graph(bubbles, graph):
+def label_group(bubbles, graph):
     
     for bid in bubbles:
         bubble = bubbles[bid]
         for node in bubble.subgraph:
             graph[node.id].group += bubble.group
+
+    return graph
+
+def add_annotations(annotations, graph):
+    for annotation in annotations:
+        for key in graph:
+            segment = graph[key]
+            if segment.pos is None:
+                continue
+            if annotation["start"] <= segment.pos and \
+                annotation["end"] >= (segment.pos + segment.length):
+                segment.add_annotation(annotation["index"])
 
     return graph
 
@@ -81,7 +93,7 @@ def get_graph_dictionary(graph, bubbles, annotations):
     #top level graph
     nodes = []
     links = []
-    annotations = []
+    #annotations = []
     tracks = []
 
 
@@ -103,7 +115,7 @@ def get_graph_dictionary(graph, bubbles, annotations):
     #bounding box
     example = {"type": "gene", "name": "example", "nodes":["415_0", "415_1", "417_0", "417_1", "420_0", "420_1", "423_0", "423_1",
     "428_0", "428_1", "430_0", "430_1", "432_0", "432_1", "436_0", "436_1","440_0", "440_1", "442_0", "442_1", "444_0", "444_1",]  }
-    annotations.append(example)
+    #annotations.append(example)
 
     #track
     exampletrack = {"type": "gene", "name": "example", "nodes":["2017", "2111", "2115", "2118", "2121", "2126"]  }
@@ -140,9 +152,6 @@ def get_graph_dictionary(graph, bubbles, annotations):
                 l["track"] = 0
         nodes.extend(newNodes)
         links.extend(newLinks)
-
-
-
 
     resultDict = {"nodes": nodes, "links": links, "annotations": annotations, "tracks": tracks}
 

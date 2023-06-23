@@ -16,8 +16,8 @@ def get_edges(graph):
     return query.get_edges(link, graph)
 def get_bubbles(bubbles, graph):
     return query.get_bubbles(bubble, bubble_inside, bubbles, graph)
-def get_annotations(annotations):
-    return query.get_annotations(None, annotations)
+def get_annotations(annotations, chromosome, start, end):
+    return query.get_annotations(annotation, annotations, chromosome, start, end)
 
 def init(app):
     db.init_app(app)
@@ -37,7 +37,8 @@ def init(app):
 ## ============================================================
 
 class annotation(db.Model):
-    id = db.Column(db.String, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    aid = db.Column(db.String)
     chrom = db.Column(db.String)
     start = db.Column(db.Integer)
     end = db.Column(db.Integer)
@@ -46,8 +47,9 @@ class annotation(db.Model):
     gene = db.Column(db.String)
     info = db.Column(db.String)
 
-    def __init__(self, id, chrom, start, end, source, type, gene, info):
-        self.id = str(id)
+    def __init__(self, i, annotationId, chrom, start, end, source, type, gene, info):
+        self.id = str(i)
+        self.aid = str(annotationId)
         self.chrom = str(chrom)
         self.start = str(start)
         self.end = str(end)
@@ -95,6 +97,7 @@ class segment(db.Model):
     y2 = db.Column(db.Float)
     chrom = db.Column(db.String)
     pos = db.Column(db.Integer)
+    length = db.Column(db.Integer)
 
     component = db.Column(db.Integer)
 
@@ -104,6 +107,7 @@ class segment(db.Model):
         self.seq = seq
         self.chrom = chrom
         self.pos = pos
+        self.length = len(seq)
 
         self.x1 = None
         self.y1 = None
@@ -213,12 +217,21 @@ def drop_all(app):
     drop(app, "bubble")
     drop(app, "chain")
     drop(app, "bubble_inside")
+    #drop(app, "annotation")
+
 def clear_all(app):
     clear(app, "link")
     clear(app, "segment")
     clear(app, "bubble")
     clear(app, "chain")
     clear(app, "bubble_inside")
+    #clear(app, "annotation")
+
+def populate_all(app, gfa, tsv, bubble, gff3):
+    populate_gfa(app, gfa)
+    populate_tsv(app, tsv)
+    populate_bubbles(app, bubble)
+    #populate_annotations(app, gff3)
 
 
 def print_tables(app):
@@ -269,10 +282,10 @@ def print_tables(app):
 ## Annotations populate
 ## ============================================================
 
-def add_row_to_annotations(line):
+def add_row_to_annotations(i, line):
     cols = line.strip().split("\t")
     infoCols = cols[8].split(";")
-    print(infoCols)
+
     id = None ; gene = None ; exon = None
 
     for c in infoCols:
@@ -283,8 +296,7 @@ def add_row_to_annotations(line):
         if c.startswith("exon_number"):
             exon = c.split("=")[1]
 
-    print(exon, id)
-    new_row = annotation(id=id, chrom=cols[0], start=cols[3], end=cols[4],
+    new_row = annotation(i=i, annotationId=id, chrom=cols[0], start=cols[3], end=cols[4],
                              source=cols[1], type=cols[2], gene=gene, info=cols[8])
     db.session.add(new_row)
 
@@ -297,8 +309,8 @@ def populate_annotations(app, gff3):
         if line.startswith("#"):
             return count
     
-        add_row_to_annotations(line)
         count += 1
+        add_row_to_annotations(count, line)
         if count % 1000 == 0:
             sys.stdout.write('L')
             sys.stdout.flush()
@@ -329,7 +341,20 @@ def bin2strand(strand):
 
 def add_row_to_segment(line, i, position):
     cols = line.split("\t")
-    new_row = segment(id=i, nodeid=cols[1], seq=cols[2], chrom="chr1", pos=position)
+
+    SN=None ; SO=None ; SR=None
+    for col in cols:
+        if col.startswith("SN:"):
+            SN = col.split(":")[-1]
+            continue
+        if col.startswith("SO:"):
+            SO = col.split(":")[-1]
+            continue
+        if col.startswith("SR:"):
+            SR = col.split(":")[-1]
+            continue
+
+    new_row = segment(id=i, nodeid=cols[1], seq=cols[2], chrom=SN, pos=SO)
     db.session.add(new_row)
 
 def add_row_to_link(line):
