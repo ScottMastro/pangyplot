@@ -95,6 +95,10 @@ function draw_graph(graph){
     let nodes = [], links = [];
     console.log(graph);
 
+    annotationDict = {}
+    for (let i = 0, n = graph.annotations.length; i < n; ++i) {
+        annotationDict[graph.annotations[i].index] = graph.annotations[i];
+    }
 
     for (let j = 0, m = graph.annotations.length, annotation; j < m; ++j) {
         annotation = graph.annotations[j];
@@ -150,8 +154,15 @@ function draw_graph(graph){
                     newNode = newNodes[i];
                     newNode.x = node.x
                     newNode.y = node.y
-                    
                 }
+
+                graph["links"] = graph["links"].filter(l => l.source !== node && l.target !== node);
+                graph["nodes"] = graph["nodes"].filter(n => n !== node);
+
+                for (let i = 0, n = newNodes.length; i < n; ++i) {
+
+                }
+
     
                 graph["nodes"] = graph["nodes"].concat(newNodes);
                 graph["links"] = graph["links"].concat(node["expand_links"]);
@@ -202,10 +213,10 @@ function draw_graph(graph){
         //Graph.d3Force('center').strength(0.00005);
         
         //Graph.d3Force('link').distance(link => link["length"] )
-        //Graph.d3Force('collide', d3.forceCollide(5))
-        Graph.d3Force('collide', null)
+        Graph.d3Force('collide', d3.forceCollide(50).radius(20))
+        //Graph.d3Force('collide', null)
 
-        //Graph.d3Force('charge').strength(-30).distanceMax(500)
+        Graph.d3Force('charge').strength(-30).distanceMax(500)
 
         Graph.minZoom(0.01)
         Graph.maxZoom(1e100)
@@ -228,7 +239,9 @@ function draw_graph(graph){
                   });
 
                 for (let j = 0, m = node.annotations.length; j < m; ++j) {
-                    highlight_node(node, ctx, 0, Math.max(40, 40*(1/lastZoom/10)), intToColor(node.annotations[j]));
+                    if (annotationDict[node.annotations[j]].type == "gene"){
+                        highlight_node(node, ctx, 0, Math.max(40, 40*(1/lastZoom/10)), intToColor(node.annotations[j]));
+                    }
                 }
             }
             
@@ -241,7 +254,9 @@ function draw_graph(graph){
                   });
 
                 for (let j = 0, m = link.annotations.length; j < m; ++j) {
-                    highlight_link(link, ctx, 0, Math.max(80, 80*(1/lastZoom/10)), intToColor(link.annotations[j]));
+                    if (annotationDict[link.annotations[j]].type == "gene"){
+                        highlight_link(link, ctx, 0, Math.max(80, 80*(1/lastZoom/10)), intToColor(link.annotations[j]));
+                    }
                 }
 
 
@@ -278,21 +293,78 @@ function draw_graph(graph){
 
             ctx.save();
 
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = 'darkgrey';
-            ctx.font = '12px Sans-Serif';
+
+            annotationNodesX = {};
+            annotationNodesY = {};
+
+            let nodes = Graph.graphData()["nodes"]
+            for (let i = 0, n = nodes.length, node; i < n; ++i) {
+                node = nodes[i];
+
+                for (let j = 0, m = node.annotations.length, k; j < m; ++j) {
+                    k = node.annotations[j]
+
+                    if (!annotationNodesX.hasOwnProperty(k)) {
+                        annotationNodesX[k] = [];
+                        annotationNodesY[k] = [];
+                    }
+                    annotationNodesX[k].push(node.x)
+                    annotationNodesY[k].push(node.y);
+                } 
+            }
+
+            for (var k in annotationNodesX) {
+
+                if (annotationDict[k].type != "gene"){
+                    continue;
+                }
+
+                var n = annotationNodesX[k].length
+                var sumX = annotationNodesX[k].reduce(function(a, b){
+                    return a + b;
+                }, 0);
+                var sumY = annotationNodesY[k].reduce(function(a, b){
+                    return a + b;
+                }, 0);
+
+                var xpos = sumX/n;
+                var ypos = sumY/n;
+            
+    
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; // Shadow color
+                ctx.shadowBlur = 4; // How much the shadow should blur
+                ctx.shadowOffsetX = 5; // Horizontal distance of the shadow from the text
+                ctx.shadowOffsetY = 5; // Vertical distance of the shadow from the text
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'darkgrey';
+            
+                ctx.font = Math.max(72, 72*(1/lastZoom/10)).toString() + 'px Sans-Serif';
+                ctx.fillStyle = "lightgrey";
+
+                
+                ctx.fillText(annotationDict[k].id, xpos, ypos);
+    
+                
+            }
+            
 
             for (let i = 0, n = highlightNodes.length, node; i < n; ++i) {
                 node = highlightNodes[i];
                 highlight_node(highlightNodes[i], ctx, 0, 20, "pink")
 
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'darkgrey';
+                ctx.font = '24px Sans-Serif';
+    
                 ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; // Shadow color
                 ctx.shadowBlur = 4; // How much the shadow should blur
                 ctx.shadowOffsetX = 5; // Horizontal distance of the shadow from the text
                 ctx.shadowOffsetY = 5; // Vertical distance of the shadow from the text
-                ctx.fillText(node["chrom"]+":"+node["pos"], node.x, node.y);
-
+                if (node.length != null){
+                    ctx.fillText(node["chrom"]+":"+node["pos"], node.x, node.y);
+                }
             }
 
             //for (let i = 0, n = annotation["nodes"].length; i < n; ++i) {

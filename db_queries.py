@@ -3,8 +3,8 @@ from segment import SimpleSegment,Bubble
 def get_nodes(segment, graph, chr=None, start=None, end=None):
     rows = segment.query.all()
     for row in rows:
-        node = SimpleSegment(row.nodeid, group=3, description="desc", size=3,
-        chrom=row.chrom, pos=row.pos, length=row.length)
+        node = SimpleSegment(row.nodeid, description="desc", size=3,
+        chrom=row.chrom, pos=row.pos, length=len(row.seq))
         node.add_source_node(row.x1, row.y1)
         node.add_sink_node(row.x2, row.y2)
         graph[row.nodeid] = node
@@ -51,6 +51,6 @@ def get_bubbles(bubble, bubble_inside, bubbles, graph, chr=None, start=None, end
             subgraph.append(graph[e.node_id])
 
         bubbles[bid] = Bubble(bid, graph[row.start], graph[row.end], subgraph, 
-                group=int(row.id), description="desc", size=5)
+                description="desc", size=5)
 
     return bubbles
