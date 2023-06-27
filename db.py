@@ -340,7 +340,7 @@ def bin2strand(strand):
     return "+" if strand == 1 else "-"
 
 def add_row_to_segment(line, i, position):
-    cols = line.split("\t")
+    cols = line.strip().split("\t")
 
     SN=None ; SO=None ; SR=None
     for col in cols:

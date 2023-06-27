@@ -11,14 +11,14 @@ class PointerSegment:
         return []
 
 class Bubble:
-    def __init__(self, id, source, sink, subgraph=[], group=0, description="", size=1):
+    def __init__(self, id, source, sink, subgraph=[], description="", size=1):
 
         self.id = id
         self.source = source
         self.sink = sink
         self.subgraph = subgraph
         
-        self.group = group
+        self.group = 0
         self.description = description
         self.size = size
         self.parent = None 
@@ -87,10 +87,14 @@ def createNode(segment, id, x, y):
 
 
 class SimpleSegment:
-    def __init__(self, id, group=0, description="", size=1, chrom=None, pos=None, length=None):
+    def __init__(self, id, description="", size=1, chrom=None, pos=None, length=None):
         self.id = str(id)
 
-        self.group = group
+        self.group = 0
+
+        if pos is not None:
+            self.group = 1
+
         self.description = description
         self.size = size
         
@@ -117,9 +121,15 @@ class SimpleSegment:
         return ((self.x1+self.x2)/2, (self.y1+self.y2)/2)
 
     def source_node_id(self):
+        if self.length == 1:
+            return self.id
+
         return str(self.id) + "_0"
 
     def sink_node_id(self):
+        if self.length == 1:
+            return self.id
+
         return self.id + "_1"
 
     def mid_node_id(self,i):
@@ -151,44 +161,62 @@ class SimpleSegment:
 
     def to_node_dict(self):
 
-        middle_nodes =[]
+        if self.length == 1:
+            node = createNode(self, self.id, self.x1, self.y1)
+            return [node]
+
+        else:
+            middle_nodes =[]
         
-        for i,mid in enumerate(self.get_mid_coords()):
-            middle_nodes.append( createNode(self, self.mid_node_id(i), mid[0], mid[1]) )
+            for i,mid in enumerate(self.get_mid_coords()):
+                middle_nodes.append( createNode(self, self.mid_node_id(i), mid[0], mid[1]) )
 
-        node1 = createNode(self, self.source_node_id(), self.x1, self.y1)
-        node2 = createNode(self, self.sink_node_id(), self.x2, self.y2)
 
-        return [node1, node2] + middle_nodes
+            node1 = createNode(self, self.source_node_id(), self.x1, self.y1)
+            node2 = createNode(self, self.sink_node_id(), self.x2, self.y2)
+
+            return [node1, node2] + middle_nodes
 
     def to_link_dict(self, all=False):
         links = []
 
-        midcoords=self.get_mid_coords()
 
-        if len(midcoords) > 0:
-            LEN=self.get_distance()/(len(midcoords)+1)
+        if self.length == 1:
+            for other in self.link_to:
+                if all or other.id not in self.remember_link_from:
 
-            links.append( {"source": self.source_node_id(), "target": self.mid_node_id(0),
-            "group": self.group, "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
-            links.append( {"source": self.mid_node_id(len(midcoords)-1), "target": self.sink_node_id(),
-            "group": self.group, "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
+                    sharedAnnotations = list(set(self.annotations) & set(other.annotations))
+                    links.append( {"source": self.source_node_id(), "target": other.sink_node_id(),
+                        "group": self.group, "width": 1, "length":1, "type": "edge", "annotations": sharedAnnotations})
 
-            for i,mid in enumerate(midcoords[:-1]):
-                links.append( {"source": self.mid_node_id(i), "target": self.mid_node_id(i+1),
-                "group": self.group, "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
 
         else:
-            links.append( {"source": self.source_node_id(), "target": self.sink_node_id(),
-                "group": self.group, "width": 21, "length":self.get_distance(), "type": "node", "annotations": self.annotations} )
 
-        for other in self.link_to:
-            if all or other.id not in self.remember_link_from:
+            midcoords=self.get_mid_coords()
 
-                sharedAnnotations = list(set(self.annotations) & set(other.annotations))
-                links.append( {"source": self.source_node_id(), "target": other.sink_node_id(),
-                    "group": self.group, "width": 1, "length":1, "type": "edge", "annotations": sharedAnnotations})
-        
+            if len(midcoords) > 0:
+                LEN=self.get_distance()/(len(midcoords)+1)
+
+                links.append( {"source": self.source_node_id(), "target": self.mid_node_id(0),
+                "group": self.group, "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
+                links.append( {"source": self.mid_node_id(len(midcoords)-1), "target": self.sink_node_id(),
+                "group": self.group, "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
+
+                for i,mid in enumerate(midcoords[:-1]):
+                    links.append( {"source": self.mid_node_id(i), "target": self.mid_node_id(i+1),
+                    "group": self.group, "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
+
+            else:
+                links.append( {"source": self.source_node_id(), "target": self.sink_node_id(),
+                    "group": self.group, "width": 21, "length":self.get_distance(), "type": "node", "annotations": self.annotations} )
+
+            for other in self.link_to:
+                if all or other.id not in self.remember_link_from:
+
+                    sharedAnnotations = list(set(self.annotations) & set(other.annotations))
+                    links.append( {"source": self.source_node_id(), "target": other.sink_node_id(),
+                        "group": self.group, "width": 1, "length":1, "type": "edge", "annotations": sharedAnnotations})
+            
         return links
 
     def from_links_dict(self, remember=False, excludeIds=set()):
