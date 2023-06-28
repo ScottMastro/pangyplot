@@ -1,53 +1,51 @@
-from app import db
-import sys
 import gzip
+from data.model.annotation import Annotation
 
-from model.annotation import Annotation
+def get_reader(gff3):
+    if gff3.endswith(".gz"):
+        return gzip.open(gff3, 'rt')
+    return open(gff3)
 
-def add_row_to_annotations(i, line):
+def parse_line(line):
+
+    if line.startswith("#"):
+        return None
+    
+    result = dict()
     cols = line.strip().split("\t")
-    infoCols = cols[8].split(";")
+    
+    result["chrom"] = cols[0]
+    result["source"] = cols[1]
+    result["type"] = cols[2]
+    result["start"] = cols[3]
+    result["end"] = cols[4]
+    result["info"] = cols[8]
 
-    id = None ; gene = None ; exon = None
-
-    for c in infoCols:
+    for c in result["info"].split(";"):
         if c.startswith("ID"):
-            id = c.split("=")[1]
+            result["id"] = c.split("=")[1]
         if c.startswith("gene"):
-            gene = c.split("=")[1]
+            result["gene"] = c.split("=")[1]
         if c.startswith("exon_number"):
-            exon = c.split("=")[1]
+            result["exon"] = c.split("=")[1]
+    
+    return result
 
-    new_row = Annotation(i=i, annotationId=id, chrom=cols[0], start=cols[3], end=cols[4],
-                             source=cols[1], type=cols[2], gene=gene, info=cols[8])
-    db.session.add(new_row)
-
-
-
-def populate_annotations(app, gff3):
+def parse_gff3(db, gff3, count_update):
     count = 0
 
-    def do_line(line, count):
-        if line.startswith("#"):
-            return count
+    with get_reader(gff3) as file:
+        for line in file:
+            row = parse_line(line)
+
+            if row:
+                row["aid"] = row["id"]
+                row["id"] = count
+                count += 1
+                annotation = Annotation(row)
+                db.session.add(annotation)
+
+                count += 1
+                count_update(count)
     
-        count += 1
-        add_row_to_annotations(count, line)
-        if count % 1000 == 0:
-            sys.stdout.write('L')
-            sys.stdout.flush()
-            db.session.commit()
-        return count
-
-    with app.app_context():
-
-        if gff3.endswith(".gz"):
-            with gzip.open(gff3, 'rt') as f:
-                for line in f:
-                    count = do_line(line, count)
-        else:
-            with open(gff3) as f:
-                for line in f:
-                    count = do_line(line, count)
-
         db.session.commit()

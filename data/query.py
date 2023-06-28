@@ -3,8 +3,7 @@ from segment import SimpleSegment,SimpleBubble
 from model.segment import Segment
 from model.link import Link
 from model.annotation import Annotation
-from model.bubble import Bubble
-from model.bubble_inside import BubbleInside
+from model.bubble import Bubble,BubbleInside
 
 def get_nodes(graph, chr=None, start=None, end=None):
     rows = Segment.query.all()
@@ -64,12 +63,6 @@ def get_bubbles(graph, chr=None, start=None, end=None):
 
 '''
 
-import data.db_queries as query
-import data.parse_gfa as gfa
-import data.parse_gff3 as gff3
-import data.parse_json as json
-import data.parse_tsv as tsv
-
 def get_nodes(graph):
     return query.get_nodes(graph)
 def get_edges(graph):
@@ -111,47 +104,4 @@ def populate_all(app, gfa, tsv, bubble, gff3):
     json.populate_bubbles(app, bubble)
     #gff3.populate_annotations(app, gff3)
 
-def print_tables(app):
-    
-    with app.app_context():
-
-        rows = link.query.limit(5).all()
-        row_count = link.query.count()
-        print("link\t", row_count)
-        print("--------")
-        for row in rows:
-            print(row)
-        print("--------")
-
-        rows = segment.query.limit(5).all()
-        row_count = segment.query.count()
-        print("segment\t", row_count)
-        print("--------")
-        for row in rows:
-            print(row)
-        print("--------")
-
-        rows = chain.query.limit(5).all()
-        row_count = chain.query.count()
-        print("chain\t", row_count)
-        print("--------")
-        for row in rows:
-            print(row)
-        print("--------")
-
-        rows = bubble.query.limit(5).all()
-        row_count = bubble.query.count()
-        print("bubble\t", row_count)
-        print("--------")
-        for row in rows:
-            print(row)
-        print("--------")
-
-        rows = bubble_inside.query.limit(5).all()
-        row_count = bubble_inside.query.count()
-        print("bubble_inside\t", row_count)
-        print("--------")
-        for row in rows:
-            print(row)
-        print("--------")
 '''
