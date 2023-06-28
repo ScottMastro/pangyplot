@@ -11,16 +11,16 @@ class Annotation(db.Model):
     gene = db.Column(db.String)
     info = db.Column(db.String)
 
-    def __init__(self, i, annotationId, chrom, start, end, source, type, gene, info):
-        self.id = str(i)
-        self.aid = str(annotationId)
-        self.chrom = str(chrom)
-        self.start = str(start)
-        self.end = str(end)
-        self.source = str(source)
-        self.type = str(type)
-        self.gene = str(gene)
-        self.info = str(info)
+    def __init__(self, row):
+        self.id = str(row["id"])
+        self.aid = str(row["aid"])
+        self.chrom = str(row["chrom"])
+        self.start = str(row["start"])
+        self.end = str(row["end"])
+        self.source = str(row["source"])
+        self.type = str(row["type"])
+        self.gene = str(row["gene"])
+        self.info = str(row["info"])
 
     def __repr__(self):
         return "\t".join([str(x) for x in [self.id, self.type, self.chrom, self.start, self.end]])
