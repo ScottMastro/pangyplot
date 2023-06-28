@@ -10,7 +10,7 @@ class PointerSegment:
     def to_link_dict(self):
         return []
 
-class Bubble:
+class SimpleBubble:
     def __init__(self, id, source, sink, subgraph=[], description="", size=1):
 
         self.id = id
