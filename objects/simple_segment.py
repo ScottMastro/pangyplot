@@ -32,34 +32,77 @@ def createLink(source, sink, type, group, width, length):
 
     return link
 
+def createSelfLink(self, i, j, type, group, width, length):
+    link = dict()
+    link["source"] = self._get_node_id(i)
+    link["target"] = self._get_node_id(j)
+    link["width"] = width
+    link["length"] = length
+    link["type"] = type
+    link["group"] = group
+    link["annotations"] = self.annotations
+
+    return link
+
 class SimpleSegment:
     def __init__(self, row):
         self.id = str(row.nodeid)
-
         self.seq = row.seq[:10]
         self.length = len(row.seq)
-
         self.chrom, self.pos = row.chrom, row.pos
-
         self.start = row.pos if row.pos else None
         self.end = row.pos+self.length if row.pos else None
-
         self.x1, self.y1 = row.x1, row.y1
         self.x2, self.y2 = row.x2, row.y2
-
         self.link_to = []
         self.link_from = []
         self.remember_link_from = []
-        
         self.annotations = []
-
-    def get_type(self):
-        return 1 if self.pos else 2
 
     def center(self):
         if self.x1 is None:
             return None
         return ((self.x1+self.x2)/2, (self.y1+self.y2)/2)
+
+    def total_nodes(self):
+        if self.length == 1:
+            return 1
+        return int(self.length/KINK_SIZE) + 2
+
+    def _get_node_coord(self, i):
+        n = self.total_nodes()
+        if n == 1: return self.center()
+
+        p = i / (n-1)
+        p = max(0, p) ; p = min(1,p)
+        x = p*self.x1 + (1-p)*self.x2
+        y = p*self.y1 + (1-p)*self.y2
+        return (x,y)
+
+    def _get_node_id(self, i):
+        n = self.total_nodes()
+        if n == 1: return self.id
+        if i == 0: return self.source_node_id()
+        if i == n-1: return self.sink_node_id()
+
+        return self.mid_node_id(i)
+
+    def to_node_dict(self):
+
+        nodes = []
+        n = self.total_nodes()
+        for i in range(n):
+            x,y = self._get_node_coord(i)
+            id = self._get_node_id(i)
+
+            node = createNode(self, id, x, y)
+            nodes.append(node)
+        return nodes
+
+
+    def get_type(self):
+        return 1 if self.pos else 2
+
 
     def source_node_id(self):
         if self.length == 1:
@@ -84,6 +127,9 @@ class SimpleSegment:
     def add_link_from(self, other):
         self.link_from.append(other)
 
+
+
+        
     def get_mid_coords(self):
         coords = []
         n=floor(self.length/KINK_SIZE)
@@ -97,62 +143,65 @@ class SimpleSegment:
     def add_annotation(self, annotationIndex):
         self.annotations.append(annotationIndex)
 
-    def to_node_dict(self):
 
-        if self.length == 1:
-            x, y = self.center()
-            node = createNode(self, self.id, x, y)
-            return [node]
 
-        else:
-            middle_nodes =[]
-        
-            for i,mid in enumerate(self.get_mid_coords()):
-                node = createNode(self, self.mid_node_id(i), mid[0], mid[1])
-                middle_nodes.append(node)
+    def get_kink_links(self):
 
-            node_source = createNode(self, self.source_node_id(), self.x1, self.y1)
-            node_sink = createNode(self, self.sink_node_id(), self.x2, self.y2)
-
-            return [node_source] + middle_nodes + [node_sink]
-
-    def to_link_dict(self, all=False):
+        midcoords=self.get_mid_coords()
         links = []
 
+        kinkLen=self.get_distance()
+
+        link = createLink(self, self, type="node", group=self.get_type(), width=21, length=kinkLen)
+        link["target"] = self.mid_node_id(0)
+        links.append(link)
+
+        link = createLink(self, self, type="node", group=self.get_type(), width=21, length=kinkLen)
+        link["source"] = self.mid_node_id(len(midcoords)-1)
+        links.append(link)
+
+        for i,mid in enumerate(midcoords[:-1]):
+            link = createLink(self, self, type="node", group=self.get_type(), width=21, length=kinkLen)
+            link["source"] = self.mid_node_id(i)
+            link["target"] = self.mid_node_id(i+1)
+            links.append(link)
+        
+        return links
+
+    def to_link_dict(self):
+
+        links = []
+        n = self.total_nodes()
+        if n == 1: return []
+
+        for i in range(n-1):
+            length=self.get_distance()/n
+            link = createSelfLink(self, i, i+1, type="node", group=self.get_type(), width=21, length=length)
+            links.append(link)        
+
+        return links
+
+    def get_external_link_dict(self, all=False):
+
+        links = []
 
         if self.length == 1:
             for other in self.link_to:
                 if all or other.id not in self.remember_link_from:
                     link = createLink(self, other, type="edge", group=self.get_type(), width=1, length=1, )
                     links.append(link)
-
+            return links
+        
+        #get self-links
         else:
+            link = createLink(self, self, type="node", group=self.get_type(), width=21, length=self.get_distance(), )
+            links.append(link)
 
-            midcoords=self.get_mid_coords()
+        for other in self.link_to:
+            if all or other.id not in self.remember_link_from:
+                link = createLink(self, other, type="edge", group=self.get_type(), width=1, length=1, )
+                links.append(link)
 
-            if len(midcoords) > 0:
-                LEN=self.get_distance()/(len(midcoords)+1)
-
-                links.append( {"source": self.source_node_id(), "target": self.mid_node_id(0),
-                "group": self.get_type(), "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
-                links.append( {"source": self.mid_node_id(len(midcoords)-1), "target": self.sink_node_id(),
-                "group": self.get_type(), "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
-
-                for i,mid in enumerate(midcoords[:-1]):
-                    links.append( {"source": self.mid_node_id(i), "target": self.mid_node_id(i+1),
-                    "group": self.get_type(), "width": 21, "length":LEN, "type": "node", "annotations": self.annotations} )
-
-            else:
-                links.append( {"source": self.source_node_id(), "target": self.sink_node_id(),
-                    "group": self.get_type(), "width": 21, "length":self.get_distance(), "type": "node", "annotations": self.annotations} )
-
-            for other in self.link_to:
-                if all or other.id not in self.remember_link_from:
-
-                    sharedAnnotations = list(set(self.annotations) & set(other.annotations))
-                    links.append( {"source": self.source_node_id(), "target": other.sink_node_id(),
-                        "group": self.get_type(), "width": 1, "length":1, "type": "edge", "annotations": sharedAnnotations})
-            
         return links
 
     def from_links_dict(self, remember=False, excludeIds=set()):

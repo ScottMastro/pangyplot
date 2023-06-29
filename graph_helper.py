@@ -68,6 +68,7 @@ def get_graph_dictionary(graph, bubbles, annotations):
             ids.add(id)
             nodes.extend(segment.to_node_dict())
             links.extend(segment.to_link_dict())
+            links.extend(segment.get_external_link_dict())
             links.extend(segment.from_links_dict(remember=True, excludeIds=ids))
             nodesDone.add(segment.id)
 
