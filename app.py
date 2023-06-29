@@ -1,37 +1,36 @@
 from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
 import graph_helper as helper
-from data.db import db, db_init
+from data.db import db
+import data.db as database
+import data.query as query
+
 import argparse
 
 app = Flask(__name__)
 
 def create_app():
-    db_init(app)
+    database.db_init(app)
 
 @app.route('/select', methods=["GET"])
 def select():
     chromosome = request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
-
-    #gfa.test(chromosome, start, end)
     
     print("making graph")
 
     graph = dict()
-    graph = data.get_nodes(graph)
-    graph = data.get_edges(graph)
+    graph = query.get_nodes(graph)
+    graph = query.get_edges(graph)
 
     annotations = []
-    annotations = data.get_annotations(annotations, chromosome, start, end)
+    annotations = query.get_annotations(annotations, chromosome, start, end)
     graph = helper.add_annotations(annotations, graph)
 
     bubbles = dict()
-    bubbles = data.get_bubbles(bubbles, graph)
+    bubbles = query.get_bubbles(bubbles, graph)
     bubbles = helper.group_bubbles(bubbles)
-
-    graph = helper.label_group(bubbles, graph)
 
     resultDict = helper.get_graph_dictionary(graph, bubbles, annotations)
 
@@ -64,41 +63,50 @@ if __name__ == '__main__':
         parser.add_argument('--layout', help='Path to the odgi layout TSV file', default=None)
         parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', default=None)
         parser.add_argument('--gff3', help='Path to the GFF3 file', default=None)
-        parser.add_argument('--chr', help='Use HPRC chr data', default=None)
+        parser.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
+        parser.add_argument('--demo', help='Use DRB1 demo data', action='store_true')
+        parser.add_argument('--drop', help='Drop all tables', action='store_true')
+        parser.add_argument('--gencode', help='Add genocode annotations', action='store_true')
         args = parser.parse_args()
-        
+
         flag = False
+        for attr, value in vars(args).items():
+            if value:
+                flag = True
 
-        #TSV = "static/data/DRB1-3123_sorted.lay.tsv"
-        #GFA = "static/data/DRB1-3123_sorted.gfa"
-        #BUBBLE= "static/data/DRB1-3123_sorted.bubble.json"
-        #GFF3= "static/data/gencode.v43.basic.annotation.gff3.gz"
+        if args.drop:
+            print("dropping all")
+            database.drop_all()
 
-        if args.chr:
+        if args.gencode:
+            args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
+
+        if args.demo:
+            args.gfa = "static/data/DRB1-3123_sorted.gfa"
+            args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
+            args.bubbles = "static/data/DRB1-3123_sorted.bubble.json"
+
+        if args.chrM:
             args.gfa = "static/data/hprc-v1.0-mc-grch38.chrM.gfa"
             args.layout = "static/data/hprc-v1.0-mc-grch38.chrM.lay.tsv"
             args.bubbles = "static/data/hprc-v1.0-mc-grch38.chrM.json"
-            #args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
+            flag = False
 
         if (args.gfa and args.layout is None) or (args.gfa is None and args.layout) :
             print("Both GFA and layout TSV file required to construst graph!")
             parser.print_help()
-            flag = True
 
         if args.gfa and args.layout:
             import data.ingest as ingest
             ingest.store_graph(db, args.gfa, args.layout)
-            flag = True
 
         if args.bubbles:
             import data.ingest as ingest
             ingest.store_bubbles(db, args.bubbles)
-            flag = True
 
         if args.gff3:
             import data.ingest as ingest
             ingest.store_annotations(db, args.gff3)
-            flag = True
 
         if not flag:
             app.run()
