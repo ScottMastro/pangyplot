@@ -5,7 +5,7 @@ import subprocess
 import json
 
 from cytoband import X
-from segment import SimpleSegment,Bubble
+from objects.segment import SimpleSegment,Bubble
 
 
 GFATOOLS="/home/scott/bin/gfatools/gfatools"

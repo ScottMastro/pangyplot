@@ -6,15 +6,7 @@ def get_reader(layout):
         return gzip.open(layout, 'rt')
     return open(layout)
 
-def parse_lines(line1, line2, line1Index):
-
-    #skip first line
-    if line1Index == 0:
-        return None
-    
-    #skip lines that aren't paired
-    if line1Index % 2 == 0:
-        return None
+def parse_lines(line1, line2):
 
     cols1 = line1.strip().split("\t")
     cols2 = line2.strip().split("\t")
@@ -30,21 +22,24 @@ def parse_lines(line1, line2, line1Index):
     return result
 
 def populate_layout(db, layout, count_update):
-    count=0
-    prevLine=None
+    count = 0
+    prevLine = None
+    skipFirstLine = True
 
     with get_reader(layout) as file:
         for line in file:
-            
-            if prevLine is not None:
-                row = parse_lines(prevLine, line, count-1)
+            if skipFirstLine:
+                skipFirstLine=False
+                continue
+
+            count += 1
+            if count % 2 == 0:
+                row = parse_lines(prevLine, line)
                 if row:
                     segment = Segment.query.get_or_404(row["id"])
-                    segment.update_layout(row["x1"], row["y1"], row["x2"], row["x2"])
+                    segment.update_layout(row["x1"], row["y1"], row["x2"], row["y2"])
 
             prevLine = line
-            count += 1
-
             count_update(count)
                 
         db.session.commit()

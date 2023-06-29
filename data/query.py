@@ -1,19 +1,18 @@
-from segment import SimpleSegment,SimpleBubble
+from objects.segment import SimpleBubble
+from objects.simple_segment import SimpleSegment
 
-from model.segment import Segment
-from model.link import Link
-from model.annotation import Annotation
-from model.bubble import Bubble,BubbleInside
+from data.model.segment import Segment
+from data.model.link import Link
+from data.model.annotation import Annotation
+from data.model.bubble import Bubble,BubbleInside
 
 def get_nodes(graph, chr=None, start=None, end=None):
+    #todo: filter by chrom:pos somehow
     rows = Segment.query.all()
     for row in rows:
-        node = SimpleSegment(row.nodeid, description="desc", size=3,
-        chrom=row.chrom, pos=row.pos, length=len(row.seq))
-        node.add_source_node(row.x1, row.y1)
-        node.add_sink_node(row.x2, row.y2)
+        node = SimpleSegment(row)
         graph[row.nodeid] = node
-
+    
     return graph
 
 def get_edges(graph, chr=None, start=None, end=None):
@@ -41,8 +40,7 @@ def get_annotations(annotations, chromosome, start, end):
 
     return annotations
 
-
-def get_bubbles(graph, chr=None, start=None, end=None):
+def get_bubbles(bubbles, graph, chr=None, start=None, end=None):
     
     rows = Bubble.query.all()
 
@@ -63,39 +61,10 @@ def get_bubbles(graph, chr=None, start=None, end=None):
 
 '''
 
-def get_nodes(graph):
-    return query.get_nodes(graph)
-def get_edges(graph):
-    return query.get_edges(graph)
-def get_bubbles(bubbles, graph):
-    return query.get_bubbles(bubbles, graph)
-def get_annotations(annotations, chromosome, start, end):
-    return query.get_annotations(annotations, chromosome, start, end)
-
-
 ## ============================================================
 ## helpers
 ## ============================================================
 
-def drop(app, tablename):
-
-    with app.app_context():
-
-        connection = db.engine.connect()
-        metadata = db.MetaData(bind=db.engine)
-        your_table = db.Table(tablename, metadata, autoload=True)
-        your_table.drop(connection)
-        db.session.commit()
-        connection.close()
-
-
-def drop_all(app):
-    drop(app, "link")
-    drop(app, "segment")
-    drop(app, "bubble")
-    drop(app, "chain")
-    drop(app, "bubble_inside")
-    #drop(app, "annotation")
 
 
 def populate_all(app, gfa, tsv, bubble, gff3):

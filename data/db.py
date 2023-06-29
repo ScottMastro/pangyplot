@@ -22,23 +22,46 @@ def db_init(app):
         from data.model import link, segment, bubble, annotation 
         db.create_all()
 
-        preview_table(db, link.Link)
-        preview_table(db, segment.Segment)
-        preview_table(db, bubble.Bubble)
-        preview_table(db, bubble.BubbleInside)
-        preview_table(db, annotation.Annotation)
+        preview_table(link.Link)
+        preview_table(segment.Segment)
+        preview_table(bubble.Bubble)
+        preview_table(bubble.BubbleInside)
+        preview_table(annotation.Annotation)
 
-def preview_table(db, table, n=5):
+def preview_table(table, n=5):
+    tablename = table.__table__.name
+    try:
+        inspector = db.inspect(db.engine)
+        print(f"Table: {tablename}")
+        for column in inspector.get_columns(tablename):
+            print(f"- {column['name']}: {column['type']}")
 
-    inspector = db.inspect(db.engine)
-    print(f"Table: {table.__table__.name}")
-    for column in inspector.get_columns(table.__table__.name):
-        print(f"- {column['name']}: {column['type']}")
+        rows = table.query.limit(n).all()
+        row_count = table.query.count()
+        print("nrows = ", row_count)
+        print("--------")
+        for row in rows:
+            print(row)
+        print("--------")
+    except:
+        print("Failed to print table " + tablename)
 
-    rows = table.query.limit(n).all()
-    row_count = table.query.count()
-    print("nrows = ", row_count)
-    print("--------")
-    for row in rows:
-        print(row)
-    print("--------")
+def drop(table):
+
+    tablename = table.__table__.name
+    connection = db.engine.connect()
+    metadata = db.MetaData(bind=db.engine)
+    your_table = db.Table(tablename, metadata, autoload=True)
+    your_table.drop(connection)
+    db.session.commit()
+    connection.close()
+
+def drop_all():
+
+    from data.model import link, segment, bubble, annotation 
+
+    drop(link.Link)
+    drop(segment.Segment)
+    drop(bubble.Bubble)
+    drop(bubble.BubbleInside)
+    #drop(annotation.Annotation)
