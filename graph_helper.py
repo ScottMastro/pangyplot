@@ -1,3 +1,45 @@
+from objects.simple_graph import SimpleGraph,SimpleAtomicGraph,SimpleIndelGraph,SimpleSnpGraph
+
+def construct_graph(nodeDict, toLinkDict, fromLinkDict, bubbleList):
+    graphs = dict()
+    for nodeId in nodeDict:
+        node = nodeDict[nodeId]
+        toLinks = toLinkDict[nodeId] if nodeId in toLinkDict else []
+        fromLinks = fromLinkDict[nodeId] if nodeId in fromLinkDict else []
+        graphs[nodeId] = SimpleAtomicGraph(node, toLinks, fromLinks)
+        
+
+    bubbleList.sort(key=lambda bubble: bubble.size())
+    for bubble in bubbleList:
+
+        # use of arbitraryId assumes that a graph may only a be a subgraph
+        # if it is completely contained in the parent graph
+        arbitraryId = None
+        subgraphs = []
+
+        for id in bubble.inside:
+            if id not in graphs:
+                continue
+            subgraphs.append(graphs.pop(id))
+            arbitraryId = id
+        if bubble.isIndel() or bubble.isSnp():
+            if bubble.isIndel():
+                graph = SimpleIndelGraph(bubble, subgraphs)
+            elif bubble.isSnp():
+                graph = SimpleSnpGraph(bubble, subgraphs)
+
+            graphs[arbitraryId] = graph
+
+        # not a snp or indel
+        else:
+            graph = SimpleGraph(bubble, subgraphs)
+            graphs[arbitraryId] = graph
+
+    totalGraph = SimpleGraph(None, [graphs[id] for id in graphs])
+    return totalGraph
+
+
+
 def group_bubbles(bubbles):
     bubble_dict = {}
 

@@ -1,29 +1,52 @@
-from objects.segment import SimpleBubble
 from objects.simple_segment import SimpleSegment
+from objects.simple_link import SimpleLink
+from objects.simple_bubble import SimpleBubble
 
 from data.model.segment import Segment
 from data.model.link import Link
 from data.model.annotation import Annotation
 from data.model.bubble import Bubble,BubbleInside
 
-def get_nodes(graph, chr=None, start=None, end=None):
+def get_node_dict(chr=None, start=None, end=None):
     #todo: filter by chrom:pos somehow
+    nodes = dict()
+
     rows = Segment.query.all()
     for row in rows:
         node = SimpleSegment(row)
-        graph[row.nodeid] = node
+        nodes[str(row.nodeid)] = node
     
-    return graph
+    return nodes
 
-def get_edges(graph, chr=None, start=None, end=None):
+def get_link_dict(chr=None, start=None, end=None):
+    toDict = dict()
+    fromDict = dict()
+
     rows = Link.query.all()
     for row in rows:
-        fromNode = graph[row.from_id]
-        toNode = graph[row.to_id]
-        fromNode.add_link_to(toNode)
-        toNode.add_link_from(fromNode)
+        link = SimpleLink(row)
+        if link.toNodeId not in toDict:
+            toDict[link.toNodeId] = []
+        if link.fromNodeId not in fromDict:
+            fromDict[link.fromNodeId] = []
 
-    return graph
+        toDict[link.toNodeId].append(link)
+        fromDict[link.fromNodeId].append(link)
+
+    return toDict,fromDict
+
+def get_bubble_list(chr=None, start=None, end=None):
+    
+    rows = Bubble.query.all()
+    bubbleList = []
+    for row in rows:
+        insideRows = BubbleInside.query.filter_by(bubble_id=row.id).all()
+
+        bubble = SimpleBubble(row, insideRows)
+        bubbleList.append(bubble)
+
+    return bubbleList
+
 
 def get_annotations(annotations, chromosome, start, end):
 
@@ -39,38 +62,3 @@ def get_annotations(annotations, chromosome, start, end):
         annotations.append(d)
 
     return annotations
-
-def get_bubbles(bubbles, graph, chr=None, start=None, end=None):
-    
-    rows = Bubble.query.all()
-
-    for row in rows:
-        
-        bid = "bubble_" + str(row.id)
-        inside = BubbleInside.query.filter_by(bubble_id=row.id).all()
-
-        subgraph = []
-        for e in inside:
-            subgraph.append(graph[e.node_id])
-
-        bubbles[bid] = SimpleBubble(bid, graph[row.start], graph[row.end], subgraph, 
-                description="desc", size=5)
-
-    return bubbles
-
-
-'''
-
-## ============================================================
-## helpers
-## ============================================================
-
-
-
-def populate_all(app, gfa, tsv, bubble, gff3):
-    gfa.populate_gfa(app, gfa)
-    tsv.populate_tsv(app, tsv)
-    json.populate_bubbles(app, bubble)
-    #gff3.populate_annotations(app, gff3)
-
-'''
