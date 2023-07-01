@@ -3,7 +3,6 @@ from data.db import db
 class Bubble(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     chain_id = db.Column(db.Integer)
-
     type = db.Column(db.String)
     start = db.Column(db.String)
     end = db.Column(db.String)

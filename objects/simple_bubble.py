@@ -1,49 +1,44 @@
-XSCALE_NODE=1
-class PointerSegment:
-    def __init__(self, id, pointTo):
-        self.id = id
-        self.point = pointTo
-
-    def to_node_dict(self):
-        return []
-    def to_link_dict(self):
-        return []
 
 class SimpleBubble:
-    def __init__(self, id, source, sink, subgraph=[], description="", size=1):
+    def __init__(self, row, insideRows):
+        self.id = "bubble_" + str(row.id)
 
-        self.id = id
-        self.source = source
-        self.sink = sink
-        self.subgraph = subgraph
-        
-        self.group = 0
-        self.description = description
-        self.size = size
-        self.parent = None 
+        self.sourceId = row.start
+        self.sinkId = row.end
+        self.chainId = row.chain_id
+        self.type = row.type
+        self.inside = []
+
+        for insideRow in insideRows:
+            self.inside.append(insideRow.node_id)
+
+        self.parent = None
         self.children = set()
 
         self.annotations = []
-        for child in subgraph:
-            self.annotations = list(set(self.annotations) | set(child.annotations))
+        #for child in self.subgraph:
+        #    self.annotations = list(set(self.annotations) | set(child.annotations))
 
+    def isIndel(self):
+        return self.type == "insertion"
+    def isSnp(self):
+        return self.type == "simple"
+
+
+    def size(self):
+        return len(self.inside)
 
     def add_parent(self, other):
         self.parent = other
         other.children.add(self)
 
-    def subgraph_size(self):
-        if len(self.subgraph) == 0:
-            return 1
-        return sum([x.subgraph_size() for x in self.subgraph])
-
     def subgraph_center(self):
         xcenter, ycenter = 0,0
-        for segment in self.subgraph:
+        for segment in self.inside:
             x,y = segment.center()
             xcenter += x
             ycenter += y
-        n=len(self.subgraph)
+        n=len(self.inside)
         return (xcenter/n, ycenter/n)
 
     def to_dict(self):
@@ -70,9 +65,9 @@ class SimpleBubble:
         return links
 
     def __str__(self):
-        return str(["bubble", {"source": self.source.id, "sink": self.sink.id}])
+        return str(["bubble", self.id, self.type])
 
     def __repr__(self):
-        return str(self.id)
+        return str(["bubble", self.id, self.type])
 
 
