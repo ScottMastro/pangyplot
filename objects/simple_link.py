@@ -8,7 +8,7 @@ class SimpleLink:
 
         self.consumed = False
 
-    def consume(self, info):
+    def consume(self):
         self.consumed = True
     def is_consumed(self):
         return self.consumed
