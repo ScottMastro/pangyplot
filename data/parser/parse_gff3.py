@@ -24,7 +24,7 @@ def parse_line(line):
     for c in result["info"].split(";"):
         if c.startswith("ID"):
             result["id"] = c.split("=")[1]
-        if c.startswith("gene"):
+        if c.startswith("gene_name"):
             result["gene"] = c.split("=")[1]
         if c.startswith("exon_number"):
             result["exon"] = c.split("=")[1]

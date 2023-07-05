@@ -20,21 +20,22 @@ def select():
     
     print("making graph")
 
+    annotations=[]
+    annotations = query.get_annotation_list(chromosome, start, end)
+
     graph = dict()
-    nodeDict = query.get_node_dict(chromosome, start, end)
+    segmentDict = query.get_segment_dict(chromosome, start, end)
+    graph = helper.add_annotations(annotations, segmentDict)
+
     toLinkDict,fromLinkDict = query.get_link_dict(chromosome, start, end)
     bubbleList = query.get_bubble_list(chromosome, start, end)
     
-    graph = helper.construct_graph(nodeDict, toLinkDict, fromLinkDict, bubbleList)
-    resultDict = graph.to_dictionary(nodeDict)
-
-    #bubbles = helper.group_bubbles(bubbles)
-
-    annotations = []
-    #annotations = query.get_annotations(annotations, chromosome, start, end)
-    resultDict["annotations"] = annotations
+    graph = helper.construct_graph(segmentDict, toLinkDict, fromLinkDict, bubbleList)
     
-    #graph = helper.add_annotations(annotations, graph)
+    resultDict = graph.to_dictionary(segmentDict)
+    resultDict = helper.post_process_graph(graph, resultDict)
+    resultDict["annotations"] = [annotation.to_dict() for annotation in annotations]
+
 
     print("done")
 

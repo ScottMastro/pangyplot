@@ -140,10 +140,9 @@ function draw_graph(graph){
             .nodeLabel('id')
             .linkLabel('group')
             .nodeAutoColorBy('group')
-            .linkAutoColorBy("group")
+            .linkColor(link => intToColor(link.group))
             .linkWidth(linkWidth)
             .d3VelocityDecay(0.2)
-            .nodeCanvasObjectMode(node => node.track == 1 ? 'before' : undefined)
             .nodeCanvasObject(highlight_node)
             .autoPauseRedraw(false) // keep redrawing after engine has stopped
             .onNodeClick(node => {
@@ -221,6 +220,31 @@ function draw_graph(graph){
         Graph.minZoom(0.01)
         Graph.maxZoom(1e100)
 
+
+        Graph.nodeCanvasObject((node, ctx) => nodePaint(node, ctx))
+  
+        function nodePaint(node, ctx) {
+            shape = 0;
+            if (node.shape != null){
+                shape = node.shape;
+            }
+
+            id = 0;
+            x = node.x;
+            y = node.y;
+            size = node.size;
+            ctx.fillStyle = intToColor(node.group);
+            ctx.strokeStyle = intToColor(node.group);
+            [
+                () => { ctx.beginPath(); ctx.arc(x, y, size, 0, 2 * Math.PI, false); ctx.fill(); }, // circle
+                () => { ctx.fillRect(x - 6, y - 4, 12, 8); }, // rectangle
+                () => { ctx.beginPath(); ctx.arc(x, y, size, 0, 2 * Math.PI, false); ctx.lineWidth = 3; ctx.stroke(); ctx.fillStyle = "#101020"; ctx.fill();}, // x
+                () => { ctx.beginPath(); ctx.moveTo(x - size, y - size);  ctx.lineTo(x + size, y + size); ctx.moveTo(x + size, y - size); ctx.lineTo(x - size, y + size); ctx.stroke(); }, // x
+                () => { ctx.beginPath(); ctx.moveTo(x, y - 5); ctx.lineTo(x - 5, y + 5); ctx.lineTo(x + 5, y + 5); ctx.fill(); }, // triangle
+                () => { ctx.font = '10px Sans-Serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('Text', x, y); } // text
+            ][shape]();
+            }
+
         Graph.onRenderFramePre((ctx, scale) => {
 
             lastZoom = ctx.canvas.__zoom["k"];
@@ -285,9 +309,6 @@ function draw_graph(graph){
 
 
          let highlightNodes = [];
-         let highlightLinks = [];
-         let hoverNode = null;
-
          
         Graph.onRenderFramePost((ctx, scale) => {
 
@@ -343,7 +364,7 @@ function draw_graph(graph){
                 ctx.fillStyle = "lightgrey";
 
                 
-                ctx.fillText(annotationDict[k].id, xpos, ypos);
+                ctx.fillText(annotationDict[k].gene, xpos, ypos);
     
                 
             }

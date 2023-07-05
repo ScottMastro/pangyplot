@@ -1,22 +1,23 @@
 from objects.simple_segment import SimpleSegment
 from objects.simple_link import SimpleLink
 from objects.simple_bubble import SimpleBubble
+from objects.simple_annotation import SimpleAnnotation
 
 from data.model.segment import Segment
 from data.model.link import Link
 from data.model.annotation import Annotation
 from data.model.bubble import Bubble,BubbleInside
 
-def get_node_dict(chr=None, start=None, end=None):
+def get_segment_dict(chr=None, start=None, end=None):
     #todo: filter by chrom:pos somehow
-    nodes = dict()
+    segments = dict()
 
     rows = Segment.query.all()
     for row in rows:
-        node = SimpleSegment(row)
-        nodes[str(row.nodeid)] = node
+        segment = SimpleSegment(row)
+        segments[str(row.nodeid)] = segment
     
-    return nodes
+    return segments
 
 def get_link_dict(chr=None, start=None, end=None):
     toDict = dict()
@@ -48,7 +49,7 @@ def get_bubble_list(chr=None, start=None, end=None):
     return bubbleList
 
 
-def get_annotations(annotations, chromosome, start, end):
+def get_annotation_list(chromosome, start, end):
 
     rows = Annotation.query.filter(
         Annotation.chrom == chromosome,
@@ -56,9 +57,9 @@ def get_annotations(annotations, chromosome, start, end):
         Annotation.end <= end
     ).all()
     
+    annotations=[]
     for row in rows:
-        d = {"index": row.id, "id": row.aid, "chrom": row.chrom, "start": row.start, "end": row.end,
-        "type": row.type, "info": row.info}  
-        annotations.append(d)
+        annotation = SimpleAnnotation(row)
+        annotations.append(annotation)
 
     return annotations

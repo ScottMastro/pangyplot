@@ -41,29 +41,6 @@ class SimpleBubble:
         n=len(self.inside)
         return (xcenter/n, ycenter/n)
 
-    def to_dict(self):
-        return {"id": self.id, "source": self.source.id, "sink": self.sink.id, 
-        "subgraph" : [x.id for x in self.subgraph]}
-
-    def to_node_dict(self):
-        center = self.subgraph_center()
-        return [{"nodeid": self.id, "id": self.id, 
-                "x": center[0]*XSCALE_NODE, "y": center[1], "group": self.group, \
-                "description": self.description, "size": self.size, "annotations": self.annotations}]
-
-    def to_link_dict(self):
-        links = []
-
-        sharedAnnotations = list(set(self.annotations) & set(self.source.annotations))
-        links.append( {"source": self.source.sink_node_id(), "target": self.id,
-            "group": self.group, "width": 1, "length":21, "type": "edge", "annotations": sharedAnnotations})
-
-        sharedAnnotations = list(set(self.annotations) & set(self.sink.annotations))
-        links.append( {"source": self.id, "target": self.sink.source_node_id(),
-            "group": self.group, "width": 1, "length":21, "type": "edge", "annotations": sharedAnnotations})
-
-        return links
-
     def __str__(self):
         return str(["bubble", self.id, self.type])
 
