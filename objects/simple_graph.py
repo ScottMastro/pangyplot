@@ -142,7 +142,6 @@ class SimpleSnpGraph(SimpleGraph):
             expand_links.extend(subresult["links"])
 
         annotations = self.get_annotations(nodeLookup)
-        print(annotations)
         x,y = self.center()
         bubbleNode = create_node(self.bubbleId, x, y, annotations=annotations)
         bubbleNode["expand_nodes"] = expand_nodes
