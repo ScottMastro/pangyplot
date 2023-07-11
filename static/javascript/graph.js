@@ -1,4 +1,9 @@
-const CANVAS = document.getElementById('graph');
+const GRAPH_ID = "graph"
+const GRAPH_CONTAINER_ID="force-graph-container"
+const CANVAS = document.getElementById(GRAPH_ID);
+
+var forceGraph = null
+
 
 const BACKGROUND_COLOR="#101020"
 const VELOCITY_DECAY=0.2
@@ -35,8 +40,8 @@ function node_paint(node, ctx) {
     ][shape]();
 }
 
-function explode_node(node, graph) {
-    console.log(node);
+function explode_node(node, update=true) {
+    var graph = forceGraph.graphData()
 
     if (!node["expand_nodes"]){ return }
     if (node["expanded"]){ return }
@@ -56,6 +61,17 @@ function explode_node(node, graph) {
 
     graph["nodes"] = graph["nodes"].concat(newNodes);
     graph["links"] = graph["links"].concat(node["expand_links"]);
+
+    if(update){
+        updateGraphData(graph);
+    }
+}
+
+function explode_nodes(nodes){
+    nodes.forEach(node => {
+        explode_node(node, update=false);
+    });
+    updateGraphData(forceGraph.graphData());
 }
 
 function draw_gene_outline(ctx, graphData){
@@ -168,6 +184,9 @@ function post_render(ctx, graphData){
     ctx.restore();
 }
 
+function updateGraphData(graph) {
+    forceGraph.graphData({ nodes: graph["nodes"], links: graph["links"] });
+};
 
 function draw_graph(graph){
 
@@ -180,14 +199,10 @@ function draw_graph(graph){
         graph.nodes[i]["color"] = intToColor(graph.nodes[i]["group"])
     }
     
-    const updateGraphData = () => {
-        Graph.graphData({ nodes: graph["nodes"], links: graph["links"] });
-    };
-    
     //.linkDirectionalParticles(4)
     console.log(graph);
 
-    const Graph = ForceGraph()(CANVAS)
+    forceGraph = ForceGraph()(CANVAS)
         .graphData(graph)
         .backgroundColor(BACKGROUND_COLOR)
         .minZoom(MIN_ZOOM)
@@ -204,17 +219,17 @@ function draw_graph(graph){
 
         .nodeCanvasObject((node, ctx) => node_paint(node, ctx)) 
         .autoPauseRedraw(false) // keep redrawing after engine has stopped
-        .onNodeClick(node => {explode_node(node, graph); updateGraphData()})
+        .onNodeClick(node => {explode_node(node)})
 
     function highlight_node(node){
         HIGHLIGHT_NODES = (node) ? [node] : [] ;
     }
 
-    Graph.onNodeHover(highlight_node);
+    forceGraph.onNodeHover(highlight_node);
     
 
-    Graph.onRenderFramePre((ctx, scale) => { pre_render(ctx, Graph.graphData()); })
-    Graph.onRenderFramePost((ctx, scale) => {post_render(ctx, Graph.graphData()); })
+    forceGraph.onRenderFramePre((ctx, scale) => { pre_render(ctx, forceGraph.graphData()); })
+    forceGraph.onRenderFramePost((ctx, scale) => {post_render(ctx, forceGraph.graphData()); })
 
     // --- FORCES ---
 
@@ -222,9 +237,9 @@ function draw_graph(graph){
         return (link.type == "edge") ? 5 : link.length ;
     }
 
-    Graph.d3Force('link').distance(link_force_distance).strength(0.5).iterations(2)
-    Graph.d3Force('collide', d3.forceCollide(50).radius(20))    
-    Graph.d3Force('charge').strength(-30).distanceMax(500)
+    forceGraph.d3Force('link').distance(link_force_distance).strength(0.5).iterations(2)
+    forceGraph.d3Force('collide', d3.forceCollide(50).radius(20))    
+    forceGraph.d3Force('charge').strength(-30).distanceMax(500)
     
 }
 
@@ -246,4 +261,3 @@ function fetch(chromosome, start, end) {
 }
 
 fetch("chrM", 0, 142775343);
-
