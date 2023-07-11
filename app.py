@@ -36,8 +36,7 @@ def select():
     resultDict = helper.post_process_graph(graph, resultDict)
     resultDict["annotations"] = [annotation.to_dict() for annotation in annotations]
 
-
-    print("done")
+    print("ready")
 
     return resultDict, 200
 
