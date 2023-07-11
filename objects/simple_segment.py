@@ -13,9 +13,10 @@ class SimpleSegment:
         self.x1, self.y1 = row.x1, row.y1
         self.x2, self.y2 = row.x2, row.y2
         self.annotations = []
+        self.isRef = row.ref
 
     def get_type(self):
-        return 1 if self.pos else 2
+        return 1 if self.isRef else 4
 
     def add_annotation(self, annotation):
         self.annotations.append(annotation)
@@ -68,6 +69,15 @@ class SimpleSegment:
 
         return self._mid_node_id(i)
 
+    def _approximate_position(self, i):
+        if self.pos is None: 
+            return None
+        n = self.total_nodes()
+        i = n-i-1 # todo: figure out why the positioning is reversed
+        if i == 0: return self.pos
+        if i == n-1: return self.pos+self.length
+        return self.pos + int(i/n*self.length)
+
     def _create_node(self, i):
         node = dict()
         node["id"] = self._get_node_id(i)
@@ -78,7 +88,7 @@ class SimpleSegment:
         node["size"] = 10
         node["group"] = self.get_type()
         node["chrom"] = self.chrom
-        node["pos"] = self.pos
+        node["pos"] = self._approximate_position(i)
         node["start"] = self.start
         node["end"] = self.end
         node["length"] = self.length

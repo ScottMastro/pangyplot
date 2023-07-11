@@ -12,6 +12,7 @@ class Segment(db.Model):
     chrom = db.Column(db.String)
     pos = db.Column(db.Integer)
     length = db.Column(db.Integer)
+    ref = db.Column(db.Boolean)
 
     component = db.Column(db.Integer)
 
@@ -23,6 +24,7 @@ class Segment(db.Model):
         self.chrom = row["chrom"]
         self.pos = row["pos"]
         self.length = len(row["seq"])
+        self.ref = row["ref"]
 
         self.x1 = None
         self.y1 = None
