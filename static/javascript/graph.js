@@ -1,3 +1,5 @@
+const CANVAS = document.getElementById('graph');
+
 const BACKGROUND_COLOR="#101020"
 const VELOCITY_DECAY=0.2
 const MIN_ZOOM=0.01
@@ -37,6 +39,11 @@ function explode_node(node, graph) {
     console.log(node);
 
     if (!node["expand_nodes"]){ return }
+    if (node["expanded"]){ return }
+
+    node["expanded"] = true;
+    HIGHLIGHT_NODES = [] ;
+
     newNodes = node["expand_nodes"]
     for (let i = 0, n = newNodes.length; i < n; ++i) {
         newNode = newNodes[i];
@@ -152,6 +159,10 @@ function post_render(ctx, graphData){
             let text = node.chrom+":"+node.pos;
             add_text(text, ctx, node.x + 20, node.y, 24, "red", align="left");
         }
+        else if (node.start != null){
+            let text = node.chrom+":"+node.start+"-"+node.end;
+            add_text(text, ctx, node.x + 20, node.y, 24, "red", align="left");
+        }
     }
 
     ctx.restore();
@@ -160,7 +171,6 @@ function post_render(ctx, graphData){
 
 function draw_graph(graph){
 
-    const canvas = document.getElementById('graph');
 
     annotationDict = {}
     for (let i = 0, n = graph.annotations.length; i < n; ++i) {
@@ -177,8 +187,7 @@ function draw_graph(graph){
     //.linkDirectionalParticles(4)
     console.log(graph);
 
-    const Graph = ForceGraph()
-    (document.getElementById('graph'))
+    const Graph = ForceGraph()(CANVAS)
         .graphData(graph)
         .backgroundColor(BACKGROUND_COLOR)
         .minZoom(MIN_ZOOM)
