@@ -3,17 +3,17 @@ LINK_LENGTH=10
 
 DESTROY_LINK="DESTROY_LINK"
 
-def source_node_id(id, nodeLookup):
-    if id not in nodeLookup: return id
-    return nodeLookup[id].source_node_id()
-def sink_node_id(id, nodeLookup):
-    if id not in nodeLookup: return id
-    return nodeLookup[id].sink_node_id()
+def source_node_id(id, segmentLookup):
+    if id not in segmentLookup: return id
+    return segmentLookup[id].source_node_id()
+def sink_node_id(id, segmentLookup):
+    if id not in segmentLookup: return id
+    return segmentLookup[id].sink_node_id()
 
-def create_link(fromId, toId, nodeLookup, annotations=[]):
+def create_link(fromId, toId, segmentLookup, annotations=[]):
     link = dict()
-    link["source"] = source_node_id(fromId, nodeLookup)
-    link["target"] = sink_node_id(toId, nodeLookup)
+    link["source"] = source_node_id(fromId, segmentLookup)
+    link["target"] = sink_node_id(toId, segmentLookup)
     link["width"] = LINK_WIDTH
     link["length"] = LINK_LENGTH
     link["type"] = "edge"
@@ -36,6 +36,22 @@ def create_node(id, x, y, size=10, shape=0, annotations=[]):
     node["end"] = None
     node["length"] = None
     node["annotations"] = annotations
+    return node
+
+def approximate_position(node, startSegmentId, endSegmentId, segmentLookup):
+    node["start"] = segmentLookup[startSegmentId].start
+    node["end"] = segmentLookup[endSegmentId].end
+
+    print("start", startSegmentId, segmentLookup[startSegmentId].start, segmentLookup[startSegmentId].end)
+    print("end", endSegmentId, segmentLookup[endSegmentId].start, segmentLookup[endSegmentId].end)
+
+    if node["start"] == node["end"]:
+        node["pos"] = node["start"]
+
+    node["chrom"] = "???"
+    if segmentLookup[startSegmentId].chrom == segmentLookup[endSegmentId].chrom:
+        node["chrom"] = segmentLookup[startSegmentId].chrom
+
     return node
 
 class SimpleGraph:
@@ -66,17 +82,17 @@ class SimpleGraph:
             ycenter += y*m
         return (xcenter/n, ycenter/n)
 
-    def get_annotations(self, nodeLookup):
+    def get_annotations(self, segmentLookup):
         annotations = []
         for subgraph in self.subgraphs:
-            annotations.extend(subgraph.get_annotations(nodeLookup))
+            annotations.extend(subgraph.get_annotations(segmentLookup))
         return annotations
 
-    def to_dictionary(self, nodeLookup, allLinks=False):
+    def to_dictionary(self, segmentLookup, allLinks=False):
         result = {"nodes":[], "links":[]}
 
         for subgraph in self.subgraphs:
-            subresult = subgraph.to_dictionary(nodeLookup)
+            subresult = subgraph.to_dictionary(segmentLookup)
             result["nodes"].extend(subresult["nodes"])
             result["links"].extend(subresult["links"])
 
@@ -102,26 +118,26 @@ class SimpleIndelGraph(SimpleGraph):
         super().__init__(bubble, atomicGraphs)
         self.bubbleId = bubble.id
 
-    def to_dictionary(self, nodeLookup, allLinks=False):
-        result = super().to_dictionary(nodeLookup, allLinks)
+    def to_dictionary(self, segmentLookup, allLinks=False):
+        result = super().to_dictionary(segmentLookup, allLinks)
 
-        annotations = self.get_annotations(nodeLookup)
+        annotations = self.get_annotations(segmentLookup)
 
         indelId = self.bubbleId + "_indel"
         x,y = self.center()
         indelNode = create_node(indelId, x, y, shape=2, annotations=annotations)
         result["nodes"].append(indelNode)
 
-        indelLink1 = create_link(self.linkToId, indelId, nodeLookup, annotations=annotations)
-        indelLink2 = create_link(indelId, self.linkFromId, nodeLookup, annotations=annotations)
+        indelLink1 = create_link(self.linkToId, indelId, segmentLookup, annotations=annotations)
+        indelLink2 = create_link(indelId, self.linkFromId, segmentLookup, annotations=annotations)
 
         result["links"].append(indelLink1)
         result["links"].append(indelLink2)
 
         self.process.append([
             DESTROY_LINK,
-            source_node_id(self.linkToId, nodeLookup),
-            sink_node_id(self.linkFromId, nodeLookup)])
+            source_node_id(self.linkToId, segmentLookup),
+            sink_node_id(self.linkFromId, segmentLookup)])
             
         return result
 
@@ -133,23 +149,24 @@ class SimpleSnpGraph(SimpleGraph):
         super().__init__(bubble, atomicGraphs)
         self.bubbleId = bubble.id
 
-    def to_dictionary(self, nodeLookup, allLinks=False):
+    def to_dictionary(self, segmentLookup, allLinks=False):
         expand_nodes = []
         expand_links = []
         for subgraph in self.subgraphs:
-            subresult = subgraph.to_dictionary(nodeLookup, allLinks=True)
+            subresult = subgraph.to_dictionary(segmentLookup, allLinks=True)
             expand_nodes.extend(subresult["nodes"])
             expand_links.extend(subresult["links"])
 
-        annotations = self.get_annotations(nodeLookup)
+        annotations = self.get_annotations(segmentLookup)
         x,y = self.center()
         bubbleNode = create_node(self.bubbleId, x, y, annotations=annotations)
+        bubbleNode = approximate_position(bubbleNode, self.linkFromId, self.linkToId, segmentLookup)
         bubbleNode["expand_nodes"] = expand_nodes
         bubbleNode["expand_links"] = expand_links
 
         links = []
-        links.append(create_link(self.linkToId, self.bubbleId, nodeLookup, annotations=annotations))
-        links.append(create_link(self.bubbleId, self.linkFromId, nodeLookup, annotations=annotations))
+        links.append(create_link(self.linkToId, self.bubbleId, segmentLookup, annotations=annotations))
+        links.append(create_link(self.bubbleId, self.linkFromId, segmentLookup, annotations=annotations))
 
         result = {"nodes": [bubbleNode], "links": links}
         return result
@@ -166,24 +183,24 @@ class SimpleAtomicGraph(SimpleGraph):
         self.linksTo = toLinks
         self.totalSize = 1
 
-    def get_annotations(self, nodeLookup):
+    def get_annotations(self, segmentLookup):
         annotations = self.node.get_annotation_ids()
 
         fromAnnotations = []
         for link in self.linksFrom:
-            node = nodeLookup[link.fromNodeId]
+            node = segmentLookup[link.fromNodeId]
             fromAnnotations.extend(node.get_annotation_ids())
 
         toAnnotations = []
         for link in self.linksTo:
-            node = nodeLookup[link.toNodeId]
+            node = segmentLookup[link.toNodeId]
             toAnnotations.extend(node.get_annotation_ids())
 
         intersection = list(set(fromAnnotations) & set(toAnnotations))
         return annotations + intersection
 
 
-    def _to_link_dict(self, nodeLookup, allLinks):
+    def _to_link_dict(self, segmentLookup, allLinks):
         links = self.node.to_link_dict()
 
         linkSet = self.linksTo
@@ -191,7 +208,7 @@ class SimpleAtomicGraph(SimpleGraph):
         for l in linkSet:
             if l.is_consumed():
                 continue
-            link = create_link(l.fromNodeId, l.toNodeId, nodeLookup)
+            link = create_link(l.fromNodeId, l.toNodeId, segmentLookup)
             l.consume()
             links.append(link)
             
@@ -201,9 +218,9 @@ class SimpleAtomicGraph(SimpleGraph):
         x,y = self.node.center()
         return [x,y,1]
 
-    def to_dictionary(self, nodeLookup, allLinks=False):
+    def to_dictionary(self, segmentLookup, allLinks=False):
         nodes = self.node.to_node_dict()
-        links = self._to_link_dict(nodeLookup, allLinks)
+        links = self._to_link_dict(segmentLookup, allLinks)
 
         result = {"nodes": nodes, "links": links}
         return result
