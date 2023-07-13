@@ -19,11 +19,12 @@ def db_init(app):
 
     with app.app_context():
 
-        from data.model import link, segment, bubble, annotation 
+        from data.model import link, segment, path, bubble, annotation 
         db.create_all()
 
         preview_table(link.Link)
         preview_table(segment.Segment)
+        preview_table(path.Path)
         preview_table(bubble.Bubble)
         preview_table(bubble.BubbleInside)
         preview_table(annotation.Annotation)
@@ -58,10 +59,11 @@ def drop(table):
 
 def drop_all():
 
-    from data.model import link, segment, bubble, annotation 
+    from data.model import link, segment, bubble, path, annotation 
 
     drop(link.Link)
     drop(segment.Segment)
+    drop(path.Path)
     drop(bubble.Bubble)
     drop(bubble.BubbleInside)
     #drop(annotation.Annotation)

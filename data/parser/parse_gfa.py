@@ -9,6 +9,16 @@ def get_reader(gfa):
         return gzip.open(gfa, 'rt')
     return open(gfa)
 
+def P_to_W(path):
+    splitPath = path.split(",")
+    newPath = ""
+    for part in splitPath:
+        if part[-1] == "+":
+            newPath += ">" + part[:-1]
+        elif part[-1] == "-":
+            newPath += "<" + part[:-1]
+    return newPath
+
 def parse_line(line):
 
     result = {"type" : "."}
@@ -41,12 +51,30 @@ def parse_line(line):
                 result["sr"] = col.split(":")[-1]
         result["ref"] = result["pos"] is not None
 
+    if line[0] == "P":
+        cols = line.strip().split("\t")
+        result["type"] = "P"
+        result["id"] = cols[1]
+        result["hap"] = None
+        result["start"] = None
+        result["end"] = None
+        result["path"] = P_to_W(cols[2])
+
+    if line[0] == "W":
+        cols = line.strip().split("\t")
+        result["type"] = "W"
+        result["id"] = cols[1]
+        result["hap"] = cols[2]
+        result["start"] = cols[4]
+        result["end"] = cols[5]
+        result["path"] = cols[6]
+
     return result
 
 def collect_position_data(gfa):
 
     toLinkData = dict()
-    fromLinkData = dict()
+    #fromLinkData = dict()
     segmentData = dict()
 
     with get_reader(gfa) as file:
@@ -55,14 +83,14 @@ def collect_position_data(gfa):
             if row["type"] == "L":
                 if row["to_id"] not in toLinkData:
                     toLinkData[row["to_id"]] = []
-                if row["from_id"] not in fromLinkData:
-                    fromLinkData[row["from_id"]] = []
                 toLinkData[row["to_id"]].append(row["from_id"])
-                fromLinkData[row["from_id"]].append(row["to_id"])
+                #if row["from_id"] not in fromLinkData:
+                #    fromLinkData[row["from_id"]] = []
+                #fromLinkData[row["from_id"]].append(row["to_id"])
             elif row["type"] == "S":
                 segmentData[row["id"]] = (row["chrom"],row["pos"], len(row["seq"]))
 
-    return toLinkData, fromLinkData, segmentData
+    return toLinkData, segmentData
 
 def estimate_position(startId, toLinkData, segmentData):
 
@@ -94,7 +122,7 @@ def populate_gfa(db, gfa, count_update):
     count = 0
     segmentId = 0
 
-    toLinkData, fromLinkData, segmentData = collect_position_data(gfa)
+    toLinkData, segmentData = collect_position_data(gfa)
 
     with get_reader(gfa) as file:
         for line in file:
@@ -119,4 +147,19 @@ def populate_gfa(db, gfa, count_update):
             count += 1
             count_update(count)
         
+        db.session.commit()
+
+
+def populate_paths(db, gfa, count_update):
+    count = 0
+    
+    with get_reader(gfa) as file:
+        for line in file:
+            if len(line) > 0 and (line[0] == "P" or line[0] == "W"):
+                row = parse_line(line)
+
+                print(row["type"], row["path"])
+                count += 1
+                count_update(count)
+            
         db.session.commit()

@@ -2,6 +2,8 @@ import sys
 from functools import partial
 
 from data.parser.parse_gfa import populate_gfa
+from data.parser.parse_gfa import populate_paths
+
 from data.parser.parse_layout import populate_layout
 from data.parser.parse_gff3 import parse_gff3
 from data.parser.parse_bubbles import parse_bubbles
@@ -37,6 +39,12 @@ def store_graph(db, gfa, layout):
     count_update = partial(count_update_full, db, 1000*2)
     populate_layout(db, layout, count_update)
     print(" Done.")
+
+    printl("Parsing paths")
+    count_update = partial(count_update_full, db, 2)
+    populate_paths(db, gfa, count_update)
+    print(" Done.")
+
 
 def store_annotations(db, gff3):
     print("Clearing annotations table.")

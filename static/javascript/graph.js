@@ -1,9 +1,9 @@
 const GRAPH_ID = "graph"
 const GRAPH_CONTAINER_ID="force-graph-container"
 const CANVAS = document.getElementById(GRAPH_ID);
+const LIGHTNESS_SCALE=0.0
 
 var forceGraph = null
-
 
 const BACKGROUND_COLOR="#101020"
 const VELOCITY_DECAY=0.2
@@ -84,7 +84,8 @@ function draw_gene_outline(ctx, graphData){
 
         for (let j = 0, m = node.annotations.length; j < m; ++j) {
             if (annotationDict[node.annotations[j]].type == "gene"){
-                highlight_node(node, ctx, 0, Math.max(40, 40*(1/LAST_ZOOM/10)), intToColor(node.annotations[j]));
+                color = intToColor(node.annotations[j], lightness=LIGHTNESS_SCALE);
+                highlight_node(node, ctx, 0, Math.max(40, 40*(1/LAST_ZOOM/10)), color);
             }
         }
     }
@@ -99,7 +100,8 @@ function draw_gene_outline(ctx, graphData){
 
         for (let j = 0, m = link.annotations.length; j < m; ++j) {
             if (annotationDict[link.annotations[j]].type == "gene"){
-                highlight_link(link, ctx, 0, Math.max(80, 80*(1/LAST_ZOOM/10)), intToColor(link.annotations[j]));
+                color = intToColor(link.annotations[j], lightness=LIGHTNESS_SCALE);
+                highlight_link(link, ctx, 0, Math.max(80, 80*(1/LAST_ZOOM/10)), color);
             }
         }
     }
