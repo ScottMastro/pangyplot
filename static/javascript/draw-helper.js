@@ -64,33 +64,41 @@ function add_text(text, ctx, x, y, size, color, align="center", baseline="middle
     ctx.fillText(text, x, y);
 }
 
+
 const COLOR_CACHE = {}
-function intToColor(seed) {
-    if (COLOR_CACHE.hasOwnProperty(seed)) { return COLOR_CACHE[seed]; }
+function intToColor(seed, adjust=0) {
     const originalSeed = seed;
-    var a = 1664525;
-    var c = 1013904223;
-    var m = Math.pow(2, 32);
 
-    // Generate three random numbers between 0 and 255
-    var red = (seed * a + c) % m;
-    seed = (red * a + c) % m;
-    var green = seed;
-    seed = (green * a + c) % m;
-    var blue = seed;
+    if (! COLOR_CACHE.hasOwnProperty(seed)) { 
+        var a = 1664525;
+        var c = 1013904223;
+        var m = Math.pow(2, 32);
 
-    // Normalize to the range 0-255
-    red = Math.floor((red / m) * 256);
-    green = Math.floor((green / m) * 256);
-    blue = Math.floor((blue / m) * 256);
+        // Generate three random numbers between 0 and 255
+        var red = (seed * a + c) % m;
+        seed = (red * a + c) % m;
+        var green = seed;
+        seed = (green * a + c) % m;
+        var blue = seed;
 
-    // Convert to a hexadecimal string and pad with zeros if necessary
-    red = ("00" + red.toString(16)).slice(-2);
-    green = ("00" + green.toString(16)).slice(-2);
-    blue = ("00" + blue.toString(16)).slice(-2);
+        // Normalize to the range 0-255
+        red = Math.floor((red / m) * 256);
+        green = Math.floor((green / m) * 256);
+        blue = Math.floor((blue / m) * 256);
 
-    // Combine into a single color string
-    var color = "#" + red + green + blue;
-    COLOR_CACHE[originalSeed] = color;
+        COLOR_CACHE[originalSeed] = [red,green,blue];
+    }
+    
+    rgb = COLOR_CACHE[originalSeed];
+    var l = Math.floor(adjust*255)
+    var r = Math.min(255, rgb[0]+l)
+    var g = Math.min(255, rgb[1]+l)
+    var b = Math.min(255, rgb[2]+l)
+
+    //console.log(r,g,b);
+    let color = "rgba(" + r.toString() + "," 
+                        + g.toString() + "," 
+                        + b.toString() + ")";
+    //console.log(color)
     return color;
 }
