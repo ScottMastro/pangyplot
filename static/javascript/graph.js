@@ -24,7 +24,6 @@ function linkWidth(link) {
     return Math.max(2, LAST_ZOOM*link.width);
 }
 
-
 function node_paint(node, ctx) {
     let shape = node.shape || 0;
     let x = node.x; let y = node.y;
@@ -262,4 +261,23 @@ function fetch(chromosome, start, end) {
     xmlHttp.send();
 }
 
+function fetch_haps(chromosome, start, end) {
+
+    let url = "/haplotypes?chromosome=" + chromosome;
+    url = url + "&start=" + start;
+    url = url + "&end=" + end;
+
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function() { 
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+            var data = JSON.parse(xmlHttp.response)
+            console.log(data)
+        }
+    }
+    xmlHttp.open("GET", url, true);
+    xmlHttp.send();
+}
+
+
 fetch("chrM", 0, 142775343);
+fetch_haps("chrM", 0, 142775343);

@@ -39,11 +39,12 @@ def create_node(id, x, y, size=10, shape=0, annotations=[]):
     return node
 
 def approximate_position(node, startSegmentId, endSegmentId, segmentLookup):
+    #todo: FIXME
     node["start"] = segmentLookup[startSegmentId].start
     node["end"] = segmentLookup[endSegmentId].end
 
-    print("start", startSegmentId, segmentLookup[startSegmentId].start, segmentLookup[startSegmentId].end)
-    print("end", endSegmentId, segmentLookup[endSegmentId].start, segmentLookup[endSegmentId].end)
+    #print("start", startSegmentId, segmentLookup[startSegmentId].start, segmentLookup[startSegmentId].end)
+    #print("end", endSegmentId, segmentLookup[endSegmentId].start, segmentLookup[endSegmentId].end)
 
     if node["start"] == node["end"]:
         node["pos"] = node["start"]

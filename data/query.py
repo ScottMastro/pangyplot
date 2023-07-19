@@ -63,3 +63,18 @@ def get_annotation_list(chromosome, start, end):
         annotations.append(annotation)
 
     return annotations
+
+def get_haplotypes(segmentDict):
+
+    print(segmentDict)
+
+
+    #todo: filter by chrom:pos somehow
+    segments = dict()
+
+    rows = Segment.query.all()
+    for row in rows:
+        segment = SimpleSegment(row)
+        segments[str(row.nodeid)] = segment
+    
+    return segments

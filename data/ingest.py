@@ -29,10 +29,11 @@ def store_graph(db, gfa, layout):
     print("Clearing graph tables.")
     clear(db, "link")
     clear(db, "segment")
+    clear(db, "path")
 
     printl("Parsing GFA")
     count_update = partial(count_update_full, db, 1000)
-    populate_gfa(db, gfa,  count_update)
+    segmentData = populate_gfa(db, gfa,  count_update)
     print(" Done.")
 
     printl("Parsing layout")
@@ -42,9 +43,8 @@ def store_graph(db, gfa, layout):
 
     printl("Parsing paths")
     count_update = partial(count_update_full, db, 2)
-    populate_paths(db, gfa, count_update)
+    populate_paths(db, segmentData, gfa, count_update)
     print(" Done.")
-
 
 def store_annotations(db, gff3):
     print("Clearing annotations table.")

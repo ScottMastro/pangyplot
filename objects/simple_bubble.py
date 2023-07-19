@@ -1,4 +1,3 @@
-
 class SimpleBubble:
     def __init__(self, row, insideRows):
         self.id = "bubble_" + str(row.id)
@@ -23,7 +22,6 @@ class SimpleBubble:
         return self.type == "insertion"
     def isSnp(self):
         return self.type == "simple"
-
 
     def size(self):
         return len(self.inside)
