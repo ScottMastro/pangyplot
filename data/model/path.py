@@ -7,11 +7,22 @@ def bin2strand(strand):
 
 class Path(db.Model):
     id = db.Column(db.String, primary_key=True)
-    next_id = db.Column(db.String)
+    sample = db.Column(db.String)
+    hap = db.Column(db.Integer)
+    from_id = db.Column(db.String)
+    to_id = db.Column(db.String)
     strand = db.Column(db.Boolean)
 
     def __init__(self, row):
-        pass
+        hp = "" if row["hap"] is None else "." + str(row["hap"])
+        self.id = row["sample"] + hp + "." + str(row["i"]) 
+
+        self.sample = row["sample"]
+        self.hap = row["hap"]
+
+        self.from_id = row["from_id"]
+        self.to_id = row["to_id"]
+        self.strand = strand2bin(row["strand"])
 
     def __repr__(self):
         return [self.id, bin2strand(self.next_id), self.strand]

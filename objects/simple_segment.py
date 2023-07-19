@@ -75,7 +75,7 @@ class SimpleSegment:
         n = self.total_nodes()
         i = n-i-1 # todo: figure out why the positioning is reversed
         if i == 0: return self.pos
-        if i == n-1: return self.pos+self.length
+        if i == n-1: return self.pos+self.length-1
         return self.pos + int(i/n*self.length)
 
     def _create_node(self, i):

@@ -40,6 +40,21 @@ def select():
 
     return resultDict, 200
 
+@app.route('/haplotypes', methods=["GET"])
+def haplotypes():
+    chromosome = request.args.get("chromosome")
+    start = request.args.get("start")
+    end = request.args.get("end")
+    
+    print("getting haps")
+
+    segmentDict = query.get_segment_dict(chromosome, start, end)
+    query.get_haplotypes(segmentDict)
+
+    print("ready")
+    resultDict={}
+    return resultDict, 200
+
 @app.route('/cytoband', methods=["GET"])
 def cytobands():
     chromosome = request.args.get("chromosome")
