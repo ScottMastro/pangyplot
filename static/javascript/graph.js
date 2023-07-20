@@ -12,6 +12,11 @@ const MAX_ZOOM=1e10
 var LAST_ZOOM = 1;
 var HIGHLIGHT_NODES = [];
 
+
+REF_COLOR="#3C5E81"
+LINK_COLOR="#969696"
+
+
 function force(alpha) {
     for (let i = 0, n = nodes.length, node, k = alpha * 0.1; i < n; ++i) {
       node = nodes[i];
@@ -21,6 +26,12 @@ function force(alpha) {
   }
 
 function linkWidth(link) {
+    if (link.count != null){
+
+        return Math.min(Math.max(2, LAST_ZOOM*link.count/2), 6);
+
+    }
+
     return Math.max(2, LAST_ZOOM*link.width);
 }
 
@@ -104,6 +115,21 @@ function draw_gene_outline(ctx, graphData){
             }
         }
     }
+}
+
+function get_link_color(link){
+
+    if (link.type == "node"){
+        if (link.group == 1){
+            return REF_COLOR
+        }
+    }
+    if (link.type == "edge"){
+        return LINK_COLOR
+    }
+   
+   return intToColor(link.group)
+    
 }
 
 function draw_gene_name(ctx, graphData){
@@ -209,15 +235,13 @@ function draw_graph(graph){
         .minZoom(MIN_ZOOM)
         .maxZoom(MAX_ZOOM)
         .d3VelocityDecay(VELOCITY_DECAY)
-
         .nodeVal(node => node["size"])
         .nodeRelSize(6)
         .nodeId('id')
         .nodeLabel('id')
-        .linkColor(link => intToColor(link.group))
+        .linkColor(link => get_link_color(link))
         .linkWidth(linkWidth)
-                .nodeCanvasObject(highlight_node)
-
+        .nodeCanvasObject(highlight_node)
         .nodeCanvasObject((node, ctx) => node_paint(node, ctx)) 
         .autoPauseRedraw(false) // keep redrawing after engine has stopped
         .onNodeClick(node => {explode_node(node)})
