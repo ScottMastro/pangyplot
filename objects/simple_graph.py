@@ -56,6 +56,11 @@ def approximate_position(node, startSegmentId, endSegmentId, segmentLookup):
 
     return node
 
+def get_flow(sourceId, sinkId, links):
+    source = [l["count"] for l in links if l["source"] == sourceId]
+    sink = [l["count"] for l in links if l["target"] == sinkId]
+    return(sum(source), sum(sink))
+
 class SimpleGraph:
     def __init__(self, bubble, subgraphs):
         self.linkFromId = None if bubble is None else bubble.sourceId
@@ -166,9 +171,13 @@ class SimpleSnpGraph(SimpleGraph):
         bubbleNode["expand_nodes"] = expand_nodes
         bubbleNode["expand_links"] = expand_links
 
+        sourceId=source_node_id(self.linkToId , segmentLookup)
+        sinkId=sink_node_id(self.linkFromId, segmentLookup)
+        countIn, countOut = get_flow(sourceId, sinkId, expand_links)
+
         links = []
-        links.append(create_link(self.linkToId, self.bubbleId, segmentLookup, annotations=annotations))
-        links.append(create_link(self.bubbleId, self.linkFromId, segmentLookup, annotations=annotations))
+        links.append(create_link(self.linkToId, self.bubbleId, segmentLookup, count=countIn, annotations=annotations))
+        links.append(create_link(self.bubbleId, self.linkFromId, segmentLookup, count=countOut, annotations=annotations))
 
         result = {"nodes": [bubbleNode], "links": links}
         return result
