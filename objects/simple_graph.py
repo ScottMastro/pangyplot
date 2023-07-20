@@ -10,7 +10,7 @@ def sink_node_id(id, segmentLookup):
     if id not in segmentLookup: return id
     return segmentLookup[id].sink_node_id()
 
-def create_link(fromId, toId, segmentLookup, annotations=[]):
+def create_link(fromId, toId, segmentLookup, count=0, annotations=[]):
     link = dict()
     link["source"] = source_node_id(fromId, segmentLookup)
     link["target"] = sink_node_id(toId, segmentLookup)
@@ -18,6 +18,7 @@ def create_link(fromId, toId, segmentLookup, annotations=[]):
     link["length"] = LINK_LENGTH
     link["type"] = "edge"
     link["group"] = 0
+    link["count"] = count
     link["annotations"] = annotations
     return link
 
@@ -209,7 +210,7 @@ class SimpleAtomicGraph(SimpleGraph):
         for l in linkSet:
             if l.is_consumed():
                 continue
-            link = create_link(l.fromNodeId, l.toNodeId, segmentLookup)
+            link = create_link(l.fromNodeId, l.toNodeId, segmentLookup, count=l.getCount())
             l.consume()
             links.append(link)
             

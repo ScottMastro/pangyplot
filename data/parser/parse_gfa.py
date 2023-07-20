@@ -1,3 +1,4 @@
+import re
 import gzip
 from math import nextafter
 from statistics import mean
@@ -5,6 +6,8 @@ from tracemalloc import start
 from data.model.segment import Segment
 from data.model.link import Link
 from data.model.path import Path
+
+
 
 from collections import deque
 
@@ -34,6 +37,11 @@ def path_to_lists(path):
 
     return ids, strands
 
+def extract_chrom(s):
+    match = re.search(r'chr[a-zA-Z0-9]+', s)
+    if match:
+        return match.group()
+    return None
 
 def parse_line(line):
 
@@ -59,7 +67,7 @@ def parse_line(line):
 
         for col in cols[3:]:
             if col.startswith("SN:"):
-                result["chrom"] = col.split(":")[-1]
+                result["chrom"] = extract_chrom(col.split(":")[-1])
             elif col.startswith("SO:"):
                 # add 1 to position
                 result["pos"] = int(col.split(":")[-1]) +1

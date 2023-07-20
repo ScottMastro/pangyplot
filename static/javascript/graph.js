@@ -280,4 +280,4 @@ function fetch_haps(chromosome, start, end) {
 
 
 fetch("chrM", 0, 142775343);
-fetch_haps("chrM", 0, 142775343);
+//fetch_haps("chrM", 0, 142775343);

@@ -15,6 +15,8 @@ class Segment(db.Model):
     ref = db.Column(db.Boolean)
 
     component = db.Column(db.Integer)
+    
+    chrom_pos_index = db.Index("chrom_pos_index", "chrom", "pos")
 
     def __init__(self, row):
 

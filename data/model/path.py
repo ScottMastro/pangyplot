@@ -12,6 +12,12 @@ class Path(db.Model):
     from_id = db.Column(db.String)
     to_id = db.Column(db.String)
     strand = db.Column(db.Boolean)
+    chrom = db.Column(db.String)
+    start = db.Column(db.Integer)
+    end = db.Column(db.Integer)
+
+    chrom_start_end_index = db.Index("chrom_pos_index", "chrom", "start", "end")
+
 
     def __init__(self, row):
         hp = "" if row["hap"] is None else "." + str(row["hap"])
@@ -23,7 +29,10 @@ class Path(db.Model):
         self.from_id = row["from_id"]
         self.to_id = row["to_id"]
         self.strand = strand2bin(row["strand"])
+        self.chrom = row["chrom"]
+        self.start = row["start"]
+        self.end = row["end"]
 
     def __repr__(self):
-        return [self.id, bin2strand(self.next_id), self.strand]
+        return str([self.id, self.strand, self.chrom, self.start, self.end])
 
