@@ -9,7 +9,7 @@ class SimpleSegment:
         self.length = len(row.seq)
         self.chrom, self.pos = row.chrom, row.pos
         self.start = row.pos if row.pos else None
-        self.end = row.pos+self.length if row.pos else None
+        self.end = row.pos+self.length-1 if row.pos else None
         self.x1, self.y1 = row.x1, row.y1
         self.x2, self.y2 = row.x2, row.y2
         self.annotations = []
@@ -104,8 +104,8 @@ class SimpleSegment:
         link["type"] = "node"
         link["group"] = self.get_type()
         link["annotations"] = self.get_annotation_ids()
+        
         return link
-
 
     def to_node_dict(self):
 

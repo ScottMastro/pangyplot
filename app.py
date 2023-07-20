@@ -31,7 +31,10 @@ def select():
     bubbleList = query.get_bubble_list(chromosome, start, end)
     
     graph = helper.construct_graph(segmentDict, toLinkDict, fromLinkDict, bubbleList)
-    
+
+    paths = query.get_haplotypes(fromLinkDict, chromosome, start, end)
+    helper.process_paths(paths)
+
     resultDict = graph.to_dictionary(segmentDict)
     resultDict = helper.post_process_graph(graph, resultDict)
     resultDict["annotations"] = [annotation.to_dict() for annotation in annotations]
@@ -42,16 +45,7 @@ def select():
 
 @app.route('/haplotypes', methods=["GET"])
 def haplotypes():
-    chromosome = request.args.get("chromosome")
-    start = request.args.get("start")
-    end = request.args.get("end")
-    
-    print("getting haps")
 
-    segmentDict = query.get_segment_dict(chromosome, start, end)
-    query.get_haplotypes(segmentDict)
-
-    print("ready")
     resultDict={}
     return resultDict, 200
 

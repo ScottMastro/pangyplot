@@ -2,17 +2,23 @@ from objects.simple_segment import SimpleSegment
 from objects.simple_link import SimpleLink
 from objects.simple_bubble import SimpleBubble
 from objects.simple_annotation import SimpleAnnotation
+from objects.simple_path import SimplePath
 
 from data.model.segment import Segment
 from data.model.link import Link
 from data.model.annotation import Annotation
 from data.model.bubble import Bubble,BubbleInside
+from data.model.path import Path
 
-def get_segment_dict(chr=None, start=None, end=None):
-    #todo: filter by chrom:pos somehow
+def get_segment_dict(chrom, start, end):
+
     segments = dict()
 
-    rows = Segment.query.all()
+    rows = Segment.query.filter(
+        Segment.chrom == chrom, 
+        Segment.pos.between(start, end)
+    ).all()
+
     for row in rows:
         segment = SimpleSegment(row)
         segments[str(row.nodeid)] = segment
@@ -64,17 +70,29 @@ def get_annotation_list(chromosome, start, end):
 
     return annotations
 
-def get_haplotypes(segmentDict):
+def get_haplotypes(linkDict, chrom, start, end):
 
-    print(segmentDict)
+    rows = Path.query.filter(
+        Path.chrom == chrom, 
+        Path.start >= start,
+        Path.end <= end
+    ).all()
 
+    def find_link(row):
+        if row.from_id not in linkDict: 
+            return None
+        for link in linkDict[row.from_id]:
+            if link.toNodeId == row.to_id:
+                return link
+        return None
 
-    #todo: filter by chrom:pos somehow
-    segments = dict()
-
-    rows = Segment.query.all()
+    paths = dict()
     for row in rows:
-        segment = SimpleSegment(row)
-        segments[str(row.nodeid)] = segment
-    
-    return segments
+        link = find_link(row)
+        sample = row.sample + "." + str(0 if row.hap is None else row.hap)
+        if sample not in paths:
+            paths[sample] = SimplePath(row)
+
+        paths[sample].add_to_path(link)
+
+    return paths

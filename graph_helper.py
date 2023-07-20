@@ -64,3 +64,8 @@ def add_annotations(annotations, segmentDict):
                 segment.add_annotation(annotation)
 
     return segmentDict
+
+def process_paths(paths):
+
+    for pathId in paths:
+        paths[pathId].countPath()
