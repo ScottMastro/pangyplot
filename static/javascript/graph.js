@@ -15,7 +15,7 @@ var HIGHLIGHT_NODES = [];
 
 REF_COLOR="#3C5E81"
 LINK_COLOR="#969696"
-
+HIGHLIGHT_LINK_COLOR="#FF0000"
 
 function force(alpha) {
     for (let i = 0, n = nodes.length, node, k = alpha * 0.1; i < n; ++i) {
@@ -119,13 +119,16 @@ function draw_gene_outline(ctx, graphData){
 
 function get_link_color(link){
 
-    if (link.type == "node"){
+    if (link.type == "node"){        
         if (link.group == 1){
-            return REF_COLOR
+            return REF_COLOR;
         }
     }
     if (link.type == "edge"){
-        return LINK_COLOR
+        if(should_highlight_link(link)){
+            return HIGHLIGHT_LINK_COLOR;
+        }
+        return LINK_COLOR;
     }
    
    return intToColor(link.group)
@@ -278,6 +281,8 @@ function fetch(chromosome, start, end) {
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
             var data = JSON.parse(xmlHttp.response)
+
+            update_path_selector(data.paths)
             draw_graph(data)
         }
     }

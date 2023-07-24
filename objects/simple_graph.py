@@ -13,6 +13,7 @@ def sink_node_id(id, segmentLookup):
 def create_link(fromId, toId, segmentLookup, count=0, annotations=[]):
     link = dict()
     link["source"] = source_node_id(fromId, segmentLookup)
+    link["pairs"] = [[fromId,toId]]
     link["target"] = sink_node_id(toId, segmentLookup)
     link["width"] = LINK_WIDTH
     link["length"] = LINK_LENGTH
@@ -136,7 +137,9 @@ class SimpleIndelGraph(SimpleGraph):
         result["nodes"].append(indelNode)
 
         indelLink1 = create_link(self.linkToId, indelId, segmentLookup, annotations=annotations)
+        indelLink1["pairs"] =[[self.linkFromId, self.linkToId]]
         indelLink2 = create_link(indelId, self.linkFromId, segmentLookup, annotations=annotations)
+        indelLink1["pairs"] = [[self.linkFromId, self.linkToId]]
 
         result["links"].append(indelLink1)
         result["links"].append(indelLink2)
@@ -159,8 +162,14 @@ class SimpleSnpGraph(SimpleGraph):
     def to_dictionary(self, segmentLookup, allLinks=False):
         expand_nodes = []
         expand_links = []
+        pairs = []
         for subgraph in self.subgraphs:
             subresult = subgraph.to_dictionary(segmentLookup, allLinks=True)
+
+            for link in subresult["links"]:
+                if "pairs" in link:
+                    pairs.extend(link["pairs"])
+
             expand_nodes.extend(subresult["nodes"])
             expand_links.extend(subresult["links"])
 
@@ -176,8 +185,13 @@ class SimpleSnpGraph(SimpleGraph):
         countIn, countOut = get_flow(sourceId, sinkId, expand_links)
 
         links = []
-        links.append(create_link(self.linkToId, self.bubbleId, segmentLookup, count=countIn, annotations=annotations))
-        links.append(create_link(self.bubbleId, self.linkFromId, segmentLookup, count=countOut, annotations=annotations))
+        bubbleLink1 = create_link(self.linkToId, self.bubbleId, segmentLookup, count=countIn, annotations=annotations)
+        bubbleLink2 = create_link(self.bubbleId, self.linkFromId, segmentLookup, count=countOut, annotations=annotations)
+        bubbleLink1["pairs"] = pairs
+        bubbleLink2["pairs"] = pairs
+
+        links.append(bubbleLink1)
+        links.append(bubbleLink2)
 
         result = {"nodes": [bubbleNode], "links": links}
         return result
@@ -235,7 +249,7 @@ class SimpleAtomicGraph(SimpleGraph):
 
         result = {"nodes": nodes, "links": links}
         return result
-
+        
     def __repr__(self):
         return str(["atomic", self.node.id, "fromlinks:", len(self.linksFrom),
         "tolinks:", len(self.linksTo)])

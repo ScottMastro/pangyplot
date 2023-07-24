@@ -13,8 +13,7 @@ class SimplePath:
             if not link is None:
                 link.countOne()
 
-    def to_dict(self):
-
+    def to_dict(self, linkDict):
         links = []
         return links
 

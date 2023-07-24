@@ -33,12 +33,13 @@ def select():
     graph = helper.construct_graph(segmentDict, toLinkDict, fromLinkDict, bubbleList)
 
     paths = query.get_haplotypes(fromLinkDict, chromosome, start, end)
-    helper.process_paths(paths)
+    pathDict = helper.process_paths(paths, graph)
 
     resultDict = graph.to_dictionary(segmentDict)
     resultDict = helper.post_process_graph(graph, resultDict)
     resultDict["annotations"] = [annotation.to_dict() for annotation in annotations]
-
+    resultDict["paths"] = pathDict
+    
     print("ready")
 
     return resultDict, 200

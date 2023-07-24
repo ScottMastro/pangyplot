@@ -65,7 +65,23 @@ def add_annotations(annotations, segmentDict):
 
     return segmentDict
 
-def process_paths(paths):
+def process_paths(paths, graph):
+
+    pathDict = dict()
+
 
     for pathId in paths:
         paths[pathId].countPath()
+
+        linkDict = dict()
+
+        for link in paths[pathId].links:
+            if link is not None:
+                if link.fromNodeId not in linkDict:
+                    linkDict[link.fromNodeId] = []
+                linkDict[link.fromNodeId].append(link.toNodeId)
+
+        pathDict[pathId] = linkDict
+    
+    return pathDict
+    

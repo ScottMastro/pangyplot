@@ -27,11 +27,17 @@
 <label for="end-coord">End:</label>
 <input type="text" id="end-coord" name="end-coord"><br><br>
 
+<select id="path-selector" name="path-selector">
+    <!-- The options will be appended here by the JavaScript -->
+</select>
+<input type="submit" value="Submit">
+
 <div id="graph"></div>
 
 <script src="{{url_for('static', filename='javascript/graph.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/draw-helper.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/graph-select.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/path-manager.js')}}"></script>
 
 </body>
 </html>
