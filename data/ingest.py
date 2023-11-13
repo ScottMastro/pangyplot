@@ -2,6 +2,8 @@ import sys
 from functools import partial
 
 from data.parser.parse_gfa import populate_gfa
+from data.parser.parse_gfa import parse_gfa
+
 from data.parser.parse_gfa import populate_paths
 
 from data.parser.parse_layout import populate_layout
@@ -32,6 +34,8 @@ def store_graph(db, gfa, layout):
     clear(db, "path")
 
     printl("Parsing GFA")
+    parse_gfa(gfa)
+    
     count_update = partial(count_update_full, db, 1000)
     segmentData = populate_gfa(db, gfa,  count_update)
     print(" Done.")

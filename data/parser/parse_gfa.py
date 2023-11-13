@@ -6,7 +6,7 @@ from tracemalloc import start
 from data.model.segment import Segment
 from data.model.link import Link
 from data.model.path import Path
-
+import data.neo4j_db as neo4jdb
 
 
 from collections import deque
@@ -15,27 +15,6 @@ def get_reader(gfa):
     if gfa.endswith(".gz"):
         return gzip.open(gfa, 'rt')
     return open(gfa)
-
-def P_to_W(path):
-    splitPath = path.split(",")
-    newPath = ""
-    for part in splitPath:
-        if part[-1] == "+":
-            newPath += ">" + part[:-1]
-        elif part[-1] == "-":
-            newPath += "<" + part[:-1]
-    return newPath
-def path_to_lists(path):
-    ids, strands = [], []
-    pos=0
-    for i,char in enumerate(path):
-        if char == ">" or char == "<":
-            strand = "+" if char == ">" else "-"
-            strands.append(strand)
-            if i != 0: ids.append(path[pos:i])
-            pos=i+1
-
-    return ids, strands
 
 def extract_chrom(s):
     match = re.search(r'chr[a-zA-Z0-9]+', s)
@@ -119,39 +98,48 @@ def collect_position_data(gfa):
 
 def estimate_position(id, fromLinkData, toLinkData, segmentData, visited=[]):
 
+    return("chr7", 144123343)
+
+    #print(id, len(visited))
     fromNodes = fromLinkData[id] if id in fromLinkData else []
     toNodes = toLinkData[id] if id in toLinkData else []
 
     estimatedFromPos = [] # based on nodes connecting to the target node
     estimatedFromChrom = []
 
+    #print(visited )
+    #print("from:", set(fromNodes).difference(set(visited)))
     for fromId in fromNodes:
-        if fromId in visited:
+        if (id,fromId) in visited:
             continue
         chrom,pos,length = segmentData[fromId]
         if pos is None:
-            chrom, pos = estimate_position(fromId, fromLinkData, toLinkData, segmentData, visited+[id])
+            chrom, pos = estimate_position(fromId, fromLinkData, toLinkData, segmentData, visited+[(id,fromId)])
         if pos is not None:
             estimatedFromPos.append(pos+length+1)
             estimatedFromChrom.append(chrom)
+            #print(chrom,pos)
 
     estimatedToPos = [] # based on nodes the target node connects to
     estimatedToChrom = []
 
+    #print("to:", set(toNodes).difference(set(visited)))
     for toId in toNodes:
-        if toId in visited:
+        if (toId,id) in visited:
             continue
         chrom,pos,length = segmentData[toId]
         if pos is None:
-            chrom, pos = estimate_position(toId, fromLinkData, toLinkData, segmentData, visited+[id])
+            chrom, pos = estimate_position(toId, fromLinkData, toLinkData, segmentData, visited+[(toId,id)])
         if pos is not None:
             estimatedToPos.append(pos-segmentData[id][2]-1)
             estimatedToChrom.append(chrom)
 
     #print(id, estimatedFromPos, estimatedToPos)
     chroms = estimatedFromChrom+estimatedToChrom
+    #print(id, len(visited))
 
     if len(chroms) == 0:
+        #todo:fix
         return None,None
 
     chrom = max(set(chroms), key = chroms.count)
@@ -161,6 +149,150 @@ def estimate_position(id, fromLinkData, toLinkData, segmentData, visited=[]):
     segmentData[id] = (chrom, pos, segmentData[id][2])
 
     return chrom, pos
+
+
+def parse_line_S(line):
+
+    result = {"type" : "S"}   
+    cols = line.strip().split("\t")
+    
+    result["id"] = cols[1]
+    result["seq"] = cols[2]
+    result["length"] = len(cols[2])
+
+    return result
+    """
+    result["chrom"] = None
+    result["pos"] = None
+    for col in cols[3:]:
+        if col.startswith("SN:"):
+            result["chrom"] = extract_chrom(col.split(":")[-1])
+        elif col.startswith("SO:"):
+            # add 1 to position
+            result["pos"] = int(col.split(":")[-1]) +1
+        elif col.startswith("SR:"):
+            result["sr"] = col.split(":")[-1]
+    result["ref"] = result["pos"] is not None
+    """
+    
+def parse_line_L(line):
+
+    result = {"type" : "L"}   
+    cols = line.strip().split("\t")
+
+    result["from_id"]=cols[1]
+    result["from_strand"]=cols[2]
+    result["to_id"]=cols[3]
+    result["to_strand"]=cols[4]
+    return result
+
+def path_to_lists(path):
+    ids, strands = [], []
+    pos=0
+    for i,char in enumerate(path):
+        if char == ">" or char == "<":
+            strand = "+" if char == ">" else "-"
+            strands.append(strand)
+            if i != 0: ids.append(path[pos:i])
+            pos=i+1
+
+    return ids, strands
+
+def P_to_W(path):
+    splitPath = path.split(",")
+    newPath = ""
+    for part in splitPath:
+        if part[-1] == "+":
+            newPath += ">" + part[:-1]
+        elif part[-1] == "-":
+            newPath += "<" + part[:-1]
+    return newPath
+
+def parse_line_P(line):
+
+    result = {"type" : "P"}   
+    cols = line.strip().split("\t")
+
+    result["type"] = "P"
+    result["sample"] = cols[1]
+    result["hap"] = None
+    result["start"] = None
+    result["end"] = None
+    result["path"], result["strand"] = path_to_lists(P_to_W(cols[2]))
+
+def parse_line_W(line):
+
+    result = {"type" : "W"}   
+    cols = line.strip().split("\t")
+
+    result["type"] = "W"
+    result["sample"] = cols[1]
+    result["hap"] = cols[2]
+    result["start"] = cols[4]
+    result["end"] = cols[5]
+    result["path"], result["strand"] = path_to_lists(cols[6])
+
+    return result
+
+def get_path_positions(path, lenDict):
+    pos = int(path["start"])
+    positions = [pos]
+    for node in path["path"]:
+        positions.append(pos)
+        pos += lenDict[node]
+
+    #TODO: the coordinates seem to be a bit off with this technique.
+    #print(path["start"], positions[0], positions[-1], pos, path["end"])
+    path["position"] = positions
+    return path
+
+def parse_gfa(gfa):
+    count = 0
+    segments, links, paths = [],[],[]
+    lenDict = dict()
+    with get_reader(gfa) as file:
+        
+        for line in file:
+
+            if line[0] == "S":
+                segment = parse_line_S(line)
+                lenDict[segment["id"]] = segment["length"]
+                #segments.append(segment)
+            elif line[0] == "L":
+                continue
+                links.append(parse_line_L(line))
+            elif line[0] == "W":
+                walk = parse_line_W(line)
+                walk = get_path_positions(walk, lenDict)
+
+                #neo4jdb.add_paths([walk])
+
+                paths.append(walk)
+                print(".")
+            elif line[0] == "P":
+                path = parse_line_P(line)
+                paths.append(path)
+
+
+            #count+=1
+            #if count % 100000 == 0:
+            #    print(".")
+            if len(segments) > 100000:
+                neo4jdb.add_segments(segments)
+                segments=[]
+            if len(links) > 100000:
+                neo4jdb.add_relationships(links)
+                links=[]
+        
+        neo4jdb.add_segments(segments)
+        neo4jdb.add_relationships(links)
+        #for path in paths:
+            #path = get_path_positions(path, lenDict)
+        #neo4jdb.add_paths(paths)
+
+        
+
+
 
 def populate_gfa(db, gfa, count_update):
     count = 0
