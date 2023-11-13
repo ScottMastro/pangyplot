@@ -257,26 +257,24 @@ def parse_gfa(gfa):
             if line[0] == "S":
                 segment = parse_line_S(line)
                 lenDict[segment["id"]] = segment["length"]
-                #segments.append(segment)
+                continue
+                segments.append(segment)
             elif line[0] == "L":
                 continue
                 links.append(parse_line_L(line))
             elif line[0] == "W":
                 walk = parse_line_W(line)
                 walk = get_path_positions(walk, lenDict)
-
-                #neo4jdb.add_paths([walk])
-
-                paths.append(walk)
-                print(".")
+                neo4jdb.add_paths([walk])
+                #paths.append(walk)
             elif line[0] == "P":
                 path = parse_line_P(line)
                 paths.append(path)
 
 
-            #count+=1
-            #if count % 100000 == 0:
-            #    print(".")
+            count+=1
+            if count % 100000 == 0:
+                print(".")
             if len(segments) > 100000:
                 neo4jdb.add_segments(segments)
                 segments=[]

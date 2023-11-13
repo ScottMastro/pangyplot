@@ -29,9 +29,9 @@ def count_update_full(db, val, count):
 
 def store_graph(db, gfa, layout):
     print("Clearing graph tables.")
-    clear(db, "link")
-    clear(db, "segment")
-    clear(db, "path")
+    #clear(db, "link")
+    #clear(db, "segment")
+    #clear(db, "path")
 
     printl("Parsing GFA")
     parse_gfa(gfa)

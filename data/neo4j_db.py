@@ -40,25 +40,26 @@ def add_paths(paths, batch_size=10000):
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
         for path in paths:
-            for i in range(0, len(path["path"]), batch_size):
-                batch = []
-                for j in range(i-1):
-                    link = {"from_id": path["path"][i+j],
-                            "to_id": path["path"][i+j+1],
-                            "from_strand": path["strand"][i+j],
-                            "to_strand": path["strand"][i+j+1],
-                            "position": path["position"][i+j],
-                            "sample": path["sample"],
-                            "hap": path["hap"]
-                             }      
-                    batch.append(link)          
+            path_info = {"sample": path["sample"], "hap": path["hap"]}
+            links = []
+            for i,from_id in enumerate(path["path"][:-1]):
+                link = {"from_id": from_id,
+                        "to_id": path["path"][i+1],
+                        "from_strand": path["strand"][i],
+                        "to_strand": path["strand"][i+1],
+                        "position": path["position"][i]}
+                links.append(link)
+
+            for i in range(0, len(links), batch_size):
+                batch = links[i:i + batch_size]
+
                 print(i, "/", len(path["path"]))
                 query = """
                 UNWIND $batch AS link
                 MATCH (a:Segment {id: link.from_id}), (b:Segment {id: link.to_id})
-                CREATE (a)-[:HAPLOTYPE {from_strand: link.from_strand, to_strand: link.to_strand, position: link.position, sample: link.sample, hap : link.hap }]->(b)
+                CREATE (a)-[:HAPLOTYPE {from_strand: link.from_strand, to_strand: link.to_strand, position: link.position, sample: $path.sample, hap : $path.hap }]->(b)
                 """
-                session.run(query, {"batch": batch})
+                session.run(query, {"batch": batch, "path": path_info})
 
     driver.close()
 

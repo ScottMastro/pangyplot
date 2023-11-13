@@ -12,7 +12,7 @@ import argparse
 app = Flask(__name__)
 
 def create_app():
-    database.db_init(app)
+    #database.db_init(app)
     neo4jdb.db_init()
 @app.route('/select', methods=["GET"])
 def select():
