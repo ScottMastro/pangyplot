@@ -3,6 +3,8 @@ from cytoband import get_cytoband
 import graph_helper as helper
 from data.db import db
 import data.db as database
+import data.neo4j_db as neo4jdb
+
 import data.query as query
 
 import argparse
@@ -11,7 +13,7 @@ app = Flask(__name__)
 
 def create_app():
     database.db_init(app)
-
+    neo4jdb.db_init()
 @app.route('/select', methods=["GET"])
 def select():
     chromosome = request.args.get("chromosome")
@@ -88,7 +90,8 @@ if __name__ == '__main__':
 
         if args.drop:
             print("dropping all")
-            database.drop_all()
+            #database.drop_all()
+            neo4jdb.drop_all()
 
         if args.gencode:
             args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"

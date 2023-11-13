@@ -267,7 +267,7 @@ function draw_graph(graph){
 
     forceGraph.d3Force('link').distance(link_force_distance).strength(0.5).iterations(2)
     forceGraph.d3Force('collide', d3.forceCollide(50).radius(20))    
-    forceGraph.d3Force('charge').strength(-30).distanceMax(500)
+    forceGraph.d3Force('charge').strength(-500).distanceMax(1000)
     
 }
 
@@ -307,6 +307,10 @@ function fetch_haps(chromosome, start, end) {
     xmlHttp.send();
 }
 
+//fetch("chr7", 134130278, 154130278);
 
-fetch("chrM", 0, 142775343);
+//fetch("chr7", 144084904, 144140209); //PRSS region
+
+fetch("chr7", 0, 1440859040);
+
 //fetch_haps("chrM", 0, 142775343);
