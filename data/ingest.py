@@ -2,11 +2,11 @@ import sys
 from functools import partial
 
 from data.parser.parse_gfa import populate_gfa
-from data.parser.parse_gfa import parse_gfa
+from data.parser.parse_gfa import parse_graph
 
 from data.parser.parse_gfa import populate_paths
 
-from data.parser.parse_layout import populate_layout
+from data.parser.parse_layout import parse_layout
 from data.parser.parse_gff3 import parse_gff3
 from data.parser.parse_bubbles import parse_bubbles
 
@@ -33,9 +33,13 @@ def store_graph(db, gfa, layout):
     #clear(db, "segment")
     #clear(db, "path")
 
-    printl("Parsing GFA")
-    parse_gfa(gfa)
+    print("Parsing layout")
+    layoutCoords = parse_layout(layout)
+
+    print("Parsing GFA")
+    parse_graph(gfa, layoutCoords)
     
+    '''
     count_update = partial(count_update_full, db, 1000)
     segmentData = populate_gfa(db, gfa,  count_update)
     print(" Done.")
@@ -48,6 +52,7 @@ def store_graph(db, gfa, layout):
     printl("Parsing paths")
     count_update = partial(count_update_full, db, 2)
     populate_paths(db, segmentData, gfa, count_update)
+    '''
     print(" Done.")
 
 def store_annotations(db, gff3):
@@ -61,10 +66,12 @@ def store_annotations(db, gff3):
 
 def store_bubbles(db, bubbles):
     print("Clearing bubbles tables.")
-    clear(db, "bubble")
-    clear(db, "bubble_inside")
+    #clear(db, "bubble")
+    #clear(db, "bubble_inside")
 
     printl("Parsing bubbles")
-    count_update = partial(count_update_full, db, 100)
-    parse_bubbles(db, bubbles, count_update)
+    #count_update = partial(count_update_full, db, 100)
+    #parse_bubbles(db, bubbles, count_update)
+    parse_bubbles(bubbles)
+
     print(" Done.")
