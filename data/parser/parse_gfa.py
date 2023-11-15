@@ -1,15 +1,12 @@
 import re
 import gzip
-from math import nextafter
 from statistics import mean
-from tracemalloc import start
 from data.model.segment import Segment
 from data.model.link import Link
 from data.model.path import Path
 import data.neo4j_db as neo4jdb
 
-
-from collections import deque
+import time
 
 def get_reader(gfa):
     if gfa.endswith(".gz"):
@@ -246,33 +243,85 @@ def get_path_positions(path, lenDict):
     path["position"] = positions
     return path
 
-def parse_gfa(gfa):
-    count = 0
-    segments, links, paths = [],[],[]
-    lenDict = dict()
-    with get_reader(gfa) as file:
-        
-        for line in file:
+def collapse_paths(collapseDict, sampleIdDict, path):
 
+    sampleId = path["sample"] + "." + path["hap"]
+    if sampleId not in sampleIdDict:
+        if len(sampleIdDict) == 0:
+            sampleIdDict[sampleId] = 0
+        else:
+            sampleIdDict[sampleId] = max([sampleIdDict[x] for x in sampleIdDict])+1
+    sampleIdx = sampleIdDict[sampleId]
+
+    for i,fromId in enumerate(path["path"][:-1]):
+        toId = path["path"][i+1]
+        fromStrand = path["strand"][i]
+        toStrand = path["strand"][i+1]
+        #position = path["position"][i]
+        fromKey = str(fromId) + fromStrand
+        toKey = str(toId) + toStrand
+        key = (fromKey, toKey)
+        if key not in collapseDict:
+            collapseDict[key] = []
+        
+        collapseDict[key].append(sampleIdx)
+    return collapseDict, sampleIdDict
+
+   
+def collapse_binary(collapseDict, sampleIdDict):
+    n = max([sampleIdDict[x] for x in sampleIdDict])+1
+    for key in collapseDict:
+        idxs = collapseDict[key]
+        boolList = [False] * n
+        for idx in idxs:
+            boolList[idx] = True
+        collapseDict[key] = boolList
+    return collapseDict
+
+def parse_graph(gfa, layoutCoords):
+    count = 0
+    segmentCount = 0
+    segments, links = [],[]
+    lenDict = dict()
+    collapseDict = dict() ; collapsed = False
+    sampleIdDict = dict()
+
+    with get_reader(gfa) as gfaFile:
+        
+        for line in gfaFile:
+            count+=1
             if line[0] == "S":
                 segment = parse_line_S(line)
                 lenDict[segment["id"]] = segment["length"]
-                continue
+                for c in ["x1", "y1", "x2", "y2"]:
+                    segment[c] = layoutCoords[segmentCount][c]
                 segments.append(segment)
-            elif line[0] == "L":
-                continue
-                links.append(parse_line_L(line))
+                segmentCount += 1
             elif line[0] == "W":
                 walk = parse_line_W(line)
-                walk = get_path_positions(walk, lenDict)
-                neo4jdb.add_paths([walk])
-                #paths.append(walk)
+                collapseDict, sampleIdDict = collapse_paths(collapseDict, sampleIdDict, walk)
+                print("w", end='', flush=True)
+                #walk = get_path_positions(walk, lenDict)
             elif line[0] == "P":
                 path = parse_line_P(line)
-                paths.append(path)
+            elif line[0] == "L":
+                if not collapsed:
+                    collapseDict = collapse_binary(collapseDict, sampleIdDict)
+                    collapsed = True
 
+                link = parse_line_L(line)
+                key = (str(link["from_id"]) + link["from_strand"],
+                       str(link["to_id"]) + link["to_strand"])
+                if key in collapseDict:
+                    hap = collapseDict[key]
+                    link["haplotype"] = hap
+                    link["frequency"] = sum(hap)/len(hap)
+                else:
+                    n = max([sampleIdDict[x] for x in sampleIdDict])+1
+                    link["haplotype"] = [False] * n
+                    link["frequency"] = 0
+                links.append(link)
 
-            count+=1
             if count % 100000 == 0:
                 print(".")
             if len(segments) > 100000:
@@ -281,15 +330,9 @@ def parse_gfa(gfa):
             if len(links) > 100000:
                 neo4jdb.add_relationships(links)
                 links=[]
-        
+
         neo4jdb.add_segments(segments)
         neo4jdb.add_relationships(links)
-        #for path in paths:
-            #path = get_path_positions(path, lenDict)
-        #neo4jdb.add_paths(paths)
-
-        
-
 
 
 def populate_gfa(db, gfa, count_update):

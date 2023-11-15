@@ -43,3 +43,25 @@ def populate_layout(db, layout, count_update):
             count_update(count)
                 
         db.session.commit()
+
+def parse_layout(layout):
+    count = 0
+    prevLine = None
+    skipFirstLine = True
+    layoutCoords = []
+    
+    with get_reader(layout) as file:
+        for line in file:
+            if skipFirstLine:
+                skipFirstLine=False
+                continue
+
+            count += 1
+            if count % 2 == 0:
+                coords = parse_lines(prevLine, line)
+                if coords:
+                    layoutCoords.append(coords)
+
+            prevLine = line
+
+    return layoutCoords
