@@ -1,4 +1,4 @@
-import data.neo4j_query as q
+from objects.simple_segment import SimpleSegment
 from objects.simple_link import SimpleLink
 from objects.simple_bubble import SimpleBubble
 from objects.simple_annotation import SimpleAnnotation
@@ -10,11 +10,20 @@ from data.model.annotation import Annotation
 from data.model.bubble import Bubble,BubbleInside
 from data.model.path import Path
 
-def get_segments(chrom, start, end):
-    result = q.get_segments(chrom, start, end)
-    print(result)
+def get_segment_dict(chrom, start, end):
+
+    segments = dict()
+
+    rows = Segment.query.filter(
+        Segment.chrom == chrom, 
+        Segment.pos.between(start, end)
+    ).all()
+
+    for row in rows:
+        segment = SimpleSegment(row)
+        segments[str(row.nodeid)] = segment
     
-    return result
+    return segments
 
 def get_link_dict(chr=None, start=None, end=None):
     toDict = dict()

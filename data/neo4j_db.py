@@ -121,7 +121,7 @@ def add_segments(segments, batch_size=10000):
 
         for i in range(0, len(segments), batch_size):
             batch = segments[i:i + batch_size]
-            query = "UNWIND $batch AS segment CREATE (:Segment {id: segment.id, x1: segment.x1, y1: segment.y1, y2: segment.y2, x2: segment.x2, sequence: segment.seq})"
+            query = "UNWIND $batch AS segment CREATE (:Segment {id: segment.id, x1: segment.x1, y1: segment.y1, y2: segment.y2, x2: segment.x2, sequence: segment.seq, length: segment.length})"
             session.run(query, {"batch": batch})
 
     driver.close()

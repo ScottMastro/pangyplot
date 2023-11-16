@@ -94,6 +94,6 @@ def parse_bubbles(jsonFile):
         chains.append(chain)
         bubbles.extend(chainData["bubbles"])
     
-    #neo4jdb.add_bubbles(bubbles)
+    neo4jdb.add_bubbles(bubbles)
     neo4jdb.add_chains(chains)
 
