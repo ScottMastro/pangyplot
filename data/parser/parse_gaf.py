@@ -18,56 +18,48 @@ def path_to_lists(path):
             strands.append(strand)
             if i != 0: ids.append(path[pos:i])
             pos=i+1
-
+    ids.append(path[pos:])
     return ids, strands
 
 
-def assign_positions(qstart, qend, path, cigar):
-
+def assign_positions(qstart, rstart, path, cigar):
     nodeIds, _ = path_to_lists(path)
     lengths = q.get_lengths_by_id(nodeIds)
+    print(lengths)
     cigarOps = re.findall('(\d+)([=XDI])', cigar)
 
     query_positions = {}
     cigarIndex = 0
     currentPosQ = 0
-    
+    flag = True
     for nodeId in nodeIds:
-        currentPosR = 0
+        currentPosR = rstart if flag else 0
         nodeLen = lengths[nodeId]
-        start = qstart + currentPosQ
-        print("start", start, nodeId)
-
-        print("op", cigarIndex < len(cigarOps), currentPosR < nodeLen)
-
-        print("sum", sum ([int(x) for x, y in cigarOps if y in "=XI"]))
-        print("length", qend - qstart)
-        print("nodesum", sum([lengths[nodeId] for nodeId in nodeIds]))
-        print("nodesum2", sum([int(x) for x, y in cigarOps if y in "=XD"]))
+        start = None if flag else qstart + currentPosQ + 1
+        flag = False
 
         while cigarIndex < len(cigarOps) and currentPosR < nodeLen:
             opLen, opType = cigarOps[cigarIndex]
             opLen = int(opLen)
 
-            if opType in "=XI":  # Match or Mismatch
+            if opType in "=XD":  # Match or Mismatch
                 advance = min(opLen, nodeLen - currentPosR)
-                currentPosQ += advance 
-                if opType != "I": # Insertion - Adjust only the query sequence position
-                    currentPosR += advance
+                currentPosR += advance
+                if opType != "D": # Deletion - Adjust only the reference sequence position
+                    currentPosQ += advance
                 if advance < opLen:
                     cigarOps[cigarIndex] = (opLen - advance, opType)
-                    break
-            elif opType == "D":  # Deletion - Adjust only the reference sequence position
-                currentPosR +=opLen
+                    continue
+
+            elif opType == "I": # Insertion - Adjust only the query sequence position
+                currentPosQ +=opLen
+
             cigarIndex += 1
 
         end = qstart + currentPosQ
         query_positions[nodeId] = {'start': start, 'end': end}
 
-    print(qend)
-    print(qstart + currentPosQ)
-
-    print(query_positions)
+    query_positions[nodeId]["end"] = None
     return query_positions
 
 
@@ -85,6 +77,11 @@ def parse_line(line):
     result["qend"] = int(cols[3])
     result["strand"] = cols[4]
     result["path"] = cols[5]
+    result["rlen"] = int(cols[6])
+    result["rstart"] = int(cols[7])
+    result["rend"] = int(cols[8])
+    result["matches"] = int(cols[9])
+    result["alen"] = int(cols[10])
 
     otherDict = {}
     for col in cols[12:]:
@@ -92,22 +89,20 @@ def parse_line(line):
         otherDict[key] = value
 
     result["cigar"] = otherDict["cg"]
-    nodes = assign_positions(result["qstart"], result["qend"], result["path"], result["cigar"])
-
-    for c in result["info"].split(";"):
-        if c.startswith("ID"):
-            result["id"] = c.split("=")[1]
-        if c.startswith("gene_name"):
-            result["gene"] = c.split("=")[1]
-        if c.startswith("exon_number"):
-            result["exon"] = c.split("=")[1]
+    coords = assign_positions(result["qstart"], result["rstart"], result["path"], result["cigar"])
     
-    return result
+    return coords
 
 def parse_coords(gaf):
-    alignments = []
+    coords = {}
     with get_reader(gaf) as file:
         for line in file:
-            alignment = parse_line(line)
-            print(alignment)
-            alignments.append(alignment)
+            alnCoords = parse_line(line)
+            for nodeId in alnCoords:
+                if nodeId not in coords:
+                    coords[nodeId] = alnCoords[nodeId]
+                else: 
+                    print("WOAH")
+            print(coords)
+            
+            
