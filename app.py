@@ -2,9 +2,10 @@ from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
 import graph_helper as helper
 from data.db import db
-import data.db as database
+#import data.db as database
 import data.neo4j_db as neo4jdb
 
+import data.query_old as query_old
 import data.query as query
 
 import argparse
@@ -22,19 +23,20 @@ def select():
     
     print("making graph")
 
-    annotations=[]
-    annotations = query.get_annotation_list(chromosome, start, end)
+    #todo
+    #annotations=[]
+    #annotations = query.get_annotation_list(chromosome, start, end)
 
     graph = dict()
-    segmentDict = query.get_segment_dict(chromosome, start, end)
+    segmentDict = query.get_segments(chromosome, start, end)
     graph = helper.add_annotations(annotations, segmentDict)
 
-    toLinkDict,fromLinkDict = query.get_link_dict(chromosome, start, end)
-    bubbleList = query.get_bubble_list(chromosome, start, end)
+    toLinkDict,fromLinkDict = query_old.get_link_dict(chromosome, start, end)
+    bubbleList = query_old.get_bubble_list(chromosome, start, end)
     
     graph = helper.construct_graph(segmentDict, toLinkDict, fromLinkDict, bubbleList)
 
-    paths = query.get_haplotypes(fromLinkDict, chromosome, start, end)
+    paths = query_old.get_haplotypes(fromLinkDict, chromosome, start, end)
     pathDict = helper.process_paths(paths, graph)
 
     resultDict = graph.to_dictionary(segmentDict)
@@ -78,6 +80,7 @@ if __name__ == '__main__':
         parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', default=None)
         parser.add_argument('--gff3', help='Path to the GFF3 file', default=None)
         parser.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
+        parser.add_argument('--ref', help='GAF file with reference coordinates', default=None)
         parser.add_argument('--demo', help='Use DRB1 demo data', action='store_true')
         parser.add_argument('--drop', help='Drop all tables', action='store_true')
         parser.add_argument('--gencode', help='Add genocode annotations', action='store_true')
@@ -114,6 +117,10 @@ if __name__ == '__main__':
         if args.gfa and args.layout:
             import data.ingest as ingest
             ingest.store_graph(db, args.gfa, args.layout)
+
+        if args.ref:
+            import data.ingest as ingest
+            ingest.store_ref_coords(args.ref)
 
         if args.bubbles:
             import data.ingest as ingest

@@ -3,8 +3,8 @@ from functools import partial
 
 from data.parser.parse_gfa import populate_gfa
 from data.parser.parse_gfa import parse_graph
-
 from data.parser.parse_gfa import populate_paths
+from data.parser.parse_gaf import parse_coords
 
 from data.parser.parse_layout import parse_layout
 from data.parser.parse_gff3 import parse_gff3
@@ -54,6 +54,10 @@ def store_graph(db, gfa, layout):
     populate_paths(db, segmentData, gfa, count_update)
     '''
     print(" Done.")
+
+def store_ref_coords(ref):
+    if ref.endswith(".gaf") or ref.endswith(".gaf.gz"):
+        parse_coords(ref)
 
 def store_annotations(db, gff3):
     print("Clearing annotations table.")
