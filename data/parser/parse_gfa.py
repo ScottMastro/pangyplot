@@ -192,6 +192,7 @@ def path_to_lists(path):
             strands.append(strand)
             if i != 0: ids.append(path[pos:i])
             pos=i+1
+    ids.append(path[pos:])
 
     return ids, strands
 
