@@ -1,19 +1,16 @@
 from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
 import graph_helper as helper
-from data.db import db
-#import data.db as database
-import data.neo4j_db as neo4jdb
-
-import data.query_old as query_old
-import data.query as query
+import db.neo4j_db as neo4jdb
+import db.query_old as query_old
+import db.query as query
+import db.ingest as ingest
 
 import argparse
 
 app = Flask(__name__)
 
 def create_app():
-    #database.db_init(app)
     neo4jdb.db_init()
 @app.route('/select', methods=["GET"])
 def select():
@@ -28,8 +25,12 @@ def select():
     #annotations = query.get_annotation_list(chromosome, start, end)
 
     graph = dict()
-    segmentDict = query.get_segments("CHM13#chr18", 28700000, 28704000)
-    return segmentDict, 200
+    dataDict = query.get_segments("CHM13#chr18", 28700000, 28704000)
+    
+   
+    graph = helper.construct_graph(dataDict)
+
+    return dataDict, 200
 
     print("here")
     graph = helper.add_annotations(annotations, segmentDict)
@@ -84,7 +85,7 @@ if __name__ == '__main__':
         parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', default=None)
         parser.add_argument('--gff3', help='Path to the GFF3 file', default=None)
         parser.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
-        parser.add_argument('--ref', help='GAF file with reference coordinates', default=None)
+        #parser.add_argument('--ref', help='GAF file with reference coordinates', default=None)
         parser.add_argument('--demo', help='Use DRB1 demo data', action='store_true')
         parser.add_argument('--drop', help='Drop all tables', action='store_true')
         parser.add_argument('--gencode', help='Add genocode annotations', action='store_true')
@@ -97,8 +98,8 @@ if __name__ == '__main__':
 
         if args.drop:
             print("dropping all")
-            #database.drop_all()
-            neo4jdb.drop_all()
+            neo4jdb.drop_bubbles()
+            #neo4jdb.drop_all()
 
         if args.gencode:
             args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
@@ -119,20 +120,19 @@ if __name__ == '__main__':
             parser.print_help()
 
         if args.gfa and args.layout:
-            import data.ingest as ingest
-            ingest.store_graph(db, args.gfa, args.layout)
-
-        if args.ref:
-            import data.ingest as ingest
-            ingest.store_ref_coords(args.ref)
+            ingest.store_graph(args.gfa, args.layout)
+            
+        #if args.ref:
+        #    import db.ingest as ingest
+        #    ingest.store_ref_coords(args.ref)
 
         if args.bubbles:
-            import data.ingest as ingest
-            ingest.store_bubbles(db, args.bubbles)
+            ingest.store_bubbles(args.bubbles)
 
         if args.gff3:
-            import data.ingest as ingest
-            ingest.store_annotations(db, args.gff3)
+            ingest.store_annotations(args.gff3)
+
+        neo4jdb.add_chain_properties()
 
         if not flag:
             app.run()

@@ -222,12 +222,12 @@ function draw_graph(graph){
 
 
     annotationDict = {}
-    for (let i = 0, n = graph.annotations.length; i < n; ++i) {
-        annotationDict[graph.annotations[i].index] = graph.annotations[i];
-    }
-    for (let i = 0, n = graph.nodes.length; i < n; ++i) {
-        graph.nodes[i]["color"] = intToColor(graph.nodes[i]["group"])
-    }
+    //for (let i = 0, n = graph.annotations.length; i < n; ++i) {
+    //    annotationDict[graph.annotations[i].index] = graph.annotations[i];
+    //}
+    //for (let i = 0, n = graph.nodes.length; i < n; ++i) {
+    //   graph.nodes[i]["color"] = intToColor(graph.nodes[i]["group"])
+    //}
     
     //.linkDirectionalParticles(4)
     console.log(graph);
@@ -238,14 +238,14 @@ function draw_graph(graph){
         .minZoom(MIN_ZOOM)
         .maxZoom(MAX_ZOOM)
         .d3VelocityDecay(VELOCITY_DECAY)
-        .nodeVal(node => node["size"])
+    //    .nodeVal(node => node["size"])
         .nodeRelSize(6)
         .nodeId('id')
         .nodeLabel('id')
         .linkColor(link => get_link_color(link))
         .linkWidth(linkWidth)
-        .nodeCanvasObject(highlight_node)
-        .nodeCanvasObject((node, ctx) => node_paint(node, ctx)) 
+    //    .nodeCanvasObject(highlight_node)
+    //    .nodeCanvasObject((node, ctx) => node_paint(node, ctx)) 
         .autoPauseRedraw(false) // keep redrawing after engine has stopped
         .onNodeClick(node => {explode_node(node)})
 
@@ -256,8 +256,8 @@ function draw_graph(graph){
     forceGraph.onNodeHover(highlight_node);
     
 
-    forceGraph.onRenderFramePre((ctx, scale) => { pre_render(ctx, forceGraph.graphData()); })
-    forceGraph.onRenderFramePost((ctx, scale) => {post_render(ctx, forceGraph.graphData()); })
+    //forceGraph.onRenderFramePre((ctx, scale) => { pre_render(ctx, forceGraph.graphData()); })
+    //forceGraph.onRenderFramePost((ctx, scale) => {post_render(ctx, forceGraph.graphData()); })
 
     // --- FORCES ---
 
@@ -307,10 +307,10 @@ function fetch_haps(chromosome, start, end) {
     xmlHttp.send();
 }
 
-//fetch("chr7", 134130278, 154130278);
+fetch("CHM13#chr18", 7000000, 8000000);
 
 //fetch("chr7", 144084904, 144140209); //PRSS region
 
-fetch("chr7", 0, 1440859040);
+//fetch("chr7", 0, 1440859040);
 
 //fetch_haps("chrM", 0, 142775343);
