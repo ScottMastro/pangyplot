@@ -108,12 +108,6 @@ def add_chains(chains, batch_size=10000):
 
     driver.close()
 
-#def create_segment_index():
-#    driver = GraphDatabase.driver(uri, auth=(username, password))
-#    with driver.session() as session:
-#        session.run("CREATE INDEX FOR (n:Segment) ON (n.id)")
-#    driver.close()
-
 def add_segments(segments, batch_size=10000):
     if len(segments) == 0: return
     driver = GraphDatabase.driver(uri, auth=(username, password))
@@ -121,12 +115,23 @@ def add_segments(segments, batch_size=10000):
 
         for i in range(0, len(segments), batch_size):
             batch = segments[i:i + batch_size]
-            query = "UNWIND $batch AS segment CREATE (:Segment {id: segment.id, x1: segment.x1, y1: segment.y1, y2: segment.y2, x2: segment.x2, sequence: segment.seq, length: segment.length})"
+            query = """
+                UNWIND $batch AS segment
+                CREATE (:Segment {
+                    id: segment.id,
+                    sequence: segment.seq,
+                    chrom: segment.chrom,
+                    pos: segment.pos,
+                    x1: segment.x1,
+                    y1: segment.y1,
+                    y2: segment.y2,
+                    x2: segment.x2,
+                    length: segment.length
+                })
+            """
             session.run(query, {"batch": batch})
 
     driver.close()
-
-    
 
 def add_relationships(links, batch_size=10000):
     if len(links) == 0: return
@@ -138,7 +143,11 @@ def add_relationships(links, batch_size=10000):
             query = """
             UNWIND $batch AS link
             MATCH (a:Segment {id: link.from_id}), (b:Segment {id: link.to_id})
-            CREATE (a)-[:LINKS_TO {from_strand: link.from_strand, to_strand: link.to_strand, haplotype: link.haplotype, frequency: link.frequency}]->(b)
+            CREATE (a)-[:LINKS_TO {
+                from_strand: link.from_strand,
+                to_strand: link.to_strand,
+                haplotype: link.haplotype,
+                frequency: link.frequency}]->(b)
             """
             session.run(query, {"batch": batch})
 
@@ -245,33 +254,36 @@ def drop_all():
         print("Deletion complete.")
     driver.close()
 
+def create_segment_index(session, type, property):
+    try:
+        session.run(f"CREATE INDEX FOR (n:{type}) ON (n.{property})")
+    except exceptions.ClientError as e:
+        if "EquivalentSchemaRuleAlreadyExists" in e.code:
+            #print("Index already exists.")
+            pass
+        else:
+            raise
+
+
+def create_restraint(session, type, property):
+    try:
+        session.run(f"CREATE CONSTRAINT FOR (n:{type}) REQUIRE n.{property} IS UNIQUE")
+    except exceptions.ClientError as e:
+        if "EquivalentSchemaRuleAlreadyExists" in e.code:
+            #print("Constraint already exists.")
+            pass
+        else:
+            raise
+
 def db_init():
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
-        try:
-            session.run("CREATE CONSTRAINT FOR (segment:Segment) REQUIRE segment.id IS UNIQUE")
-        except exceptions.ClientError as e:
-            if "EquivalentSchemaRuleAlreadyExists" in e.code:
-                #print("Constraint already exists.")
-                pass
-            else:
-                raise
 
-        try:
-            session.run("CREATE CONSTRAINT FOR (bubble:Bubble) REQUIRE bubble.id IS UNIQUE")
-        except exceptions.ClientError as e:
-            if "EquivalentSchemaRuleAlreadyExists" in e.code:
-                #print("Constraint already exists.")
-                pass
-            else:
-                raise
+        create_restraint(session, "Segment", "id")
+        create_segment_index(session, "Segment", "chrom")
+        create_segment_index(session, "Segment", "pos")
 
-        try:
-            session.run("CREATE CONSTRAINT FOR (chain:Chain) REQUIRE chain.id IS UNIQUE")
-        except exceptions.ClientError as e:
-            if "EquivalentSchemaRuleAlreadyExists" in e.code:
-                #print("Constraint already exists.")
-                pass
-            else:
-                raise
+        create_restraint(session, "Bubble", "id")
+        create_restraint(session, "Chain", "id")
+
     driver.close()

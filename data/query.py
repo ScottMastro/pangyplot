@@ -4,16 +4,13 @@ from objects.simple_bubble import SimpleBubble
 from objects.simple_annotation import SimpleAnnotation
 from objects.simple_path import SimplePath
 
-from data.model.segment import Segment
 from data.model.link import Link
 from data.model.annotation import Annotation
 from data.model.bubble import Bubble,BubbleInside
 from data.model.path import Path
 
 def get_segments(chrom, start, end):
-    result = q.get_segments(chrom, start, end)
-    print(result)
-    
+    result = q.get_segments(chrom, start, end)    
     return result
 
 def get_link_dict(chr=None, start=None, end=None):
