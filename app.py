@@ -28,7 +28,10 @@ def select():
     #annotations = query.get_annotation_list(chromosome, start, end)
 
     graph = dict()
-    segmentDict = query.get_segments(chromosome, start, end)
+    segmentDict = query.get_segments("CHM13#chr18", 28700000, 28704000)
+    return segmentDict, 200
+
+    print("here")
     graph = helper.add_annotations(annotations, segmentDict)
 
     toLinkDict,fromLinkDict = query_old.get_link_dict(chromosome, start, end)
@@ -40,6 +43,7 @@ def select():
     pathDict = helper.process_paths(paths, graph)
 
     resultDict = graph.to_dictionary(segmentDict)
+
     resultDict = helper.post_process_graph(graph, resultDict)
     resultDict["annotations"] = [annotation.to_dict() for annotation in annotations]
     resultDict["paths"] = pathDict
@@ -75,7 +79,7 @@ if __name__ == '__main__':
     with app.app_context():
 
         parser = argparse.ArgumentParser(description="PangyPlot command line options.")
-        parser.add_argument('--gfa', help='Path to the GFA file', default=None)
+        parser.add_argument('--gfa', help='Path to the rGFA file', default=None)
         parser.add_argument('--layout', help='Path to the odgi layout TSV file', default=None)
         parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', default=None)
         parser.add_argument('--gff3', help='Path to the GFF3 file', default=None)

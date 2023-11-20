@@ -1,12 +1,7 @@
 import re
 import gzip
 from statistics import mean
-from data.model.segment import Segment
-from data.model.link import Link
-from data.model.path import Path
 import data.neo4j_db as neo4jdb
-
-import time
 
 def get_reader(gfa):
     if gfa.endswith(".gz"):
@@ -157,20 +152,19 @@ def parse_line_S(line):
     result["seq"] = cols[2]
     result["length"] = len(cols[2])
 
-    return result
-    """
-    result["chrom"] = None
-    result["pos"] = None
+    for key in ["chrom", "pos", "sr"]:
+        result[key]= None
+
     for col in cols[3:]:
         if col.startswith("SN:"):
-            result["chrom"] = extract_chrom(col.split(":")[-1])
+            result["chrom"] = col.split(":")[-1]
         elif col.startswith("SO:"):
             # add 1 to position
             result["pos"] = int(col.split(":")[-1]) +1
         elif col.startswith("SR:"):
             result["sr"] = col.split(":")[-1]
-    result["ref"] = result["pos"] is not None
-    """
+
+    return result
     
 def parse_line_L(line):
 
@@ -298,13 +292,13 @@ def parse_graph(gfa, layoutCoords):
                     segment[c] = layoutCoords[segmentCount][c]
                 segments.append(segment)
                 segmentCount += 1
-            elif line[0] == "W":
-                walk = parse_line_W(line)
-                collapseDict, sampleIdDict = collapse_paths(collapseDict, sampleIdDict, walk)
-                print("w", end='', flush=True)
-                #walk = get_path_positions(walk, lenDict)
-            elif line[0] == "P":
-                path = parse_line_P(line)
+            elif line[0] in "PW":
+                if line[0] == "P":
+                    path = parse_line_P(line)
+                else:
+                    path = parse_line_W(line)
+                collapseDict, sampleIdDict = collapse_paths(collapseDict, sampleIdDict, path)
+                print("W", end='', flush=True)
             elif line[0] == "L":
                 if not collapsed:
                     collapseDict = collapse_binary(collapseDict, sampleIdDict)
@@ -334,67 +328,3 @@ def parse_graph(gfa, layoutCoords):
 
         neo4jdb.add_segments(segments)
         neo4jdb.add_relationships(links)
-
-
-def populate_gfa(db, gfa, count_update):
-    count = 0
-    segmentId = 0
-
-    fromLinkData, toLinkData, segmentData = collect_position_data(gfa)
-
-    with get_reader(gfa) as file:
-        
-        for line in file:
-            row = parse_line(line)
-            if row["type"] == "L":
-                link = Link(row)
-                db.session.add(link)
-
-            elif row["type"] == "S":
-                row["nodeid"] = row["id"]
-                row["id"] = segmentId
-
-                if row["pos"] is None:
-                    chr, pos = estimate_position(row["nodeid"], fromLinkData, toLinkData, segmentData)
-                    row["chrom"] = chr
-                    row["pos"] = pos
-                segmentId += 1
-                
-                segment = Segment(row)
-                db.session.add(segment)
-
-            count += 1
-            count_update(count)
-        
-        db.session.commit()
-    return segmentData
-
-def populate_paths(db, segmentData, gfa, count_update):
-    count = 0
-    
-    with get_reader(gfa) as file:
-        for line in file:
-            if len(line) > 0 and (line[0] == "P" or line[0] == "W"):
-                row = parse_line(line)
-
-                for i,(from_id,strand) in enumerate(zip(row["path"],row["strand"])):
-                    
-                    chrom,start,length = segmentData[from_id]
-
-                    to_id = row["path"][i+1] if i+1 < len(row["path"]) else None
-                    path = Path({"i": i,
-                                "chrom": chrom,
-                                "start": start,
-                                "end": start+length,
-                                "sample": row["sample"],
-                                 "hap" : row["hap"],
-                                 "from_id": from_id,
-                                 "to_id": to_id,
-                                 "strand": strand,
-                                 })
-                    db.session.add(path)
-
-                count += 1
-                count_update(count)
-                
-        db.session.commit()
