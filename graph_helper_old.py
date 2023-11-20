@@ -1,47 +1,7 @@
 from objects.simple_graph import SimpleGraph,SimpleAtomicGraph,SimpleIndelGraph,SimpleSnpGraph
 from objects.simple_graph import DESTROY_LINK
 
-def construct_graph(dataDict):
-    graphs = dict()
-    for id in segmentDict:
-        segment = segmentDict[id]
-        toLinks = toLinkDict[id] if id in toLinkDict else []
-        fromLinks = fromLinkDict[id] if id in fromLinkDict else []
-        graphs[id] = SimpleAtomicGraph(segment, toLinks, fromLinks)
-        
-
-    bubbleList.sort(key=lambda bubble: bubble.size())
-    for bubble in bubbleList:
-
-        # use of arbitraryId assumes that a graph may only a be a subgraph
-        # if it is completely contained in the parent graph
-        arbitraryId = None
-        subgraphs = []
-
-        for id in bubble.inside:
-            if id not in graphs:
-                continue
-            subgraphs.append(graphs.pop(id))
-            arbitraryId = id
-        if bubble.isIndel() or bubble.isSnp():
-            if bubble.isIndel():
-                graph = SimpleIndelGraph(bubble, subgraphs)
-            elif bubble.isSnp():
-                graph = SimpleSnpGraph(bubble, subgraphs)
-
-            graphs[arbitraryId] = graph
-
-        # not a snp or indel
-        else:
-            graph = SimpleGraph(bubble, subgraphs)
-            graphs[arbitraryId] = graph
-
-    totalGraph = SimpleGraph(None, [graphs[id] for id in graphs])
-    return totalGraph
-
-
-
-def construct_graph2(segmentDict, toLinkDict, fromLinkDict, bubbleList):
+def construct_graph(segmentDict, toLinkDict, fromLinkDict, bubbleList):
     graphs = dict()
     for id in segmentDict:
         segment = segmentDict[id]
