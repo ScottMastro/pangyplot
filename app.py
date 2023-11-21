@@ -25,7 +25,7 @@ def select():
     #annotations = query.get_annotation_list(chromosome, start, end)
 
     graph = dict()
-    dataDict = query.get_segments("CHM13#chr18", 28700000, 28704000)
+    dataDict = query.get_segments("CHM13#chr18", 28700000, 28705000)
     
    
     graph = helper.construct_graph(dataDict)
@@ -96,10 +96,12 @@ if __name__ == '__main__':
             if value:
                 flag = True
 
+        #neo4jdb.add_bubble_properties()
+
         if args.drop:
             print("dropping all")
-            neo4jdb.drop_bubbles()
             #neo4jdb.drop_all()
+            neo4jdb.drop_bubbles()
 
         if args.gencode:
             args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
@@ -132,7 +134,6 @@ if __name__ == '__main__':
         if args.gff3:
             ingest.store_annotations(args.gff3)
 
-        neo4jdb.add_chain_properties()
 
         if not flag:
             app.run()
