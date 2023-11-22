@@ -74,8 +74,6 @@ def process_line(line):
 
     return result
 
-
-
 def parse_bubbles(jsonFile):
     with open(jsonFile) as f:
         data = json.load(f)
@@ -97,3 +95,4 @@ def parse_bubbles(jsonFile):
     neo4jdb.add_bubbles(bubbles)
     neo4jdb.add_chains(chains)
     neo4jdb.add_bubble_properties()
+    neo4jdb.connect_bubble_ends_to_chain()

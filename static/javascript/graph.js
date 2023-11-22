@@ -5,6 +5,11 @@ const LIGHTNESS_SCALE=0.0
 
 var forceGraph = null
 
+var X_COORD_SHIFT = 0
+var Y_COORD_SHIFT = 0
+var X_COORD_SCALE = 1
+var Y_COORD_SCALE = 1
+
 const BACKGROUND_COLOR="#101020"
 const VELOCITY_DECAY=0.2
 const MIN_ZOOM=0.01
@@ -182,7 +187,8 @@ function pre_render(ctx, graphData){
     LAST_ZOOM = ctx.canvas.__zoom["k"];
     ctx.save();
 
-    draw_gene_outline(ctx, graphData);
+    // TODO
+    //draw_gene_outline(ctx, graphData);
 
     ctx.restore();
 }
@@ -195,7 +201,8 @@ function post_render(ctx, graphData){
     ctx.shadowBlur = 4; 
     ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
 
-    draw_gene_name(ctx, graphData);
+    // TODO
+    //draw_gene_name(ctx, graphData);
 
     for (let i = 0, n = HIGHLIGHT_NODES.length, node; i < n; ++i) {
         node = HIGHLIGHT_NODES[i];
@@ -220,6 +227,7 @@ function updateGraphData(graph) {
 
 function draw_graph(graph){
 
+    graph = shift_coord(graph)
 
     annotationDict = {}
     //for (let i = 0, n = graph.annotations.length; i < n; ++i) {
@@ -235,41 +243,70 @@ function draw_graph(graph){
     forceGraph = ForceGraph()(CANVAS)
         .graphData(graph)
         .backgroundColor(BACKGROUND_COLOR)
-        .minZoom(MIN_ZOOM)
-        .maxZoom(MAX_ZOOM)
         .d3VelocityDecay(VELOCITY_DECAY)
-    //    .nodeVal(node => node["size"])
-        .nodeRelSize(6)
         .nodeId('id')
         .nodeLabel('id')
+        .nodeRelSize(6)
         .linkColor(link => get_link_color(link))
         .linkWidth(linkWidth)
+
+    //    .nodeVal(node => node["size"])
     //    .nodeCanvasObject(highlight_node)
     //    .nodeCanvasObject((node, ctx) => node_paint(node, ctx)) 
-        .autoPauseRedraw(false) // keep redrawing after engine has stopped
-        .onNodeClick(node => {explode_node(node)})
+    //    .autoPauseRedraw(false) // keep redrawing after engine has stopped
+    //    .onNodeClick(node => {explode_node(node)})
 
-    function highlight_node(node){
-        HIGHLIGHT_NODES = (node) ? [node] : [] ;
-    }
+    //    .minZoom(MIN_ZOOM)
+    //    .maxZoom(MAX_ZOOM)
 
-    forceGraph.onNodeHover(highlight_node);
-    
+    //function highlight_node(node){
+    //    HIGHLIGHT_NODES = (node) ? [node] : [] ;
+    //}
 
-    //forceGraph.onRenderFramePre((ctx, scale) => { pre_render(ctx, forceGraph.graphData()); })
-    //forceGraph.onRenderFramePost((ctx, scale) => {post_render(ctx, forceGraph.graphData()); })
+    //forceGraph.onNodeHover(highlight_node);
+
+    forceGraph.onRenderFramePre((ctx, scale) => { pre_render(ctx, forceGraph.graphData()); })
+    forceGraph.onRenderFramePost((ctx, scale) => {post_render(ctx, forceGraph.graphData()); })
 
     // --- FORCES ---
 
-    function link_force_distance(link) {
-        return (link.type == "edge") ? 5 : link.length ;
-    }
+    //function link_force_distance(link) {
+    //    return (link.type == "edge") ? 5 : link.length ;
+    //}
 
-    forceGraph.d3Force('link').distance(link_force_distance).strength(0.5).iterations(2)
-    forceGraph.d3Force('collide', d3.forceCollide(50).radius(20))    
-    forceGraph.d3Force('charge').strength(-500).distanceMax(1000)
+    //forceGraph.d3Force('link').distance(link_force_distance).strength(0.5).iterations(2)
+    //forceGraph.d3Force('collide', d3.forceCollide(50).radius(20))    
+    //forceGraph.d3Force('charge').strength(-500).distanceMax(1000)
     
 }
+
+function shift_coord(graph) {
+    let minX = Infinity;
+    let maxX = -1;
+    let minY = Infinity;
+    let maxY = -1;
+
+
+    for (const node of graph.nodes) {
+        if (node.x < minX) { minX = node.x; }
+        if (node.y < minY) { minY = node.y; }
+        if (node.x > maxX) { maxX = node.x; }
+        if (node.y > maxY) { maxY = node.y; }
+    }
+
+    X_COORD_SHIFT = minX
+    Y_COORD_SHIFT = minY
+    X_COORD_SCALE = maxX-minX
+    Y_COORD_SCALE = maxY-minY
+
+    for (const node of graph.nodes) {
+        node.x = (node.x - X_COORD_SHIFT)/X_COORD_SCALE;
+        node.y = (node.y - Y_COORD_SHIFT)/Y_COORD_SCALE;
+    }
+
+    return graph
+}
+
 
 function fetch(chromosome, start, end) {
 
@@ -281,8 +318,8 @@ function fetch(chromosome, start, end) {
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
             var data = JSON.parse(xmlHttp.response)
-
-            update_path_selector(data.paths)
+            // TODO
+            //update_path_selector(data.paths)
             draw_graph(data)
         }
     }

@@ -11,6 +11,76 @@ def db_init():
     load_dotenv()
     #db_user = os.getenv("DB_USER")
 
+def get_top_level_chains(chrom, start, end):
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+
+        query = """
+            MATCH (c:Chain)
+            WHERE c.start >= $start AND c.end <= $end AND c.chrom = $chrom
+            RETURN c
+            """
+        parameters = {"start": start, "end": end, "chrom": chrom}
+        result = session.run(query, parameters)
+
+        chains = []
+        for record in result:
+            r = record["c"]
+            chain = {k: r[k] for k in r.keys()}
+            chains.append(chain)
+                
+    driver.close()
+    return chains
+    
+def get_top_level_bubbles(chrom, start, end):
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+
+        query = """
+                MATCH (b:Bubble)
+                WHERE b.start >= $start AND b.end <= $end AND b.chrom = $chrom AND NOT EXISTS {
+                    MATCH (b)-[:INSIDE]->(c:Chain)
+                    WHERE c.start >= $start AND c.end <= $end AND c.chrom = $chrom
+                }
+                RETURN b
+                """
+        parameters = {"start": start, "end": end, "chrom": chrom}
+        result = session.run(query, parameters)
+
+        bubbles = []
+        for record in result:
+            r = record["b"]
+            bubble = {k: r[k] for k in r.keys()}
+            bubbles.append(bubble)
+                
+    driver.close()
+    return bubbles
+
+def get_top_level_segments(chrom, start, end):
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+
+        query = """
+                MATCH (s:Segment)
+                WHERE s.start >= $start AND s.end <= $end AND s.chrom = $chrom AND NOT EXISTS {
+                    MATCH (s)-[:INSIDE]->(n)
+                    WHERE n.start >= $start AND n.end <= $end AND n.chrom = $chrom
+                }
+                RETURN s
+                """
+        parameters = {"start": start, "end": end, "chrom": chrom}
+        result = session.run(query, parameters)
+
+        segments = []
+        for record in result:
+            r = record["s"]
+            segment = {k: r[k] for k in r.keys()}
+            segments.append(segment)
+                
+    driver.close()
+    return segments
+
+
 def get_segments(chrom, start, end):
     data = []
 

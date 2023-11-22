@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
 import graph_helper as helper
 import db.neo4j_db as neo4jdb
-import db.query_old as query_old
 import db.query as query
 import db.ingest as ingest
 
@@ -24,13 +23,14 @@ def select():
     #annotations=[]
     #annotations = query.get_annotation_list(chromosome, start, end)
 
-    graph = dict()
-    dataDict = query.get_segments("CHM13#chr18", 28700000, 28705000)
-    
-   
+    resultDict = query.get_segments("CHM13#chr18", 47506000, 47590000)
+    print("ready")
+
+
+    return resultDict, 200
+
     graph = helper.construct_graph(dataDict)
 
-    return dataDict, 200
 
     print("here")
     graph = helper.add_annotations(annotations, segmentDict)
@@ -49,7 +49,6 @@ def select():
     resultDict["annotations"] = [annotation.to_dict() for annotation in annotations]
     resultDict["paths"] = pathDict
     
-    print("ready")
 
     return resultDict, 200
 
@@ -97,7 +96,6 @@ if __name__ == '__main__':
                 flag = True
 
         #neo4jdb.add_bubble_properties()
-
         if args.drop:
             print("dropping all")
             #neo4jdb.drop_all()
