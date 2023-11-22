@@ -151,7 +151,7 @@ def parse_line_S(line):
     result["seq"] = cols[2]
     result["length"] = len(cols[2])
 
-    for key in ["chrom", "pos", "sr"]:
+    for key in ["chrom", "pos", "sr", "start", "end"]:
         result[key]= None
 
     for col in cols[3:]:
@@ -160,8 +160,11 @@ def parse_line_S(line):
         elif col.startswith("SO:"):
             # add 1 to position
             result["pos"] = int(col.split(":")[-1]) +1
+            result["start"] = result["pos"]
+            result["end"] = result["pos"] + result["length"] -1
         elif col.startswith("SR:"):
             result["sr"] = col.split(":")[-1]
+
 
     return result
     

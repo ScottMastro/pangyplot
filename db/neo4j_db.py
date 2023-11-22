@@ -40,7 +40,7 @@ def add_bubbles(bubbles, batch_size=10000):
             query = """
             UNWIND $links AS link
             MATCH (b:Bubble {id: link.bid}), (s:Segment {id: link.sid})
-            CREATE (b)-[:BUBBLE_END]->(s)
+            CREATE (b)-[:END]->(s)
             """
             session.run(query, {"links": batch})
 
@@ -51,7 +51,7 @@ def add_bubbles(bubbles, batch_size=10000):
             query = """
             UNWIND $links AS link
             MATCH (b:Bubble {id: link.bid}), (s:Segment {id: link.sid})
-            CREATE (s)-[:BUBBLE_INSIDE]->(b)
+            CREATE (s)-[:INSIDE]->(b)
             """
             session.run(query, {"links": batch})
 
@@ -96,7 +96,7 @@ def add_chains(chains, batch_size=10000):
             query = """
             UNWIND $links AS link
             MATCH (a:Chain {id: link.cid}), (b:Segment {id: link.sid})
-            CREATE (a)-[:CHAIN_END]->(b)
+            CREATE (a)-[:END]->(b)
             """
             session.run(query, {"links": batch})
 
@@ -107,7 +107,7 @@ def add_chains(chains, batch_size=10000):
             query = """
             UNWIND $links AS link
             MATCH (c:Chain {id: link.cid}), (b:Bubble {id: link.bid})
-            CREATE (b)-[:CHAIN_INSIDE]->(c)
+            CREATE (b)-[:INSIDE]->(c)
             """
             session.run(query, {"links": batch})
 
@@ -118,7 +118,7 @@ def add_chains(chains, batch_size=10000):
             query = """
             UNWIND $links AS link
             MATCH (c:Chain {id: link.cid}), (b:Bubble {id: link.bid})
-            CREATE (c)-[:CHAIN_SUPERBUBBLE]->(b)
+            CREATE (c)-[:PARENT]->(b)
             """
             session.run(query, {"links": batch})
 
@@ -129,132 +129,103 @@ def add_chains(chains, batch_size=10000):
             query = """
             UNWIND $links AS link
             MATCH (c:Chain {id: link.cid}), (pc:Chain {id: link.bid})
-            CREATE (c)-[:PARENT_CHAIN]->(pc)
+            CREATE (c)-[:PARENT]->(pc)
             """
             session.run(query, {"links": batch})
 
     driver.close()
 
-def add_bubble_properties():
+def connect_bubble_ends_to_chain():
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
         query = """
-        MATCH (b:Bubble)
-        MATCH (s:Segment)-[r:BUBBLE_INSIDE]->(b)
-        WITH b, 
-            MIN(s.pos) AS minPos, 
-            MAX(s.pos + s.length - 1) AS maxPos,
-            SUM(s.length) AS totalLength,
-            SUM(1) AS n,
-            COLLECT(DISTINCT s.chrom)[0] AS chrom
-            SET b.minPosition = minPos, 
-            b.maxPosition = maxPos,
-            b.chrom = chrom,
-            b.size = totalLength,
-            b.n = n
-        """
-        print("Calculating bubble sizes...")
+                MATCH (s:Segment)<-[:END]-(b:Bubble)-[:INSIDE]->(c:Chain)
+                WHERE NOT (c)-[:END]->(s)
+                MERGE (s)-[:INSIDE]->(c)
+                """
         session.run(query)
+    driver.close()
 
-        print("Calculating bubble layout...")
 
-        query = """
-        MATCH (b:Bubble)
-        MATCH (s:Segment)-[r:BUBBLE_INSIDE]->(b)
-        WITH b, 
-            MIN(s.x1) AS minX1, MAX(s.x1) AS maxX1, 
-            MIN(s.x2) AS minX2, MAX(s.x2) AS maxX2
-        WITH b, 
-            CASE WHEN minX1 < minX2 THEN minX1 ELSE minX2 END AS minX,
-            CASE WHEN maxX1 > maxX2 THEN maxX1 ELSE maxX2 END AS maxX
-        SET b.x1 = minX, b.x2 = maxX
-        """
-        session.run(query)
+def add_bubble_properties():
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+        MATCH = "MATCH (s:Segment)-[r:INSIDE]->(b:Bubble) "
+
+        q1= MATCH + " WITH b, MIN(s.start) AS start SET b.start = start"
+        q2= MATCH + " WITH b, MAX(s.end) AS end SET b.end = end"
+        q3= MATCH + " WITH b, SUM(s.length) AS size SET b.size = size"
+        q4= MATCH + " WITH b, SUM(1) AS n SET b.n = n"
+        q5= MATCH + " WITH b, COLLECT(DISTINCT s.chrom)[0] AS chrom SET b.chrom = chrom"
+
+        print("Calculating bubble properties...")
+        for query in [q1,q2,q3,q4,q5]:
+            print(query)
+            session.run(query)
+
+        def layout_query(a,b):
+            c = "MIN" if b=="1" else "MAX"
+            d = "<" if b=="1" else ">"
+            return MATCH + f"""
+                WITH b, {c}(s.{a}1) AS p, {c}(s.{a}2) AS q
+                WITH b, CASE WHEN p {d} q THEN p ELSE q END AS r
+                SET b.{a}{b} = r
+                """
         
-        query = """
-        MATCH (s:Segment)-[r:BUBBLE_INSIDE]->(b:Bubble)
-        WITH b, MIN(s.y1) AS minY1, MIN(s.y2) AS minY2
-        WITH b, CASE WHEN minY1 < minY2 THEN minY1 ELSE minY2 END AS minY
-        SET b.y1 = minY
-        """
-        session.run(query)
+        q6 = layout_query("x","1")
+        q7 = layout_query("x","2")
+        q8 = layout_query("y","1")
+        q9 = layout_query("y","2")
 
-        query = """
-        MATCH (s:Segment)-[r:BUBBLE_INSIDE]->(b:Bubble)
-        WITH b, MAX(s.y1) AS maxY1, MAX(s.y2) AS maxY2
-        WITH b, CASE WHEN maxY1 < maxY2 THEN maxY2 ELSE maxY1 END AS maxY
-        SET b.y2 = maxY
-        """
-        session.run(query)
-
-
-        query = """
-        MATCH (s:Segment)-[r:BUBBLE_INSIDE]->(b:Bubble)
-        WITH b,
-            SUM(s.y1) AS y1,
-            SUM(s.y2) AS y2,
-            SUM(2) AS n
-        WITH b, 
-            (y1+y2)/n AS y
-        SET b.y = y
-        """
-        session.run(query)
-
-        query = """
-        MATCH (s:Segment)-[r:BUBBLE_INSIDE]->(b:Bubble)
-        WITH b,
-            SUM(s.x1) AS x1, 
-            SUM(s.x2) AS x2,
-            SUM(2) AS n
-        WITH b, 
-            (x1+x2)/n AS x
+        q10 = MATCH + """
+        WITH b, SUM(s.x1) AS x1, SUM(s.x2) AS x2, SUM(2) AS n
+        WITH b, (x1+x2)/n AS x
         SET b.x = x
         """
-        session.run(query)
-
-        query = """
-        MATCH (b:Bubble)-[r:CHAIN_INSIDE]->(c:Chain)
-        WITH c, 
-            MIN(b.minPosition) AS minPos,
-            MAX(b.maxPosition) AS maxPos,
-            SUM(b.size) AS totalLength,
-            SUM(b.n) AS n,
-            COLLECT(DISTINCT b.chrom)[0] AS chrom
-        SET c.minPosition = minPos,
-            c.maxPosition = maxPos,
-            c.size = totalLength, 
-            c.chrom = chrom, 
-            c.n = n
+        q11 = MATCH + """
+        WITH b, SUM(s.y1) AS y1, SUM(s.y2) AS y2, SUM(2) AS n
+        WITH b, (y1+y2)/n AS y
+        SET b.y = y
         """
-        print("Calculating chain sizes...")
-        session.run(query)
+
+        print("Calculating bubble layout...")
+        for query in [q6,q7,q8,q9,q10,q11]:
+            print(query)
+            session.run(query)
+
+
+        MATCH = "MATCH (b:Bubble)-[r:INSIDE]->(c:Chain) "
+        q1= MATCH + " WITH c, MIN(b.start) AS start SET c.start = start"
+        q2= MATCH + " WITH c, MAX(b.end) AS end SET c.end = end"
+        q3= MATCH + " WITH c, SUM(b.size) AS size SET c.size = size"
+        q4= MATCH + " WITH c, SUM(b.n) AS n SET c.n = n"
+        q5= MATCH + " WITH c, COLLECT(DISTINCT b.chrom)[0] AS chrom SET c.chrom = chrom"
+
+        print("Calculating chain properties...")
+        for query in [q1,q2,q3,q4,q5]:
+            print(query)
+            session.run(query)
+
+        q6 = MATCH + " WITH c, MIN(b.x1) AS x SET c.x1 = x"
+        q7 = MATCH + " WITH c, MAX(b.x2) AS x SET c.x2 = x"
+        q8 = MATCH + " WITH c, MIN(b.y1) AS y SET c.y1 = y"
+        q9 = MATCH + " WITH c, MAX(b.y2) AS y SET c.y2 = y"
+
+        q10 = MATCH + """
+        WITH c, SUM(b.x1*b.n) AS x1, SUM(b.x2*b.n) AS x2, SUM(2*b.n) AS n
+        WITH c, (x1+x2)/n AS x
+        SET c.x = x
+        """
+        q11 = MATCH + """
+        WITH c, SUM(b.y1*b.n) AS y1, SUM(b.y2*b.n) AS y2, SUM(2*b.n) AS n
+        WITH c, (y1+y2)/n AS y
+        SET c.y = y
+        """
 
         print("Calculating chain layout...")
-
-        query = """
-        MATCH (b:Bubble)-[r:CHAIN_INSIDE]->(c:Chain)
-        WITH c, 
-            MIN(b.x1) AS minX, 
-            MAX(b.x2) AS maxX, 
-            MIN(b.y1) AS minY, 
-            MAX(b.y2) AS maxY
-        SET c.x1 = minX, c.x2 = maxX, c.y1 = minY, c.y2 = maxY
-        """
-        session.run(query)
-
-        query = """
-        MATCH (b:Bubble)-[r:CHAIN_INSIDE]->(c:Chain)
-        WITH c,
-            SUM(b.x1*b.n) AS x1, 
-            SUM(b.x2*b.n) AS x2,
-            SUM(b.y1*b.n) AS y1,
-            SUM(b.y2*b.n) AS y2,
-            SUM(2*b.n) AS n
-        WITH c, 
-            (x1+x2)/n AS x, (y1+y2)/n AS y
-        SET c.x = x, c.y = y
-        """
-        session.run(query)
+        for query in [q6,q7,q8,q9,q10,q11]:
+            print(query)
+            session.run(query)
 
     driver.close()
 
@@ -272,7 +243,8 @@ def add_segments(segments, batch_size=10000):
                     id: segment.id,
                     sequence: segment.seq,
                     chrom: segment.chrom,
-                    pos: segment.pos,
+                    start: segment.start,
+                    end: segment.end,
                     x1: segment.x1,
                     y1: segment.y1,
                     y2: segment.y2,
@@ -474,9 +446,17 @@ def db_init():
 
         create_restraint(session, "Segment", "id")
         create_segment_index(session, "Segment", "chrom")
-        create_segment_index(session, "Segment", "pos")
+        create_segment_index(session, "Segment", "start")
+        create_segment_index(session, "Segment", "end")
 
         create_restraint(session, "Bubble", "id")
+        create_segment_index(session, "Bubble", "chrom")
+        create_segment_index(session, "Bubble", "start")
+        create_segment_index(session, "Bubble", "end")
+
         create_restraint(session, "Chain", "id")
+        create_segment_index(session, "Chain", "chrom")
+        create_segment_index(session, "Chain", "start")
+        create_segment_index(session, "Chain", "end")
 
     driver.close()

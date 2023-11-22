@@ -9,9 +9,74 @@ from db.model.annotation import Annotation
 from db.model.bubble import Bubble,BubbleInside
 from db.model.path import Path
 
+XSCALE_NODE=1
+KINK_SIZE=100
+SEGMENT_WIDTH=21
+
+def process_nodes(nodes):
+    graphNodes = []
+    graphLinks = []
+
+    for node in nodes:
+        isRef = "chrom" in node
+        length = node["length"] if "length" in node else node["size"]
+        n = int(length/KINK_SIZE) + 2
+        for i in range(n):
+            newNode = dict()
+            newNode["id"] = f"{node['id']}_{i}" 
+            newNode["isref"] = isRef
+            newNode["nodeid"] = node["id"]
+            for key in ["chrom" "start", "end"]:
+                if key in node:
+                    newNode[key] = node[key]
+
+            if "x" in node and "y" in node:
+                x = node["x"]
+                y = node["y"]
+            else:
+                if n == 1: 
+                    x = (node["x1"] + node["x2"])/2
+                    y = (node["y1"] + node["y2"])/2
+                else:
+                    p = i / (n-1)
+                    p = max(0, p) ; p = min(1,p)
+                    x = p*node["x1"] + (1-p)*node["x2"]
+                    y = p*node["y1"] + (1-p)*node["y2"]
+
+            newNode["x"] = x
+            newNode["y"] = y
+            graphNodes.append(newNode)
+        
+            if i == 0: continue
+            newLink = dict()
+            newLink["source"] = f"{node['id']}_{i-1}"
+            newLink["target"] = newNode["id"]
+            newLink["type"] = "node"
+            newLink["length"] = length/n
+            newLink["width"] = SEGMENT_WIDTH
+            graphLinks.append(newLink)
+
+    return graphNodes, graphLinks
+
 def get_segments(chrom, start, end):
-    result = q.get_segments(chrom, start, end)    
-    return result
+    resultDict = dict()
+
+    chains = q.get_top_level_chains(chrom, start, end)
+    nodes,links = process_nodes(chains)
+    resultDict["nodes"] = nodes
+    resultDict["links"] = links
+
+    bubbles = q.get_top_level_bubbles(chrom, start, end)
+    nodes,links = process_nodes(bubbles)
+    resultDict["nodes"].extend(nodes)
+    resultDict["links"].extend(links)
+
+    segments = q.get_top_level_segments(chrom, start, end)
+    #print(chains)
+    #print(bubbles)
+    #print(segments)
+
+    return resultDict
 
 def get_link_dict(chr=None, start=None, end=None):
     toDict = dict()
