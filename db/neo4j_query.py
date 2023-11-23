@@ -11,26 +11,68 @@ def db_init():
     load_dotenv()
     #db_user = os.getenv("DB_USER")
 
+def get_bubble_subgraph(id):
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+
+        query = """
+            MATCH (s:Segment)-[r1:INSIDE]->(b:Bubble)
+            WHERE b.id = $i
+            MATCH (s)-[r:LINKS_TO]-(s2:Segment)
+            RETURN s, collect(r) AS links
+            """
+        parameters = {"i": id}
+        result = session.run(query, parameters)
+
+        segments = []
+        links = []
+
+        for record in result:
+            for r in record["links"]:
+                link = {"source": r.start_node.id,
+                        "target": r.end_node.id}
+                links.append(link)
+            r = record["s"]
+            segment = {k: r[k] for k in r.keys()}
+            segment["nodeid"] = r.id
+            segments.append(segment)
+    print("nsegs", len(segments))
+    driver.close()
+    return segments, links
+    
+
 def get_top_level_chains(chrom, start, end):
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
 
         query = """
             MATCH (c:Chain)
-            WHERE c.start >= $start AND c.end <= $end AND c.chrom = $chrom
-            RETURN c
+            WHERE c.start >= $start AND c.end <= $end AND c.chrom = $chrom AND NOT EXISTS {
+                    MATCH (c)-[:PARENT]->(n)
+                    WHERE n.start >= $start AND n.end <= $end AND n.chrom = $chrom
+                }
+            MATCH (c)-[r:END]-(s:Segment)
+            RETURN c, collect(r) AS ends
             """
         parameters = {"start": start, "end": end, "chrom": chrom}
         result = session.run(query, parameters)
 
         chains = []
+        links = []
+
         for record in result:
+            for r in record["ends"]:
+                link = {"source": r.start_node.id,
+                        "target": r.end_node.id}
+                links.append(link)
             r = record["c"]
             chain = {k: r[k] for k in r.keys()}
+            # NOTE: r.id is the neo4j node id and r["id"] is the chain id
+            chain["nodeid"] = r.id
             chains.append(chain)
-                
+    print("nchains", len(chains))
     driver.close()
-    return chains
+    return chains, links
     
 def get_top_level_bubbles(chrom, start, end):
     driver = GraphDatabase.driver(uri, auth=(username, password))
@@ -42,43 +84,71 @@ def get_top_level_bubbles(chrom, start, end):
                     MATCH (b)-[:INSIDE]->(c:Chain)
                     WHERE c.start >= $start AND c.end <= $end AND c.chrom = $chrom
                 }
-                RETURN b
+                MATCH (b)-[r:END]-(s:Segment)
+                RETURN b, collect(r) AS ends
                 """
         parameters = {"start": start, "end": end, "chrom": chrom}
         result = session.run(query, parameters)
 
         bubbles = []
+        links = []
+
         for record in result:
+            for r in record["ends"]:
+                link = {"source": r.start_node.id,
+                        "target": r.end_node.id}
+                links.append(link)
             r = record["b"]
             bubble = {k: r[k] for k in r.keys()}
+            # NOTE: r.id is the neo4j node id and r["id"] is the bubble id
+            bubble["nodeid"] = r.id
             bubbles.append(bubble)
-                
+
+    print("nbubs", len(bubbles))
     driver.close()
-    return bubbles
+    return bubbles,links
 
 def get_top_level_segments(chrom, start, end):
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
 
+        # NOTE: we find all segments that overlap the range, but only look for bubbles fully contained
         query = """
                 MATCH (s:Segment)
-                WHERE s.start >= $start AND s.end <= $end AND s.chrom = $chrom AND NOT EXISTS {
+                WHERE s.start <= $end AND s.end >= $start AND s.chrom = $chrom AND NOT EXISTS {
                     MATCH (s)-[:INSIDE]->(n)
                     WHERE n.start >= $start AND n.end <= $end AND n.chrom = $chrom
                 }
-                RETURN s
+                MATCH (s)-[r:LINKS_TO]-(m:Segment) 
+                RETURN s, collect(r) AS links
                 """
         parameters = {"start": start, "end": end, "chrom": chrom}
         result = session.run(query, parameters)
 
         segments = []
+        links = []
         for record in result:
+            for r in record["links"]:
+                link = {"source": r.start_node.id,
+                        "target": r.end_node.id}
+                links.append(link)
             r = record["s"]
             segment = {k: r[k] for k in r.keys()}
+            # NOTE: r.id is the neo4j node id and r["id"] is the gfa id
+            segment["nodeid"] = r.id
             segments.append(segment)
-                
+
     driver.close()
-    return segments
+
+    segIds={s["nodeid"] for s in segments}
+    keepLinks = []
+    for link in links:
+        if link["target"] not in segIds or link["source"] not in segIds:
+            continue
+        keepLinks.append(link)
+
+    print("nsegs", len(segments))   
+    return segments, keepLinks
 
 
 def get_segments(chrom, start, end):

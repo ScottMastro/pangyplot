@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
-import graph_helper as helper
 import db.neo4j_db as neo4jdb
 import db.query as query
 import db.ingest as ingest
@@ -13,43 +12,31 @@ def create_app():
     neo4jdb.db_init()
 @app.route('/select', methods=["GET"])
 def select():
-    chromosome = request.args.get("chromosome")
+    chrom = request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
+    print(f"Making graph for {chrom}:{start}-{end}...")
     
-    print("making graph")
+    start = int(start)
+    end = int(end)
 
     #todo
     #annotations=[]
     #annotations = query.get_annotation_list(chromosome, start, end)
 
-    resultDict = query.get_segments("CHM13#chr18", 47506000, 47590000)
+    resultDict = query.get_segments(chrom, start, end)
     print("ready")
-
 
     return resultDict, 200
 
-    graph = helper.construct_graph(dataDict)
+@app.route('/subgraph', methods=["GET"])
+def subgraph():
+    type = request.args.get("type")
+    id = request.args.get("id")
+    print(f"Getting subgraph for {type}:{id}...")
 
-
-    print("here")
-    graph = helper.add_annotations(annotations, segmentDict)
-
-    toLinkDict,fromLinkDict = query_old.get_link_dict(chromosome, start, end)
-    bubbleList = query_old.get_bubble_list(chromosome, start, end)
-    
-    graph = helper.construct_graph(segmentDict, toLinkDict, fromLinkDict, bubbleList)
-
-    paths = query_old.get_haplotypes(fromLinkDict, chromosome, start, end)
-    pathDict = helper.process_paths(paths, graph)
-
-    resultDict = graph.to_dictionary(segmentDict)
-
-    resultDict = helper.post_process_graph(graph, resultDict)
-    resultDict["annotations"] = [annotation.to_dict() for annotation in annotations]
-    resultDict["paths"] = pathDict
-    
-
+    id = int(id)
+    resultDict = query.get_subgraph(type, id)
     return resultDict, 200
 
 @app.route('/haplotypes', methods=["GET"])
@@ -57,6 +44,7 @@ def haplotypes():
 
     resultDict={}
     return resultDict, 200
+
 
 @app.route('/cytoband', methods=["GET"])
 def cytobands():
@@ -96,6 +84,7 @@ if __name__ == '__main__':
                 flag = True
 
         #neo4jdb.add_bubble_properties()
+        #neo4jdb.connect_bubble_ends_to_chain()
         if args.drop:
             print("dropping all")
             #neo4jdb.drop_all()

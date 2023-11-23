@@ -1,5 +1,4 @@
 import gzip
-from db.model.segment import Segment
 
 def get_reader(layout):
     if layout.endswith(".gz"):

@@ -18,20 +18,32 @@ def add_bubbles(bubbles, batch_size=10000):
             print(i, "/", len(bubbles), "bubbles")
             query = """
             UNWIND $bubbles AS bubble
-            CREATE (:Bubble {id: bubble.id, type: bubble.type})
+            CREATE (:Bubble {id: bubble.id, subtype: bubble.type})
             """
             session.run(query, {"bubbles": batch})
 
+        startLinks = []
         endLinks = []
         insideLinks = []
         for bubble in bubbles:
             start,end = bubble["ends"]
             bid = bubble["id"]
-            endLinks.append({"sid": start, "bid": bid})
+            startLinks.append({"sid": start, "bid": bid})
             endLinks.append({"sid": end, "bid": bid})
 
             for sid in bubble["inside"]:
                 insideLinks.append({"sid": sid, "bid": bid})
+
+        for i in range(0, len(startLinks), batch_size):
+            batch = startLinks[i:i + batch_size]
+
+            print(i, "/", len(startLinks), "start links")
+            query = """
+            UNWIND $links AS link
+            MATCH (b:Bubble {id: link.bid}), (s:Segment {id: link.sid})
+            CREATE (b)-[:END]->(s)
+            """
+            session.run(query, {"links": batch})
 
         for i in range(0, len(endLinks), batch_size):
             batch = endLinks[i:i + batch_size]
@@ -40,7 +52,7 @@ def add_bubbles(bubbles, batch_size=10000):
             query = """
             UNWIND $links AS link
             MATCH (b:Bubble {id: link.bid}), (s:Segment {id: link.sid})
-            CREATE (b)-[:END]->(s)
+            CREATE (s)-[:END]->(b)
             """
             session.run(query, {"links": batch})
 
@@ -74,6 +86,7 @@ def add_chains(chains, batch_size=10000):
             """
             session.run(query, {"chains": batch})
 
+        startLinks = []
         endLinks = []
         insideLinks = []
         superBubbles = []
@@ -81,7 +94,7 @@ def add_chains(chains, batch_size=10000):
         for chain in chains:
             start,end = chain["ends"]
             cid = chain["id"]
-            endLinks.append({"sid": start, "cid": cid})
+            startLinks.append({"sid": start, "cid": cid})
             endLinks.append({"sid": end, "cid": cid})
             superBubbles.append({"cid": cid, "bid": chain["sb"]})
             parentChains.append({"cid": cid, "bid": chain["pc"]})
@@ -89,14 +102,25 @@ def add_chains(chains, batch_size=10000):
             for bid in chain["bubbles"]:
                 insideLinks.append({"bid": bid, "cid": cid})
 
+        for i in range(0, len(startLinks), batch_size):
+            batch = startLinks[i:i + batch_size]
+
+            print(i, "/", len(startLinks), "start links")
+            query = """
+            UNWIND $links AS link
+            MATCH (c:Chain {id: link.cid}), (s:Segment {id: link.sid})
+            CREATE (c)-[:END]->(s)
+            """
+            session.run(query, {"links": batch})
+
         for i in range(0, len(endLinks), batch_size):
             batch = endLinks[i:i + batch_size]
 
             print(i, "/", len(endLinks), "end links")
             query = """
             UNWIND $links AS link
-            MATCH (a:Chain {id: link.cid}), (b:Segment {id: link.sid})
-            CREATE (a)-[:END]->(b)
+            MATCH (c:Chain {id: link.cid}), (s:Segment {id: link.sid})
+            CREATE (s)-[:END]->(c)
             """
             session.run(query, {"links": batch})
 
@@ -139,8 +163,8 @@ def connect_bubble_ends_to_chain():
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
         query = """
-                MATCH (s:Segment)<-[:END]-(b:Bubble)-[:INSIDE]->(c:Chain)
-                WHERE NOT (c)-[:END]->(s)
+                MATCH (s:Segment)-[:END]-(b:Bubble)-[:INSIDE]->(c:Chain)
+                WHERE NOT (c)-[:END]-(s)
                 MERGE (s)-[:INSIDE]->(c)
                 """
         session.run(query)
@@ -162,6 +186,9 @@ def add_bubble_properties():
         for query in [q1,q2,q3,q4,q5]:
             print(query)
             session.run(query)
+
+    driver.close()
+    with driver.session() as session:
 
         def layout_query(a,b):
             c = "MIN" if b=="1" else "MAX"
@@ -193,6 +220,8 @@ def add_bubble_properties():
             print(query)
             session.run(query)
 
+    driver.close()
+    with driver.session() as session:
 
         MATCH = "MATCH (b:Bubble)-[r:INSIDE]->(c:Chain) "
         q1= MATCH + " WITH c, MIN(b.start) AS start SET c.start = start"
@@ -205,6 +234,9 @@ def add_bubble_properties():
         for query in [q1,q2,q3,q4,q5]:
             print(query)
             session.run(query)
+
+    driver.close()
+    with driver.session() as session:
 
         q6 = MATCH + " WITH c, MIN(b.x1) AS x SET c.x1 = x"
         q7 = MATCH + " WITH c, MAX(b.x2) AS x SET c.x2 = x"
