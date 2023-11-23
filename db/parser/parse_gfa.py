@@ -87,61 +87,6 @@ def collect_position_data(gfa):
 
     return fromLinkData, toLinkData, segmentData
 
-def estimate_position(id, fromLinkData, toLinkData, segmentData, visited=[]):
-
-    return("chr7", 144123343)
-
-    #print(id, len(visited))
-    fromNodes = fromLinkData[id] if id in fromLinkData else []
-    toNodes = toLinkData[id] if id in toLinkData else []
-
-    estimatedFromPos = [] # based on nodes connecting to the target node
-    estimatedFromChrom = []
-
-    #print(visited )
-    #print("from:", set(fromNodes).difference(set(visited)))
-    for fromId in fromNodes:
-        if (id,fromId) in visited:
-            continue
-        chrom,pos,length = segmentData[fromId]
-        if pos is None:
-            chrom, pos = estimate_position(fromId, fromLinkData, toLinkData, segmentData, visited+[(id,fromId)])
-        if pos is not None:
-            estimatedFromPos.append(pos+length+1)
-            estimatedFromChrom.append(chrom)
-            #print(chrom,pos)
-
-    estimatedToPos = [] # based on nodes the target node connects to
-    estimatedToChrom = []
-
-    #print("to:", set(toNodes).difference(set(visited)))
-    for toId in toNodes:
-        if (toId,id) in visited:
-            continue
-        chrom,pos,length = segmentData[toId]
-        if pos is None:
-            chrom, pos = estimate_position(toId, fromLinkData, toLinkData, segmentData, visited+[(toId,id)])
-        if pos is not None:
-            estimatedToPos.append(pos-segmentData[id][2]-1)
-            estimatedToChrom.append(chrom)
-
-    #print(id, estimatedFromPos, estimatedToPos)
-    chroms = estimatedFromChrom+estimatedToChrom
-    #print(id, len(visited))
-
-    if len(chroms) == 0:
-        #todo:fix
-        return None,None
-
-    chrom = max(set(chroms), key = chroms.count)
-
-    pos = mean([x for c,x in zip(chroms, estimatedFromPos+estimatedToPos) if c == chrom])
-    pos = round(pos)
-    segmentData[id] = (chrom, pos, segmentData[id][2])
-
-    return chrom, pos
-
-
 def parse_line_S(line):
 
     result = {"type" : "S"}   

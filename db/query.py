@@ -1,32 +1,51 @@
 import db.neo4j_query as q
-from objects.simple_link import SimpleLink
-from objects.simple_bubble import SimpleBubble
-from objects.simple_annotation import SimpleAnnotation
-from objects.simple_path import SimplePath
-
-from db.model.link import Link
-from db.model.annotation import Annotation
-from db.model.bubble import Bubble,BubbleInside
-from db.model.path import Path
 
 XSCALE_NODE=1
 KINK_SIZE=100
 SEGMENT_WIDTH=21
+MIN_SIZE_SINGLE_NODE=6
 
-def process_nodes(nodes):
+def get_nodeid(id, n, i):
+    if n==1:
+        return str(id) 
+    if i == 0:
+        return f"{id}#0" 
+    if i == n-1:
+        return f"{id}#1"
+
+    return f"{id}#m{i}"
+
+
+def process_nodes(nodes, type):
     graphNodes = []
     graphLinks = []
 
     for node in nodes:
-        isRef = "chrom" in node
         length = node["length"] if "length" in node else node["size"]
         n = int(length/KINK_SIZE) + 2
+        if length < MIN_SIZE_SINGLE_NODE:
+            n=1
         for i in range(n):
             newNode = dict()
-            newNode["id"] = f"{node['id']}_{i}" 
-            newNode["isref"] = isRef
-            newNode["nodeid"] = node["id"]
-            for key in ["chrom" "start", "end"]:
+
+            if i == 0 or i == n-1:
+                newNode["class"] = "end"
+            else:
+                newNode["class"] = "mid"
+
+            newNode["type"] = type
+
+            # TODO: remove
+            if "type" in node:
+                newNode["subtype"] = node["type"]
+
+
+            newNode["id"] = str(node["id"])
+            newNode["nodeid"] = get_nodeid(node["nodeid"], n, i)
+
+            newNode["isref"] = "chrom" in node
+
+            for key in ["chrom" "start", "end", "subtype"]:
                 if key in node:
                     newNode[key] = node[key]
 
@@ -49,103 +68,130 @@ def process_nodes(nodes):
         
             if i == 0: continue
             newLink = dict()
-            newLink["source"] = f"{node['id']}_{i-1}"
-            newLink["target"] = newNode["id"]
-            newLink["type"] = "node"
+            newLink["source"] = get_nodeid(node["nodeid"], n, i-1)
+            newLink["target"] = newNode["nodeid"]
+            newLink["class"] = "node"
+            newLink["type"] = type
             newLink["length"] = length/n
             newLink["width"] = SEGMENT_WIDTH
             graphLinks.append(newLink)
 
     return graphNodes, graphLinks
 
+def process_links(links):
+    graphLinks = []
+    for link in links:
+        newLink = dict()
+        newLink["source"] = str(link["source"])+"#1"
+        newLink["target"] = str(link["target"])+"#0"
+        newLink["sourceid"] = str(link["source"])
+        newLink["targetid"] = str(link["target"])
+        newLink["class"] = "edge"
+        newLink["length"] = 10
+        newLink["width"] = 4
+        graphLinks.append(newLink)
+
+    return graphLinks
+
+
+def process_node_links(nodes, links):
+    nodeids = {n["nodeid"] for n in nodes}
+    sourceDict, targetDict = dict(), dict()
+    
+    for i,link in enumerate(links):
+        if link["class"] != "edge":
+            continue
+        source, target = link["sourceid"], link["targetid"]
+        if source not in sourceDict: sourceDict[source] = []
+        sourceDict[source].append(target)
+        if target not in targetDict: targetDict[target] = []
+        targetDict[target].append(source)
+
+    toRemove = dict()
+    for node in nodes:
+        if node["type"] != "bubble":
+            continue
+        if "subtype" not in node or node["subtype"] != "insertion":
+            continue
+        
+        bid = node["nodeid"].split("#")[0]
+        for source in targetDict[bid]:
+            for target in sourceDict[bid]:
+                if target in sourceDict[source]:
+                    toRemove[source]=target
+    
+    newLinks = []
+    for i,link in enumerate(links):
+        if link["class"] == "edge":
+            if link["sourceid"] in toRemove:
+                if link["targetid"] in toRemove[link["sourceid"]]:
+                    continue
+
+        if link["source"] not in nodeids:
+            prefix = link["source"].split("#")[0]
+            if prefix in nodeids:
+                links[i]["source"] = prefix
+            else:
+                # TODO: handle
+                print("WARNING: MISSING NODE ", link["source"])
+        if link["target"] not in nodeids:
+            prefix = link["target"].split("#")[0]
+            if prefix in nodeids:
+                links[i]["target"] = prefix
+            else:
+                # TODO: handle
+                print("WARNING: MISSING NODE ", link["target"])
+        
+        newLinks.append(link)
+
+    return nodes, newLinks
+
 def get_segments(chrom, start, end):
-    resultDict = dict()
+    allNodes = []
+    allLinks = []
 
-    chains = q.get_top_level_chains(chrom, start, end)
-    nodes,links = process_nodes(chains)
-    resultDict["nodes"] = nodes
-    resultDict["links"] = links
+    chains,links = q.get_top_level_chains(chrom, start, end)
+    nodes,nodelinks = process_nodes(chains, "chain")
+    links = process_links(links)
+    allNodes.extend(nodes)
+    allLinks.extend(nodelinks)
+    allLinks.extend(links)
 
-    bubbles = q.get_top_level_bubbles(chrom, start, end)
-    nodes,links = process_nodes(bubbles)
-    resultDict["nodes"].extend(nodes)
-    resultDict["links"].extend(links)
+    bubbles,links = q.get_top_level_bubbles(chrom, start, end)
+    nodes,nodelinks = process_nodes(bubbles, "bubble")
+    links = process_links(links)
+    allNodes.extend(nodes)
+    allLinks.extend(nodelinks)
+    allLinks.extend(links)
 
-    segments = q.get_top_level_segments(chrom, start, end)
-    #print(chains)
-    #print(bubbles)
-    #print(segments)
+    segments,links = q.get_top_level_segments(chrom, start, end)
+    nodes,nodelinks = process_nodes(segments, "segment")
+    links = process_links(links)
+    allNodes.extend(nodes)
+    allLinks.extend(nodelinks)
+    allLinks.extend(links)
 
-    return resultDict
 
-def get_link_dict(chr=None, start=None, end=None):
-    toDict = dict()
-    fromDict = dict()
+    allNodes, allLinks = process_node_links(allNodes, allLinks)
+    graph = {"nodes": allNodes, "links": allLinks}
 
-    rows = Link.query.all()
-    for row in rows:
-        link = SimpleLink(row)
-        if link.toNodeId not in toDict:
-            toDict[link.toNodeId] = []
-        if link.fromNodeId not in fromDict:
-            fromDict[link.fromNodeId] = []
-
-        toDict[link.toNodeId].append(link)
-        fromDict[link.fromNodeId].append(link)
-
-    return toDict,fromDict
-
-def get_bubble_list(chr=None, start=None, end=None):
+    #print(graph)
+    return graph
     
-    rows = Bubble.query.all()
-    bubbleList = []
-    for row in rows:
-        insideRows = BubbleInside.query.filter_by(bubble_id=row.id).all()
+def get_subgraph(type, id):
+    allNodes = []
+    allLinks = []
 
-        bubble = SimpleBubble(row, insideRows)
-        bubbleList.append(bubble)
+    if type == "bubble":
+        segments,links = q.get_bubble_subgraph(id)
+        nodes,nodelinks = process_nodes(segments, "segment")
+        links = process_links(links)
+        allNodes.extend(nodes)
+        allLinks.extend(nodelinks)
+        allLinks.extend(links)
 
-    return bubbleList
+    elif type == "chain":
+        q.get_chain_subgraph(id)
 
-
-def get_annotation_list(chromosome, start, end):
-
-    rows = Annotation.query.filter(
-        Annotation.chrom == chromosome,
-        Annotation.start >= start,
-        Annotation.end <= end
-    ).all()
-    
-    annotations=[]
-    for row in rows:
-        annotation = SimpleAnnotation(row)
-        annotations.append(annotation)
-
-    return annotations
-
-def get_haplotypes(linkDict, chrom, start, end):
-
-    rows = Path.query.filter(
-        Path.chrom == chrom, 
-        Path.start >= start,
-        Path.end <= end
-    ).all()
-
-    def find_link(row):
-        if row.from_id not in linkDict: 
-            return None
-        for link in linkDict[row.from_id]:
-            if link.toNodeId == row.to_id:
-                return link
-        return None
-
-    paths = dict()
-    for row in rows:
-        link = find_link(row)
-        sample = row.sample + "." + str(0 if row.hap is None else row.hap)
-        if sample not in paths:
-            paths[sample] = SimplePath(row)
-
-        paths[sample].add_to_path(link)
-
-    return paths
+    subgraph = {"nodes": allNodes, "links": allLinks}
+    return subgraph
