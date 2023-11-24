@@ -11,6 +11,37 @@ def db_init():
     load_dotenv()
     #db_user = os.getenv("DB_USER")
 
+def get_chain_record(record):
+    chain = {k: record[k] for k in record.keys()}
+    chain["type"] = "chain"
+    # NOTE: r.id is the neo4j node id and r["id"] is the chain id
+    chain["nodeid"] = record.id
+    return chain
+
+def get_bubble_record(record):
+    bubble = {k: record[k] for k in record.keys()}
+
+    #todo: remove
+    bubble["subtype"] = bubble["type"]
+
+    bubble["type"] = "bubble"
+    # NOTE: r.id is the neo4j node id and r["id"] is the bubble id
+    bubble["nodeid"] = record.id
+    return bubble
+
+def get_segment_record(record):
+    segment = {k: record[k] for k in record.keys()}
+    segment["type"] = "segment"
+    # NOTE: r.id is the neo4j node id and r["id"] is the gfa id
+    segment["nodeid"] = record.id
+    return segment
+
+def get_link_record(record):
+    link = {"source": record.start_node.id,
+            "target": record.end_node.id,
+            "class": "edge"}
+    return link
+
 def get_bubble_subgraph(id):
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
@@ -24,18 +55,16 @@ def get_bubble_subgraph(id):
         parameters = {"i": id}
         result = session.run(query, parameters)
 
-        segments = []
-        links = []
+        segments,links = [],[]
 
         for record in result:
             for r in record["links"]:
-                link = {"source": r.start_node.id,
-                        "target": r.end_node.id}
+                link = get_link_record(r)
                 links.append(link)
-            r = record["s"]
-            segment = {k: r[k] for k in r.keys()}
-            segment["nodeid"] = r.id
+
+            segment = get_segment_record(record["s"]) 
             segments.append(segment)
+
     print("nsegs", len(segments))
     driver.close()
     return segments, links
@@ -57,23 +86,20 @@ def get_top_level_chains(chrom, start, end):
         parameters = {"start": start, "end": end, "chrom": chrom}
         result = session.run(query, parameters)
 
-        chains = []
-        links = []
+        chains,links = [],[]
 
         for record in result:
             for r in record["ends"]:
-                link = {"source": r.start_node.id,
-                        "target": r.end_node.id}
+                link = get_link_record(r)
                 links.append(link)
-            r = record["c"]
-            chain = {k: r[k] for k in r.keys()}
-            # NOTE: r.id is the neo4j node id and r["id"] is the chain id
-            chain["nodeid"] = r.id
+            chain = get_chain_record(record["c"]) 
             chains.append(chain)
+
     print("nchains", len(chains))
     driver.close()
     return chains, links
-    
+
+
 def get_top_level_bubbles(chrom, start, end):
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
@@ -90,23 +116,19 @@ def get_top_level_bubbles(chrom, start, end):
         parameters = {"start": start, "end": end, "chrom": chrom}
         result = session.run(query, parameters)
 
-        bubbles = []
-        links = []
+        bubbles,links = [],[]
 
         for record in result:
             for r in record["ends"]:
-                link = {"source": r.start_node.id,
-                        "target": r.end_node.id}
+                link = get_link_record(r)
                 links.append(link)
-            r = record["b"]
-            bubble = {k: r[k] for k in r.keys()}
-            # NOTE: r.id is the neo4j node id and r["id"] is the bubble id
-            bubble["nodeid"] = r.id
+            bubble = get_bubble_record(record["b"]) 
             bubbles.append(bubble)
 
     print("nbubs", len(bubbles))
     driver.close()
     return bubbles,links
+
 
 def get_top_level_segments(chrom, start, end):
     driver = GraphDatabase.driver(uri, auth=(username, password))
@@ -125,17 +147,13 @@ def get_top_level_segments(chrom, start, end):
         parameters = {"start": start, "end": end, "chrom": chrom}
         result = session.run(query, parameters)
 
-        segments = []
-        links = []
+        segments,links = [],[]
+
         for record in result:
             for r in record["links"]:
-                link = {"source": r.start_node.id,
-                        "target": r.end_node.id}
+                link = get_link_record(r)
                 links.append(link)
-            r = record["s"]
-            segment = {k: r[k] for k in r.keys()}
-            # NOTE: r.id is the neo4j node id and r["id"] is the gfa id
-            segment["nodeid"] = r.id
+            segment = get_segment_record(record["s"]) 
             segments.append(segment)
 
     driver.close()

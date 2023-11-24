@@ -31,7 +31,7 @@ const REF_COLOR="#3C5E81";
 const LINK_COLOR="#969696";
 const HIGHLIGHT_LINK_COLOR="#FF0000";
 
-const HOVER_PRECISION=20
+const HOVER_PRECISION=10
 
 function force(alpha) {
     for (let i = 0, n = nodes.length, node, k = alpha * 0.1; i < n; ++i) {
@@ -41,9 +41,7 @@ function force(alpha) {
     }
   }
 
-function id_split(id){
-    return id.split("#")[0];
-}
+
 
 function linkWidth(link) {
     if (link.count != null){
@@ -221,16 +219,15 @@ function post_render(ctx, graphData){
     //draw_gene_name(ctx, graphData);
 
     if (HIGHLIGHT_NODE != null){
-        highlight = id_split(HIGHLIGHT_NODE);
+        highlight = nodeid_split(HIGHLIGHT_NODE);
         
         let nodes = graphData.nodes;
         var node; var id;
         for (let i = 0, n = nodes.length; i < n; ++i) {
             node = nodes[i];
-            id = id_split(node.nodeid);
-            if (highlight == id){
+            if (highlight == node.nodeid){
                 var color = "grey";
-                if (HIGHLIGHT_NODE == node.nodeid){
+                if (HIGHLIGHT_NODE == node.__nodeid){
                     color="red";
                 }
                 draw_circle_outline(ctx, node.x, node.y, Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE/LAST_ZOOM/10), color, lineWidth=3/LAST_ZOOM, fill="rgba(0, 0, 0, 0)");
@@ -265,8 +262,8 @@ function draw_graph(graph){
         .graphData(graph)
         .backgroundColor(BACKGROUND_COLOR)
         .d3VelocityDecay(VELOCITY_DECAY)
-        .nodeId('nodeid')
-        .nodeLabel('nodeid')
+        .nodeId('__nodeid')
+        .nodeLabel('__nodeid')
         .linkColor(link => get_link_color(link))
         .nodeColor(node => get_node_color(node))
         .onNodeHover(highlight_node)
@@ -287,13 +284,13 @@ function draw_graph(graph){
     //    .maxZoom(MAX_ZOOM)
 
     function highlight_node(node){
-        HIGHLIGHT_NODE = (node == null) ? null : node.nodeid;
+        HIGHLIGHT_NODE = (node == null) ? null : node.__nodeid;
     }
 
     function highlight_link(link){
         if (link == null){ HIGHLIGHT_NODE = [] }
         else if (link.class == "node"){
-            HIGHLIGHT_NODE = [id_split(link.source.nodeid)] ;
+            HIGHLIGHT_NODE = [id_split(link.source.__nodeid)] ;
         }
     }
 
@@ -302,11 +299,11 @@ function draw_graph(graph){
     // --- FORCES ---
 
     function link_force_distance(link) {
-        return (link.type == "edge") ? 100 : link.length ;
+        return (link.type == "edge") ? 10 : link.length ;
     }
 
     forceGraph.d3Force('link').distance(link_force_distance).strength(0.5).iterations(2)
-    forceGraph.d3Force('collide', d3.forceCollide(50).radius(20))    
+    forceGraph.d3Force('collide', d3.forceCollide(50).radius(50))    
     forceGraph.d3Force('charge').strength(-500).distanceMax(1000)
     
     //forceGraph.onEngineStop(() => forceGraph.zoomToFit(0));
@@ -339,50 +336,6 @@ function shift_coord(graph) {
     return graph
 }
 
-function save_positions(graph){
-    let nodes = graph.nodes
-    for (let i = 0, n = nodes.length, node; i < n; ++i) {
-        node = nodes[i]
-        node["xinit"] = node.x
-        node["yinit"] = node.y
-    }
-    return graph
-}
-
-function adjust_positions(graph, nodeShift){
-    let xshift = nodeShift.x - nodeShift.xinit
-    let yshift = nodeShift.y - nodeShift.yinit
-
-    let nodes = graph.nodes
-    for (let i = 0, n = nodes.length, node; i < n; ++i) {
-        node = nodes[i]
-        node.x = node.x + xshift
-        node.y = node.y + yshift
-    }
-    return graph
-}
-
-function delete_node(graph, id){
-    var nodeids = graph.nodes.filter(n => n.id == id).map(n => n.nodeid);
-    var before = graph.links.length
-    graph.links = graph.links.filter(l => !nodeids.includes(l.source.nodeid) && !nodeids.includes(l.target.nodeid));
-    var after = graph.links.length
-    console.log(before,after)
-
-    graph.nodes = graph.nodes.filter(n => !nodeids.includes(n.nodeid));
-
-    return graph
-}
-
-function add_subgraph(graph, subgraph){
-    graph.nodes = graph.nodes.concat(subgraph.nodes);
-    graph.links = graph.links.concat(subgraph.links);
-
-    return graph
-}
-
-
-
 function fetch(chromosome, start, end) {
 
     let url = "/select?chromosome=" + chromosome;
@@ -392,11 +345,13 @@ function fetch(chromosome, start, end) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
-            var data = JSON.parse(xmlHttp.response)
+            var data = JSON.parse(xmlHttp.response);
+
             // TODO
             //update_path_selector(data.paths)
-            data=save_positions(data)
-            draw_graph(data)
+
+            graph = process_graph(data);
+            draw_graph(graph);
         }
     }
     xmlHttp.open("GET", url, true);
@@ -412,37 +367,31 @@ function fetch_haps(chromosome, start, end) {
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
-            var data = JSON.parse(xmlHttp.response)
-            console.log(data)
+            var data = JSON.parse(xmlHttp.response);
+            console.log(data);
         }
     }
     xmlHttp.open("GET", url, true);
     xmlHttp.send();
 }
 
-function fetch_subgraph(node){
-    let url = "/subgraph?type=" + node["type"] + "&id=" + node["id"];
+function fetch_subgraph(originNode){
+    let url = "/subgraph?type=" + originNode["type"] + "&id=" + originNode["id"];
 
     GETTING_SUBGRAPH=true
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
-            var subgraph = JSON.parse(xmlHttp.response)
-            GETTING_SUBGRAPH=false
-            HIGHLIGHT_NODE = null;
-            subgraph=save_positions(subgraph)
-            subgraph=adjust_positions(subgraph, node)
-            console.log(subgraph)
+            var subgraph = JSON.parse(xmlHttp.response);
 
-            graph = forceGraph.graphData()
-            graph = delete_node(graph, node.id)
-            graph = add_subgraph(graph, subgraph)
+            console.log(subgraph);
 
+            graph = forceGraph.graphData();
+            graph = process_subgraph(subgraph, originNode, graph);
             updateGraphData(graph);
-            
 
-
-
+            HIGHLIGHT_NODE = null;
+            GETTING_SUBGRAPH=false;
         }
     }
     xmlHttp.open("GET", url, true);
