@@ -1,5 +1,5 @@
-import gzip
-from db.model.annotation import Annotation
+import gzip,os
+import db.neo4j_db as neo4jdb
 
 def get_reader(gff3):
     if gff3.endswith(".gz"):
@@ -17,35 +17,33 @@ def parse_line(line):
     result["chrom"] = cols[0]
     result["source"] = cols[1]
     result["type"] = cols[2]
-    result["start"] = cols[3]
-    result["end"] = cols[4]
-    result["info"] = cols[8]
+    result["start"] = int(cols[3])
+    result["end"] = int(cols[4])
+    #result["info"] = cols[8]
 
-    for c in result["info"].split(";"):
+    result["id"] = None
+    result["gene"] = None
+    result["exon"] = None
+
+    for c in cols[8].split(";"):
         if c.startswith("ID"):
             result["id"] = c.split("=")[1]
-        if c.startswith("gene_name"):
+        elif c.startswith("gene_name"):
             result["gene"] = c.split("=")[1]
-        if c.startswith("exon_number"):
-            result["exon"] = c.split("=")[1]
-    
+        elif c.startswith("exon_number"):
+            result["exon"] = int(c.split("=")[1])
+        else:
+            result[c.split("=")[0]] = c.split("=")[1]
     return result
 
 def parse_gff3(gff3):
-    count = 0
-
+    
+    annotations = []
+    filename = os.path.basename(gff3)
     with get_reader(gff3) as file:
         for line in file:
-            row = parse_line(line)
-
-            if row:
-                row["aid"] = row["id"]
-                row["id"] = count
-                count += 1
-                annotation = Annotation(row)
-                db.session.add(annotation)
-
-                count += 1
-                count_update(count)
-    
-        db.session.commit()
+            annotation = parse_line(line)
+            if annotation:
+                annotation["file"] = filename
+                annotations.append(annotation)
+    neo4jdb.add_annotations(annotations)
