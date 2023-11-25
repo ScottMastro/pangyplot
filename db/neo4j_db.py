@@ -260,6 +260,24 @@ def add_bubble_properties():
             session.run(query)
 
     driver.close()
+    with driver.session() as session:
+
+        MATCH = """
+                MATCH (e1)-[:END]->(n)-[:END]->(e2)
+                WHERE e1.start IS NOT NULL AND e2.start IS NOT NULL AND n.end is NULL 
+                """
+
+        q1 = MATCH + " SET n.chrom = e1.chrom"
+        q2 = MATCH + " SET n.start = CASE WHEN e1.start < e2.start THEN e1.start ELSE e2.start END + 1"
+        q3 = MATCH + " SET n.end = CASE WHEN e1.end > e2.end THEN e1.end ELSE e2.end END - 1"
+
+        print("Calculating chain properties...")
+        for query in [q1,q2,q3]:
+            print(query)
+            session.run(query)
+            
+    driver.close()
+
 
 
 def add_segments(segments, batch_size=10000):
@@ -308,81 +326,46 @@ def add_relationships(links, batch_size=10000):
 
     driver.close()
 
-'''
-def add_paths(paths, batch_size=10000):
-    if len(paths) == 0: return
+
+def add_null_nodes():
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
-        for path in paths:
-            path_info = {"sample": path["sample"], "hap": path["hap"]}
-            links = []
 
-            start_time = time.time()
-            
-            for i,from_id in enumerate(path["path"][:-1]):
-                link = {"from_id": from_id,
-                        "to_id": path["path"][i+1],
-                        "from_strand": path["strand"][i],
-                        "to_strand": path["strand"][i+1],
-                        "position": path["position"][i]}
-                links.append(link)
-
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            print(f"The links took {elapsed_time} seconds to run.")
-
-            for i in range(0, len(links), batch_size):
-
-                start_time = time.time()
-
-                batch = links[i:i + batch_size]
-
-                print(i, "/", len(path["path"]))
-                query = """
-                UNWIND $batch AS link
-                MATCH (a:Segment {id: link.from_id}), (b:Segment {id: link.to_id})
-                CREATE (a)-[:HAPLOTYPE {from_strand: link.from_strand, to_strand: link.to_strand, position: link.position, sample: $path.sample, hap : $path.hap }]->(b)
+        query = """
+                MATCH (s1:Segment)-[l:LINKS_TO]->(s2:Segment)
+                MATCH (s1)-[e1:END]->(b:Bubble)-[e2:END]->(s2)
+                CREATE (s3:Segment {
+                    id: s1.id + '_' + s2.id,
+                    sequence: "",
+                    length: 0,
+                    x1: s1.x2,
+                    y1: s1.y2,
+                    x2: s2.x1,
+                    y2: s2.y1
+                })
+                CREATE (s1)-[:LINKS_TO]->(s3)-[:LINKS_TO]->(s2)
+                CREATE (s3)-[:INSIDE]->(b)
+                DELETE l
                 """
-                session.run(query, {"batch": batch, "path": path_info})
 
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                print(f"The insert took {elapsed_time} seconds to run, {round((batch_size/1000)/elapsed_time, 2)}k per second.")
-
+        session.run(query)
 
     driver.close()
-    
-def add_haplotypes(collapseDict, sampleIdDict, batch_size=10000):
-    
-    if len(collapseDict) == 0: return
+
+def add_annotations(annotations, batch_size=10000):
+    if len(annotations) == 0: return
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
-        links = []
-        for key in collapseDict:
-            from_key, to_key = key
-            link = {"from_id": from_key[:-1],
-                    "to_id": to_key[:-1],
-                    "from_strand": from_key[-1],
-                    "to_strand": to_key[-1],
-                    "haplotypes": collapseDict[key]}
-            #print(link)
-            links.append(link)
 
-        for i in range(0, len(links), batch_size):
-            batch = links[i:i + batch_size]
-
-            print(i, "/", len(links))
+        for i in range(0, len(annotations), batch_size):
+            batch = annotations[i:i + batch_size]
             query = """
-            UNWIND $links AS link
-            MATCH (a:Segment {id: link.from_id})-[r:LINKS_TO]->(b:Segment {id: link.to_id})
-            WHERE r.to_strand = link.to_strand AND r.from_strand = link.from_strand 
-            SET r.haplotypes = link.haplotypes
+                UNWIND $batch AS ann
+                CREATE (a:Annotation)
+                SET a += ann
             """
-            session.run(query, {"links": batch})
-
+            session.run(query, {"batch": batch})
     driver.close()
-    '''
-
 
 def drop_all():
 
@@ -452,6 +435,30 @@ def drop_bubbles():
         print("Deletion complete.")
     driver.close()
 
+def drop_annotations():
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+
+        def delete(tx, batch_size):
+            query = (
+                "MATCH (n:Annotation) "
+                "WITH n LIMIT $batchSize "
+                "DETACH DELETE n "
+                "RETURN count(n) as deletedCount"
+            )
+            result = tx.run(query, batchSize=batch_size)
+            return result.single()[0]
+
+        total_deleted = 0
+        while True:
+            deleted = session.write_transaction(delete, batch_size=10000)
+            if deleted == 0:
+                break
+            total_deleted += deleted
+            print(f"Deleted {total_deleted} annotations so far...")
+        print("Deletion complete.")
+    driver.close()
+
 def create_segment_index(session, type, property):
     try:
         session.run(f"CREATE INDEX FOR (n:{type}) ON (n.{property})")
@@ -476,6 +483,8 @@ def db_init():
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
 
+        #todo make compound indicies
+
         create_restraint(session, "Segment", "id")
         create_segment_index(session, "Segment", "chrom")
         create_segment_index(session, "Segment", "start")
@@ -490,5 +499,10 @@ def db_init():
         create_segment_index(session, "Chain", "chrom")
         create_segment_index(session, "Chain", "start")
         create_segment_index(session, "Chain", "end")
+
+        create_segment_index(session, "Annotation", "chrom")
+        create_segment_index(session, "Annotation", "start")
+        create_segment_index(session, "Annotation", "end")
+
 
     driver.close()

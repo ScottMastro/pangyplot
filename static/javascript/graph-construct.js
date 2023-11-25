@@ -1,5 +1,7 @@
 
 const XSCALE_NODE = 1
+const YSCALE_NODE = 1
+
 const KINK_SIZE = 100
 const NODE_SEGMENT_WIDTH = 21
 const SINGLE_NODE_THRESH = 6
@@ -30,7 +32,7 @@ function get_coordinates(node, n=1, i=0){
             x = (node["x1"] + node["x2"]) / 2;
             y = (node["y1"] + node["y2"]) / 2;
         } else {
-            let p = i / (n - 1);
+            let p = 1-(i / (n - 1));
             p = Math.max(0, p);
             p = Math.min(1, p);
             x = p * node["x1"] + (1 - p) * node["x2"];
@@ -44,9 +46,6 @@ function get_coordinates(node, n=1, i=0){
 function process_edge_links(links) {
     let graphLinks = [];
     links.forEach(link => {
-
-        console.log(link)
-
         let newLink = {};
         newLink["source"] = source_id(link["source"]);
         newLink["target"] =  target_id(link["target"]);
@@ -61,6 +60,18 @@ function process_edge_links(links) {
     return graphLinks;
 }
 
+function scale_node(node){
+    if (node.hasOwnProperty("x") && node.hasOwnProperty("y")) {
+        node.x = node.x * XSCALE_NODE;
+        node.y = node.y * YSCALE_NODE;
+    }
+    node.x1 = node.x1 * XSCALE_NODE;
+    node.x2 = node.x2 * XSCALE_NODE;
+    node.y1 = node.y1 * YSCALE_NODE;
+    node.y2 = node.y1 * YSCALE_NODE;
+    return node
+}
+
 function process_nodes(nodes) {
 
     const graphNodes = [];
@@ -70,7 +81,8 @@ function process_nodes(nodes) {
         let length = node.hasOwnProperty("length") ? node["length"] : node["size"];
         let n = (length < SINGLE_NODE_THRESH) ? 1 : Math.floor(length / KINK_SIZE) + 2;
         let nodeid = String(node.nodeid)
-
+        
+        node = scale_node(node)
         INIT_POSITIONS[nodeid] = get_coordinates(node)
         NODEIDS[nodeid] = [];
 
@@ -121,7 +133,8 @@ function process_graph(graph){
 
     let links = process_edge_links(graph.links);
     
-    return {"nodes": nodes, "links": links.concat(nodeLinks)};
+    return {"nodes": nodes, "links": links.concat(nodeLinks),
+     "annotations": graph.annotations};
 }
 
 
@@ -139,11 +152,8 @@ function adjust_positions(nodes, originNode){
 }
 
 function delete_node(graph, nodeid){
-    console.log(graph.links)
-    console.log("before",graph.links)
     graph.links = graph.links.filter(l => l.source.nodeid != nodeid && l.target.nodeid != nodeid );
     graph.nodes = graph.nodes.filter(n => nodeid != n.nodeid);
-    console.log("after",graph.links)
 
     delete NODEIDS["nodeid"];
 
@@ -156,20 +166,21 @@ function filter_raw_links(links){
 
 function process_subgraph(subgraph, originNode, graph){
     
+    console.log(subgraph)
     let result = process_nodes(subgraph.nodes);
     let nodes = result[0];
     let nodeLinks = result[1];
 
-    nodes = adjust_positions(nodes, originNode)
-    graph = delete_node(graph, originNode.nodeid)
+    nodes = adjust_positions(nodes, originNode);
+    graph = delete_node(graph, originNode.nodeid);
 
-    let links = filter_raw_links(subgraph.links)
+    let links = filter_raw_links(subgraph.links);
+    console.log(links)
 
     links = process_edge_links(links);
     
     graph.nodes = graph.nodes.concat(nodes);
-    graph.links = graph.links.concat(links);
-    console.log("afterafter",graph.links)
+    graph.links = graph.links.concat(links).concat(nodeLinks);
 
 
     return graph;

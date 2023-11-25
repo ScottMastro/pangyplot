@@ -20,10 +20,6 @@ def get_chain_record(record):
 
 def get_bubble_record(record):
     bubble = {k: record[k] for k in record.keys()}
-
-    #todo: remove
-    bubble["subtype"] = bubble["type"]
-
     bubble["type"] = "bubble"
     # NOTE: r.id is the neo4j node id and r["id"] is the bubble id
     bubble["nodeid"] = record.id
@@ -32,9 +28,20 @@ def get_bubble_record(record):
 def get_segment_record(record):
     segment = {k: record[k] for k in record.keys()}
     segment["type"] = "segment"
+    if segment["length"] == 0: 
+        segment["type"] = "null" 
     # NOTE: r.id is the neo4j node id and r["id"] is the gfa id
     segment["nodeid"] = record.id
     return segment
+
+def get_node_record(record, nodeType):
+    if nodeType == "Segment":
+        return get_segment_record(record) 
+    if  nodeType == "Chain":
+        return get_chain_record(record) 
+    if nodeType == "Bubble":
+        return get_bubble_record(record)
+    return None
 
 def get_link_record(record):
     link = {"source": record.start_node.id,
@@ -42,18 +49,49 @@ def get_link_record(record):
             "class": "edge"}
     return link
 
-def get_bubble_subgraph(id):
+def get_chain_subgraph(nodeid):
+    nodes,links = [],[]
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+
+        query = """
+                MATCH (n)-[:INSIDE]->(t)
+                WHERE ID(t) = $i
+                OPTIONAL MATCH (n)-[r1:END]-(s1:Segment)
+                OPTIONAL MATCH (n)-[r2:LINKS_TO]-(s2:Segment)
+                RETURN n, labels(n) AS type, collect(DISTINCT r1) AS ends, collect(DISTINCT r2) AS links
+                """
+        result = session.run(query, {"i": nodeid})
+
+        for record in result:
+            node = get_node_record(record["n"], record["type"][0])
+            if node is not None:
+                nodes.append(node)
+
+            for r in record["ends"]:
+                link = get_link_record(r)
+                links.append(link)
+
+            for r in record["links"]:
+                link = get_link_record(r)
+                links.append(link)
+
+
+    print("nnodes", len(nodes))
+    driver.close()
+    return nodes, links
+
+def get_bubble_subgraph(nodeid):
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
 
         query = """
             MATCH (s:Segment)-[r1:INSIDE]->(b:Bubble)
-            WHERE b.id = $i
+            WHERE ID(b) = $i
             MATCH (s)-[r:LINKS_TO]-(s2:Segment)
-            RETURN s, collect(r) AS links
+            RETURN s, b, collect(r) AS links
             """
-        parameters = {"i": id}
-        result = session.run(query, parameters)
+        result = session.run(query, {"i": nodeid})
 
         segments,links = [],[]
 
@@ -234,3 +272,27 @@ def get_lengths_by_id(node_ids):
 
         lengths = {record['id']: len(record['seq']) for record in result}
         return lengths
+
+def get_annotation_range(chrom, start, end):
+    annotations = []
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+
+        query = """
+                MATCH (a:Annotation)
+                WHERE a.start <= $end AND a.end >= $start AND a.chrom = $chrom
+                RETURN a
+                """
+        parameters = {"start": start, "end": end, "chrom": chrom}
+        result = session.run(query, parameters)
+
+        for record in result:
+            r = record["a"]
+            annotation = {k: r[k] for k in r.keys()}
+            annotation["aid"] = r.id
+
+            annotations.append(annotation)
+
+    print("nann", len(annotations))
+    driver.close()
+    return annotations

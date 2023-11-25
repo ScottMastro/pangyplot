@@ -35,21 +35,28 @@ def get_segments(chrom, start, end):
     bubbles,bubbleLinks = q.get_top_level_bubbles(chrom, start, end)
     segments,segmentLinks = q.get_top_level_segments(chrom, start, end)
 
-    segmentLinks = remove_bubble_insertion_link(bubbles, bubbleLinks, segmentLinks)
+    #segmentLinks = remove_bubble_insertion_link(bubbles, bubbleLinks, segmentLinks)
 
     graph = {"nodes": chains + bubbles + segments, 
              "links": chainLinks + bubbleLinks + segmentLinks}
 
     return graph
-    
-def get_subgraph(type, id):
 
+def get_annotations(chrom, start, end):
+    annotations = q.get_annotation_range(chrom, start, end)
+    return annotations
+
+def get_subgraph(nodeid):
+    type = "chain"
     if type == "bubble":
-        segments,segmentLinks = q.get_bubble_subgraph(id)
-        return {"nodes": segments, "links": segmentLinks}
+        segments,links = q.get_bubble_subgraph(nodeid)
+        return {"nodes": segments, "links": links}
 
     elif type == "chain":
-        q.get_chain_subgraph(id)
+        nodes,links = q.get_chain_subgraph(nodeid)
+        return {"nodes": nodes, "links": links}
 
-    subgraph = {"nodes": allNodes, "links": allLinks}
-    return subgraph
+    return {"nodes": [], "links": []}
+
+
+

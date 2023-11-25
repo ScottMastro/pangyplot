@@ -2,7 +2,10 @@ from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
 import db.neo4j_db as neo4jdb
 import db.query as query
-import db.ingest as ingest
+from db.parser.parse_gfa import parse_graph
+from db.parser.parse_layout import parse_layout
+from db.parser.parse_gff3 import parse_gff3
+from db.parser.parse_bubbles import parse_bubbles
 
 import argparse
 
@@ -20,23 +23,22 @@ def select():
     start = int(start)
     end = int(end)
 
-    #todo
-    #annotations=[]
-    #annotations = query.get_annotation_list(chromosome, start, end)
-
     resultDict = query.get_segments(chrom, start, end)
-    print("ready")
+    
+    chr = chrom.split("#")[1]
+    annotations = query.get_annotations(chr, start, end)
+    resultDict["annotations"] = annotations
 
+    print("ready")
     return resultDict, 200
 
 @app.route('/subgraph', methods=["GET"])
 def subgraph():
-    type = request.args.get("type")
-    id = request.args.get("id")
-    print(f"Getting subgraph for {type}:{id}...")
+    nodeid = request.args.get("nodeid")
+    print(f"Getting subgraph for {nodeid}...")
 
-    id = int(id)
-    resultDict = query.get_subgraph(type, id)
+    nodeid = int(nodeid)
+    resultDict = query.get_subgraph(nodeid)
     return resultDict, 200
 
 @app.route('/haplotypes', methods=["GET"])
@@ -83,12 +85,11 @@ if __name__ == '__main__':
             if value:
                 flag = True
 
-        #neo4jdb.add_bubble_properties()
-        #neo4jdb.connect_bubble_ends_to_chain()
         if args.drop:
             print("dropping all")
             #neo4jdb.drop_all()
-            neo4jdb.drop_bubbles()
+            #neo4jdb.drop_bubbles()
+            neo4jdb.drop_annotations()
 
         if args.gencode:
             args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
@@ -109,17 +110,25 @@ if __name__ == '__main__':
             parser.print_help()
 
         if args.gfa and args.layout:
-            ingest.store_graph(args.gfa, args.layout)
+            print("Parsing layout...")
+            layoutCoords = parse_layout(args.layout)
+            print("Parsing GFA...")
+            parse_graph(args.gfa, layoutCoords)
+            print("Done.")
             
         #if args.ref:
-        #    import db.ingest as ingest
-        #    ingest.store_ref_coords(args.ref)
+            #if ref.endswith(".gaf") or ref.endswith(".gaf.gz"):
+            #    parse_coords(ref)
 
         if args.bubbles:
-            ingest.store_bubbles(args.bubbles)
-
+            print("Parsing bubbles...")
+            parse_bubbles(args.bubbles)
+            print("Done.")
+            
         if args.gff3:
-            ingest.store_annotations(args.gff3)
+            print("Parsing GFF3...")
+            parse_gff3(args.gff3)
+            print("Done.")
 
 
         if not flag:
