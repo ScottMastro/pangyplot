@@ -9,37 +9,58 @@
     rx: 5px;
 }
 
-.genome-annotation-chr{
-    font-size: 0.8em;
+#cytoband-container{
+    display: flex;
+
 }
+
+#genome-cytoband{
+    background-color: #ceded5;
+    padding:10px;
+    border-radius: 10px;
+    margin-right: auto;
+    margin-left: auto;
+    overflow-x: auto;
+
+    .genome-annotation-chr{
+        font-size: 0.8em;
+    }
+
+    .chromosome-band{
+        pointer-events: none;
+    }
+
+    .chromosome-selection-genome{
+        fill: var(--not-highlight);
+    }
+    .chromosome-selection-highlight{
+        fill: var(--highlight) !important;
+    }
+    .chromosome-selection-genome:hover{
+        fill: var(--highlight);
+        cursor: pointer;
+    }
+
+}
+
 
 .annotation-highlight-label{
     fill: black;
 }
 
-#chromosome{
+#chromosome-cytoband{
     background-color: #ceded5;
     border-radius: 10px;
     width: 98vw;
     margin-right: auto;
     margin-left: auto;
-    overflow-x: auto
-}
-.chromosome-selection-highlight{
-    fill: var(--highlight) !important;
-}
-.chromosome-selection-genome{
-    fill: var(--not-highlight);
-}
-.chromosome-selection-genome:hover{
-    fill: var(--highlight);
-    cursor: pointer;
-}
-.chromosome-band{
-    pointer-events: none;
-}
-.chromosome-annotation-band{
-    font-size: 0.6em;
+    overflow-x: auto;
+
+
+    .chromosome-annotation-band{
+        font-size: 0.6em;
+    }
+    
 }
 
 #graph-container {
