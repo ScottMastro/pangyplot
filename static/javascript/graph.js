@@ -5,7 +5,8 @@ const LIGHTNESS_SCALE=0.0;
 
 var GETTING_SUBGRAPH = new Set();
 var forceGraph = null;
-var annotations = [];
+var annotationInfo = {};
+var nodeInfo = {};
 
 var X_COORD_SHIFT = 0;
 var Y_COORD_SHIFT = 0;
@@ -76,47 +77,28 @@ function node_paint(node, ctx) {
     ][shape]();
 }
 
-function draw_gene_outline(ctx, graphData){
+function draw_gene_outline(ctx, graph){
 
-    let nodes = graphData.nodes
-    for (let i = 0, n = nodes.length, node; i < n; ++i) {
-        node = nodes[i];
+    var hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE*(1/LAST_ZOOM/10))
+    graph.nodes.forEach(node => {
+        node.annotations.forEach(annotation => {
+            color = intToColor(annotation, lightness=LIGHTNESS_SCALE);
+            highlight_node(node, ctx, 0, hsize, color);
+        });
+     });
 
-        //node.annotations.sort(function(a, b) { return a - b; });
-
-        for (let j = 0, m = annotations.length; j < m; ++j) {
-            if (node.start != null){
-                if (annotations[j].start <= node.end &&
-                    annotations[j].end >= node.start){
-                        color = intToColor(annotations[j].aid, lightness=LIGHTNESS_SCALE);
-                        highlight_node(node, ctx, 0, Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE*(1/LAST_ZOOM/10)), color);
-                    }
-            }
-        }
-    }
-    
-    // TODO
-    return
-    let links = graphData.links
-    for (let i = 0, n = links.length, link; i < n; ++i) {
-            link = links[i];
-
-            link.annotations.sort(function(a, b) {
-            return a - b;
-            });
-
-        for (let j = 0, m = link.annotations.length; j < m; ++j) {
-            if (annotationDict[link.annotations[j]].type == "gene"){
-                color = intToColor(link.annotations[j], lightness=LIGHTNESS_SCALE);
-                highlight_link(link, ctx, 0, Math.max(80, 80*(1/LAST_ZOOM/10)), color);
-            }
-        }
-    }
+    hsize = Math.max(HIGHLIGHT_SIZE+40, (HIGHLIGHT_SIZE+40)*(1/LAST_ZOOM/10))
+    graph.links.forEach(link => {
+        link.annotations.forEach(annotation => {
+            color = intToColor(annotation, lightness=LIGHTNESS_SCALE);
+            highlight_link(link, ctx, 0, hsize, color);
+        });
+     });
 }
 
 function get_link_color(link){
 
-    if (link.class == "node"){        
+    if (link.class === "node"){        
         switch (link.type) {
             case "segment":
                 return SEGMENT_COLOR;
@@ -129,7 +111,7 @@ function get_link_color(link){
         }
     }
    
-    if (link.class == "edge"){
+    if (link.class === "edge"){
         if(should_highlight_link(link)){
             return HIGHLIGHT_LINK_COLOR;
         }
@@ -218,6 +200,44 @@ function pre_render(ctx, graphData){
     ctx.restore();
 }
 
+var fullSequence ="";
+function updateGraphInfo(nodeid) {
+    node = nodeInfo[nodeid];
+    document.getElementById('info-node-id').textContent = node.id || '';
+    document.getElementById('info-node-type').textContent = node.type || '';
+    document.getElementById('info-chromosome').textContent = node.chrom || '';
+    document.getElementById('info-start').textContent = node.start || '';
+    document.getElementById('info-end').textContent = node.end || '';
+    document.getElementById('info-length').textContent = node.length || '';
+
+    fullSequence = node.sequence || '';
+    const truncatedSequence = fullSequence.substr(0, 10);
+    let seq = truncatedSequence + (fullSequence.length > 10 ? '...' : '');
+    document.getElementById('info-sequence').textContent = seq;
+
+    if ('subtype' in node) {
+        document.getElementById('optional-subtype').style.display = 'block';
+        document.getElementById('info-subtype').textContent = node.subtype;
+      } else {
+        document.getElementById('optional-subtype').style.display = 'none';
+      }
+    
+      if ('n' in node) {
+        document.getElementById('optional-number-inside').style.display = 'block';
+        document.getElementById('info-number-inside').textContent = node.n;
+      } else {
+        document.getElementById('optional-number-inside').style.display = 'none';
+      }
+  }
+  
+document.getElementById('info-copy-sequence').addEventListener('click', function() {
+    navigator.clipboard.writeText(fullSequence).then(() => {
+        console.log('Sequence copied to clipboard');
+    }).catch(err => {
+        console.error('Error copying text: ', err);
+    });
+});
+
 function post_render(ctx, graphData){
 
     ctx.save();
@@ -231,14 +251,15 @@ function post_render(ctx, graphData){
 
     if (HIGHLIGHT_NODE != null){
         highlight = nodeid_split(HIGHLIGHT_NODE);
-        
+        updateGraphInfo(highlight)
+
         let nodes = graphData.nodes;
-        var node; var id;
+        var node;
         for (let i = 0, n = nodes.length; i < n; ++i) {
             node = nodes[i];
-            if (highlight == node.nodeid){
+            if (highlight === node.nodeid){
                 var color = "grey";
-                if (HIGHLIGHT_NODE == node.__nodeid){
+                if (HIGHLIGHT_NODE === node.__nodeid){
                     color="red";
                 }
                 draw_circle_outline(ctx, node.x, node.y, Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE/LAST_ZOOM/10), color, lineWidth=3/LAST_ZOOM, fill="rgba(0, 0, 0, 0)");
@@ -262,17 +283,17 @@ function draw_graph(graph){
     //for (let i = 0, n = graph.annotations.length; i < n; ++i) {
     //    annotationDict[graph.annotations[i].index] = graph.annotations[i];
     //}
-
-    
     //.linkDirectionalParticles(4)
     console.log(graph);
 
     forceGraph = ForceGraph()(CANVAS)
+        .height(window.innerHeight)
+        .width(window.innerWidth)
         .graphData(graph)
         .backgroundColor(BACKGROUND_COLOR)
         .d3VelocityDecay(VELOCITY_DECAY)
-        .nodeId('__nodeid')
-        .nodeLabel('__nodeid')
+        .nodeId("__nodeid")
+        .nodeLabel("__nodeid")
         .linkColor(link => get_link_color(link))
         .nodeColor(node => get_node_color(node))
         .onNodeHover(highlight_node)
@@ -298,17 +319,17 @@ function draw_graph(graph){
 
     function highlight_link(link){
         if (link == null){ HIGHLIGHT_NODE = [] }
-        else if (link.class == "node"){
+        else if (link.class === "node"){
             HIGHLIGHT_NODE = [id_split(link.source.__nodeid)] ;
         }
     }
 
     forceGraph.onRenderFramePre((ctx) => { pre_render(ctx, forceGraph.graphData()); })
-    forceGraph.onRenderFramePost((ctx) => {post_render(ctx, forceGraph.graphData()); })
+    forceGraph.onRenderFramePost((ctx) => { post_render(ctx, forceGraph.graphData()); })
     // --- FORCES ---
 
     function link_force_distance(link) {
-        return (link.type == "edge") ? 10 : link.length ;
+        return (link.type === "edge") ? 10 : link.length ;
     }
 
     forceGraph.d3Force('link').distance(link_force_distance).strength(0.5).iterations(1)
@@ -353,15 +374,13 @@ function fetch(chromosome, start, end) {
 
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+        if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
             var data = JSON.parse(xmlHttp.response);
 
-            annotations = data.annotations.filter(a => a.type == "gene" );
-            console.log("annotations", annotations);
             // TODO
             //update_path_selector(data.paths)
 
-            graph = process_graph(data);
+            graph = process_graph_data(data);
             draw_graph(graph);
         }
     }
@@ -377,7 +396,7 @@ function fetch_haps(chromosome, start, end) {
 
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+        if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
             var data = JSON.parse(xmlHttp.response);
             console.log(data);
         }
@@ -393,7 +412,7 @@ function fetch_subgraph(originNode){
 
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200){
+        if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
             var subgraph = JSON.parse(xmlHttp.response);
 
             graph = forceGraph.graphData();

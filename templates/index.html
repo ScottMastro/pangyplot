@@ -10,7 +10,7 @@
     <script src="{{url_for('static', filename='javascript/force-graph.min.js')}}"></script>
     <script src="{{url_for('static', filename='javascript/d3.js')}}"></script>
     <script src="{{url_for('static', filename='javascript/d3-annotation.min.js')}}"></script>
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body>
@@ -32,7 +32,23 @@
 </select>
 <input type="submit" value="Submit">
 
-<div id="graph"></div>
+<div id="graph-container">
+
+    <div id="graph-info">
+        <div>Node ID: <span id="info-node-id"></span></div>
+        <div>Node Type: <span id="info-node-type"></span></div>
+        <div>Chromosome: <span id="info-chromosome"></span></div>
+        <div>Start: <span id="info-start"></span></div>
+        <div>End: <span id="info-end"></span></div>
+        <div>Length: <span id="info-length"></span></div>
+        <div>Sequence: <span id="info-sequence"></span>
+            <button id="info-copy-sequence" title="Copy sequence"><i class="fa fa-copy"></i></button></div>
+        <div id="optional-subtype" style="display: none;">Subtype: <span id="info-subtype"></span></div>
+        <div id="optional-number-inside" style="display: none;">Number Inside: <span id="info-number-inside"></span></div>
+    </div>
+    <div id="graph"></div>
+
+</div>
 
 <script src="{{url_for('static', filename='javascript/graph.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/graph-construct.js')}}"></script>
