@@ -6,7 +6,7 @@ const KINK_SIZE = 100
 const NODE_SEGMENT_WIDTH = 21
 const SINGLE_NODE_THRESH = 6
 const EDGE_LENGTH = 10
-const EDGE_WIDTH = 4
+const EDGE_WIDTH = 2
 
 var INIT_POSITIONS = {}
 var NODEIDS = {}
@@ -28,7 +28,7 @@ function get_coordinates(node, n=1, i=0){
         x = node["x"];
         y = node["y"];
     } else {
-        if (n == 1) {
+        if (n === 1) {
             x = (node["x1"] + node["x2"]) / 2;
             y = (node["y1"] + node["y2"]) / 2;
         } else {
@@ -82,7 +82,8 @@ function process_nodes(nodes) {
         let n = (length < SINGLE_NODE_THRESH) ? 1 : Math.floor(length / KINK_SIZE) + 2;
         let nodeid = String(node.nodeid)
         
-        node = scale_node(node)
+        nodeInfo[nodeid] = node
+        //node = scale_node(node)
         INIT_POSITIONS[nodeid] = get_coordinates(node)
         NODEIDS[nodeid] = [];
 
@@ -90,9 +91,9 @@ function process_nodes(nodes) {
             let newNode = {};
             newNode["nodeid"] = nodeid;
             newNode["__nodeid"] = `${nodeid}#${i}`;
+            newNode["__nodeidx"] = i;
             NODEIDS[nodeid].push(newNode["__nodeid"]); 
-            newNode["id"] = String(node["id"]);
-            newNode["class"] = (i == 0 || i == n-1) ? "end" : "mid";
+            newNode["class"] = (i === 0 || i === n-1) ? "end" : "mid";
             
             ["chrom", "start", "end", "subtype"].forEach(key => {
                 if (node.hasOwnProperty(key)) {
@@ -104,8 +105,10 @@ function process_nodes(nodes) {
             newNode["x"] = xy[0];
             newNode["y"] = xy[1];
 
-            newNode["type"] = node["type"]
+            newNode["type"] = node["type"];
+
             newNode["isref"] = node.hasOwnProperty("chrom");
+            newNode["annotations"] = [];
 
             graphNodes.push(newNode);
 
@@ -113,10 +116,12 @@ function process_nodes(nodes) {
                 let newLink = {};
                 newLink["source"] = `${nodeid}#${i-1}`;
                 newLink["target"] = newNode["__nodeid"];
+                newLink["nodeid"] = nodeid;
                 newLink["class"] = "node";
                 newLink["type"] = node["type"];
                 newLink["length"] = length / n;
                 newLink["width"] = NODE_SEGMENT_WIDTH;
+                newLink["annotations"] = []
                 graphLinks.push(newLink);
             }
         }
@@ -125,16 +130,91 @@ function process_nodes(nodes) {
     return [graphNodes, graphLinks];
 }
 
-function process_graph(graph){
+
+function store_annotations(annotations) {
+    filteredAnnotations = annotations.filter(a => a.type === "gene");
+    filteredAnnotations.forEach(annotation => {
+        annotationInfo[annotation.aid] = annotation;
+    });
+}
+
+function is_overlap(annotation, node) {
+    // TODO: check for chromosome name??
+    if (node.start == null){ return false }
+
+    if (node.start <= annotation.end && node.end >= annotation.start){
+        var pointPosition = calculate_effective_position(node);
+        return pointPosition >= annotation.start && pointPosition <= annotation.end;
+    }
+}
+
+function calculate_effective_position(node){
+    if (!node.hasOwnProperty("start")){
+        return null;
+    }
+    var start = node.start;
+    var end = node.end;
+    var n = NODEIDS[node.nodeid].length;
+    var i = node.__nodeidx;
+
+    if (n === 1){
+        return (start+end)/2;
+    }
+    if (i === n-1){
+        return end;
+    }
+
+    return (start + i*(end-start)/(n-1));
+}
+
+function update_annotations(graph) {
+
+    var annotationSet, aid;
+    Object.values(annotationInfo).forEach(annotation => {
+        annotationSet = new Set();
+        aid = annotation.aid;
+        graph.nodes.forEach(node => {
+            node["annotations"] = []
+            if(is_overlap(annotation, node)){
+                annotationSet.add(node.__nodeid);
+                node.annotations.push(aid);
+            }
+        });
+
+        var source, target;
+        graph.links.forEach(link => {
+            link["annotations"] = [];
+
+            //link could be a link object or simple dictionary
+            source = (typeof link.source === 'string') ? link.source : link.source.__nodeid;
+            target = (typeof link.target === 'string') ? link.target : link.target.__nodeid;
+
+            // TODO: partial annotation on link?
+            if (annotationSet.has(source) && annotationSet.has(target)){
+                link.annotations.push(aid);
+            }
+
+        });
+
+    });
+    return graph;
+}
+
+
+
+function process_graph_data(data){
     
-    let result = process_nodes(graph.nodes);
+    store_annotations(data.annotations);
+
+    let result = process_nodes(data.nodes);
     let nodes = result[0];
     let nodeLinks = result[1];
 
-    let links = process_edge_links(graph.links);
-    
-    return {"nodes": nodes, "links": links.concat(nodeLinks),
-     "annotations": graph.annotations};
+    let links = process_edge_links(data.links);
+    var graph = {"nodes": nodes, "links": links.concat(nodeLinks)}
+    update_annotations(graph)
+
+    return graph;
 }
 
 
@@ -181,7 +261,7 @@ function process_subgraph(subgraph, originNode, graph){
     
     graph.nodes = graph.nodes.concat(nodes);
     graph.links = graph.links.concat(links).concat(nodeLinks);
-
+    graph = update_annotations(graph);
 
     return graph;
 }
