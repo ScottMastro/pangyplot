@@ -88,9 +88,9 @@ if __name__ == '__main__':
 
         if args.drop:
             print("dropping all")
-            #neo4jdb.drop_all()
+            neo4jdb.drop_all()
             #neo4jdb.drop_bubbles()
-            neo4jdb.drop_annotations()
+            #neo4jdb.drop_annotations()
 
         if args.gencode:
             args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
