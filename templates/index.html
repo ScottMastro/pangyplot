@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>grapher</title>
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename= 'favicon.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename= 'images/favicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">   
 
     <script src="{{url_for('static', filename='javascript/force-graph.min.js')}}"></script>
@@ -20,18 +20,28 @@
 </head>
 
 <body>
-
-<div id="cytoband-container">
-    <div id="genome-cytoband"></div> 
-    <div id="chromosome-cytoband"></div>
+<div id="header-container">
+    <img src="{{url_for('static', filename='images/pangyplot_logo.svg')}}" id="pangyplot-logo"></img>
 </div>
 
-<div id="filter"></div>
+<hr>
 
-<label for="start-coord">Start:</label>
-<input type="text" id="start-coord" name="start-coord">
-<label for="end-coord">End:</label>
-<input type="text" id="end-coord" name="end-coord"><br><br>
+<div id="cytoband-container">
+    <div id="genome-cytoband-container"></div> 
+    <div id="chromosome-container">
+        <div id="chromosome-cytoband-container"></div>
+
+
+        <div id="filter">
+            <label for="start-coord">Start:</label>
+            <input type="text" id="start-coord" name="start-coord">
+            <label for="end-coord">End:</label>
+            <input type="text" id="end-coord" name="end-coord"><br><br>
+        </div>
+
+    </div>
+</div>
+
 
 <select id="path-selector" name="path-selector">
     <!-- The options will be appended here by the JavaScript -->

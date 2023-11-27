@@ -1,12 +1,18 @@
 :root {
-    --highlight: seagreen;
-    --not-highlight: #33473c;
+    --highlight: #ffe268;
+    --darker-green: #384034;
+    --dark-green: #5d6c53;
+    --light-green: #93ac9d;
+    --lighter-green: #bcccc2;
   }
+
+#pangyplot-logo{
+    height: 100px;
+}
 
 .annotation-highlight{
     fill: var(--highlight) !important;
     fill-opacity: 0.5;
-    rx: 5px;
 }
 
 #cytoband-container{
@@ -14,13 +20,12 @@
 
 }
 
-#genome-cytoband{
-    background-color: #ceded5;
+#genome-cytoband-container{
+    background-color: var(--lighter-green);
     padding:10px;
+    margin:5px;
     border-radius: 10px;
-    margin-right: auto;
-    margin-left: auto;
-    overflow-x: auto;
+    width: 34%;
 
     .genome-annotation-chr{
         font-size: 0.8em;
@@ -31,7 +36,7 @@
     }
 
     .chromosome-selection-genome{
-        fill: var(--not-highlight);
+        fill: var(--light-green);
     }
     .chromosome-selection-highlight{
         fill: var(--highlight) !important;
@@ -43,24 +48,30 @@
 
 }
 
-
+.annotation-text {
+    fill: var(--darker-green);
+}
 .annotation-highlight-label{
     fill: black;
 }
 
-#chromosome-cytoband{
-    background-color: #ceded5;
+#chromosome-container{
+    background-color: var(--lighter-green);
     border-radius: 10px;
-    width: 98vw;
-    margin-right: auto;
-    margin-left: auto;
-    overflow-x: auto;
+    width: 67%;
+    padding:10px;
+    margin: 5px;
 
+    #chromosome-cytoband-container{
+        background-color: var(--light-green);
+        padding-top: 10px;
+        margin-bottom: 10px;
+        border-radius: 10px;
 
-    .chromosome-annotation-band{
-        font-size: 0.6em;
-    }
-    
+        .chromosome-annotation-band{
+            font-size: 0.5em;
+        }
+    }   
 }
 
 #graph-container {

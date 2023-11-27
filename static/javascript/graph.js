@@ -275,6 +275,13 @@ function updateGraphData(graph) {
     forceGraph.graphData({ nodes: graph.nodes, links: graph.links });
 };
 
+window.addEventListener('resize', () => {
+    forceGraph
+        .height(window.innerHeight)
+        .width(window.innerWidth);
+});
+
+
 function draw_graph(graph){
 
     //graph = shift_coord(graph)
