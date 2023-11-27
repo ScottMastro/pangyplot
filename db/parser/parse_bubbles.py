@@ -46,3 +46,4 @@ def parse_bubbles(jsonFile):
     neo4jdb.add_null_nodes()
     neo4jdb.add_bubble_properties()
     neo4jdb.connect_bubble_ends_to_chain()
+    neo4jdb.add_chain_complexity()

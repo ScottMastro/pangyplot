@@ -447,8 +447,41 @@ function explode_nodes(nodes){
     nodes.forEach(node => {
         explode_node(node, update=false);
     });
-    updateGraphData(forceGraph.graphData());
 }
+
+function explode_complex_nodes(nodes){
+    nodes.forEach(node => {
+        explode_node(node, update=false);
+    });
+}
+
+
+//todo
+function collapse_nodes(nodes){
+    let groups = new Map();
+
+    graph.links.forEach(link => {
+        if (link.class === "edge"){ 
+
+            let source = graph.nodes.find(node => node.id === link.source);
+            let target = graph.nodes.find(node => node.id === link.target);
+
+            // Check the specified conditions
+            if ((source.type === 'segment' || source.subtype !== 'super') &&
+                (target.type === 'segment' || target.subtype !== 'super') &&
+                !graph.links.some(l => l.source === link.source && l.target !== link.target)) {
+
+                // Group the nodes
+                let groupKey = source.id < target.id ? `${source.id}-${target.id}` : `${target.id}-${source.id}`;
+                groups.set(groupKey, [source, target]);
+            }
+        }
+    });
+
+}
+
+
+
 fetch("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
 
 //fetch("chr7", 144084904, 144140209); //PRSS region
