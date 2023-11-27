@@ -1,4 +1,3 @@
-//import { drawGenome } from './genome-drawer.js';
 const DEFAULT_CHR="chr1"
 
 function fetchAndDrawGenome(initialChr) {

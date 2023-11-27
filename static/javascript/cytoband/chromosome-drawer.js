@@ -1,57 +1,62 @@
-const CHROMOSOME_CYTOBAND_ID="chromosome-cytoband"
+const CHR_CANVAS_CONTAINER_ID="chromosome-cytoband-container"
+const CHR_CANVAS_ID="chromosome-cytoband-canvas"
 
 function drawChromosome(chromosomeData) {
-    resetChromosomeContainer();
+    resetChromosomeContainer(CHR_CANVAS_CONTAINER_ID);
     const dimensions = calculateChromosomeDimensions();
-    const svg = createChromosomeSvg(dimensions);
+    const svg = createChromosomeSvg(CHR_CANVAS_CONTAINER_ID, dimensions, CHR_CANVAS_ID);
 
     drawChromosomeBands(svg, chromosomeData, dimensions);
     const annotations = createChromosomeAnnotations(chromosomeData, dimensions);
     addChromosomeAnnotations(svg, annotations);
 }
 function calculateChromosomeDimensions() {
-    return {
-        height: 80,
-        totalWidth: window.innerWidth * 0.6,
-        padding: 20,
+
+    let dimensions =  {
+        widthPad: 15,
+        chrWidth: 800,
+        chrHeight: 40,
         annotationHeight: 10,
         annotationLayerHeight: 20,
         fontHeight: 20
     };
+    dimensions.width = dimensions.chrWidth + dimensions.widthPad*2;
+    dimensions.height = dimensions.chrHeight + dimensions.annotationHeight + dimensions.annotationLayerHeight + dimensions.fontHeight;
+    return dimensions;
 }
 
-function resetChromosomeContainer() {
-    document.getElementById(CHROMOSOME_CYTOBAND_ID).innerHTML = "";
+function resetChromosomeContainer(containerId) {
+    document.getElementById(containerId).innerHTML = "";
 }
 
-function createChromosomeSvg(dimensions) {
-    return d3.select("#" + CHROMOSOME_CYTOBAND_ID)
+function createChromosomeSvg(containerId, dimensions, svgId) {
+    const viewBoxValue = `0 0 ${dimensions.width} ${dimensions.height}`;
+    
+    return d3.select("#" + containerId)
         .append("svg")
-        .attr("width", dimensions.totalWidth)
-        .attr("height", dimensions.height + dimensions.padding * 2 + dimensions.annotationHeight + dimensions.annotationLayerHeight + dimensions.fontHeight)
-        .attr("padding-right", dimensions.padding);
+        .attr("id", svgId)
+        .attr("width", "100%")
+        .attr("height", "auto")
+        .attr("viewBox", viewBoxValue);
 }
 
 function drawChromosomeBands(svg, data, dimensions) {
-    const chrWidth = dimensions.totalWidth - dimensions.padding * 2;
-
-    svg.selectAll("foo")
+    svg.selectAll("x")
         .data(data)
         .enter()
         .append("rect")
-        .attr("x", d => (dimensions.padding + d.x * chrWidth))
-        .attr("y", dimensions.padding)
-        .attr("width", d => (d.size * chrWidth))
-        .attr("height", dimensions.height)
+        .attr("x", d => (dimensions.widthPad + d.x * dimensions.chrWidth))
+        .attr("y", 0)
+        .attr("width", d => (d.size * dimensions.chrWidth))
+        .attr("height", dimensions.chrHeight)
         .attr("fill", d => d.color);
 }
 
 function createChromosomeAnnotations(data, dimensions) {
-    const chrWidth = dimensions.totalWidth - dimensions.padding * 2;
     return data.map((item, i) => ({
         note: { label: item.name },
-        x: (dimensions.padding + item.x * chrWidth) + (item.size * chrWidth) / 2,
-        y: dimensions.padding + dimensions.height,
+        x: dimensions.widthPad + (item.x * dimensions.chrWidth) + (item.size * dimensions.chrWidth) / 2,
+        y: dimensions.chrHeight,
         dy: dimensions.annotationHeight + (i % 2 === 0 ? dimensions.annotationLayerHeight : 0),
         dx: 0
     }));
@@ -65,4 +70,7 @@ function addChromosomeAnnotations(svg, annotations) {
     svg.append("g")
         .attr("class", "chromosome-annotation-band")
         .call(makeAnnotations);
+
+        svg.selectAll('.annotation text')
+        .attr('class', 'annotation-text')
 }

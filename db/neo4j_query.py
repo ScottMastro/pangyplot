@@ -55,8 +55,11 @@ def get_chain_subgraph(nodeid):
     with driver.session() as session:
 
         query = """
-                MATCH (n)-[:INSIDE]->(t)
-                WHERE ID(t) = $i
+                MATCH (n)-[:PARENT|INSIDE]->(t)
+                WHERE ID(t) = $i AND NOT EXISTS {
+                    MATCH (n)-[:PARENT|INSIDE]->(m)
+                    WHERE ID(m) <> ID(t) AND (m)-[:PARENT|INSIDE*]->(t)                
+                }
                 OPTIONAL MATCH (n)-[r1:END]-(s1:Segment)
                 OPTIONAL MATCH (n)-[r2:LINKS_TO]-(s2:Segment)
                 RETURN n, labels(n) AS type, collect(DISTINCT r1) AS ends, collect(DISTINCT r2) AS links

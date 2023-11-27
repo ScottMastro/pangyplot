@@ -1,15 +1,15 @@
-const GENOME_CYTOBAND_ID="genome-cytoband"
+const GENOME_CANVAS_CONTAINER_ID="genome-cytoband-container"
+const GENOME_CANVAS_ID="genome-cytoband-canvas"
 
 function drawGenome(data, chrOrder, initialChr) {
-
     const chrDimensions = { height: 200, width: 10 };
     const border = { padding: 8, height: chrDimensions.height + 16, width: chrDimensions.width + 16 };
-    const spacing = { horizontal: 4, vertical: 20, fontHeight: 20 };
+    const spacing = { horizontal: 4, vertical: 10, fontHeight: 20 };
     const annotation = { height: 10, layerHeight: 20 };
     
     const totalDimensions = calculateTotalDimensions(data, chrDimensions, border, spacing, annotation);
 
-    const svg = createSvgCanvas(GENOME_CYTOBAND_ID, totalDimensions);
+    const svg = createSvgCanvas(GENOME_CANVAS_CONTAINER_ID, totalDimensions, GENOME_CANVAS_ID);
     const longestChrSize = getLongestChromosomeSize(data);
 
     let annotations = [];
@@ -32,11 +32,14 @@ function calculateTotalDimensions(data, chrDimensions, border, spacing, annotati
     return { width, height };
 }
 
-function createSvgCanvas(containerId, dimensions) {
+function createSvgCanvas(containerId, dimensions, svgId) {
+    const viewBoxValue = `0 0 ${dimensions.width} ${dimensions.height}`;
     return d3.select("#" + containerId)
         .append("svg")
-        .attr("width", dimensions.width)
-        .attr("height", dimensions.height);
+        .attr("id", svgId)
+        .attr("width", "100%")
+        .attr("height", "auto")
+        .attr("viewBox", viewBoxValue);
 }
 
 function getLongestChromosomeSize(data) {
@@ -70,8 +73,7 @@ function drawGenomeChromosomeBorder(svg, x, border, chrName) {
 }
 
 function drawGenomeChromosomeBands(svg, chrData, xBorder, chrDimensions, border, longestChrSize) {
-    console.log("hi")
-    svg.selectAll("foo")
+    svg.selectAll("x")
         .data(chrData)
         .enter()
         .append("rect")
@@ -106,6 +108,10 @@ function addAnnotations(svg, annotations) {
         .annotations(annotations);
 
     annotationsGroup.call(makeAnnotations);
+
+    svg.selectAll('.annotation text')
+    .attr('class', 'annotation-text')
+
 }
 
 function highlightGenomeChr(chrName) {
