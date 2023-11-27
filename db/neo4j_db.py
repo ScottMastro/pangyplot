@@ -278,6 +278,20 @@ def add_bubble_properties():
             
     driver.close()
 
+def add_chain_complexity():
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+        query = """
+        MATCH (b:Bubble)-[r:INSIDE]->(c:Chain)
+        WITH c, 
+            CASE WHEN ANY(bubble IN collect(b) WHERE bubble.subtype = "super") THEN "super" 
+                ELSE "simple" 
+            END as subtype
+        SET c.subtype = subtype
+        """
+        session.run(query)
+            
+    driver.close()
 
 
 def add_segments(segments, batch_size=10000):

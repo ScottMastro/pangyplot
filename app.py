@@ -80,6 +80,7 @@ if __name__ == '__main__':
         parser.add_argument('--gencode', help='Add genocode annotations', action='store_true')
         args = parser.parse_args()
 
+        neo4jdb.add_chain_complexity()
         flag = False
         for attr, value in vars(args).items():
             if value:

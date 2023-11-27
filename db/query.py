@@ -47,16 +47,8 @@ def get_annotations(chrom, start, end):
     return annotations
 
 def get_subgraph(nodeid):
-    type = "chain"
-    if type == "bubble":
-        segments,links = q.get_bubble_subgraph(nodeid)
-        return {"nodes": segments, "links": links}
-
-    elif type == "chain":
-        nodes,links = q.get_chain_subgraph(nodeid)
-        return {"nodes": nodes, "links": links}
-
-    return {"nodes": [], "links": []}
+    segments,links = q.get_subgraph(nodeid)
+    return {"nodes": segments, "links": links}
 
 
 

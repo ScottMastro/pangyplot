@@ -7,6 +7,16 @@ uri = "neo4j://localhost:7687"
 username = "neo4j"
 password = "password"  # Replace with the password you set
 
+#singleton chain
+"""
+MATCH (b:Bubble)-[:INSIDE|PARENT]->(c:Chain)
+WHERE NOT EXISTS {
+    MATCH (b2:Bubble)-[:INSIDE|PARENT]->(c)
+    WHERE ID(b2) <> ID(b)
+}
+RETURN b,c LIMIT 200
+"""
+
 def db_init():
     load_dotenv()
     #db_user = os.getenv("DB_USER")
@@ -49,7 +59,7 @@ def get_link_record(record):
             "class": "edge"}
     return link
 
-def get_chain_subgraph(nodeid):
+def get_subgraph(nodeid):
     nodes,links = [],[]
     driver = GraphDatabase.driver(uri, auth=(username, password))
     with driver.session() as session:
@@ -79,6 +89,38 @@ def get_chain_subgraph(nodeid):
                 link = get_link_record(r)
                 links.append(link)
 
+    print("nnodes", len(nodes))
+    driver.close()
+    return nodes, links
+
+def get_subgraph_simple(nodeid):
+    nodes,links = [],[]
+    driver = GraphDatabase.driver(uri, auth=(username, password))
+    with driver.session() as session:
+
+        query = """
+                MATCH (t)<-[:PARENT|INSIDE*]-(n)
+                WHERE ID(t) = $i AND n.subtype <> "super" AND NOT EXISTS {
+                    MATCH (n)-[:PARENT|INSIDE]->(m)
+                    WHERE m.subtype <> "super"
+                }
+                OPTIONAL MATCH (n)-[r:END]-(s:Segment)
+                RETURN n, s, labels(n) AS type, collect(DISTINCT r) AS ends
+                """
+        result = session.run(query, {"i": nodeid})
+
+        for record in result:
+            node = get_node_record(record["n"], record["type"][0])
+            if node is not None:
+                nodes.append(node)
+            node = get_segment_record(record["s"])
+            if node is not None:
+                nodes.append(node)
+
+
+            for r in record["ends"]:
+                link = get_link_record(r)
+                links.append(link)
 
     print("nnodes", len(nodes))
     driver.close()
