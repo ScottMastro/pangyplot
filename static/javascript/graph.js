@@ -221,6 +221,14 @@ function updateGraphInfo(nodeid) {
       } else {
         document.getElementById('optional-subtype').style.display = 'none';
       }
+
+      if ('size' in node) {
+        document.getElementById('optional-size').style.display = 'block';
+        document.getElementById('info-size').textContent = node.size;
+      } else {
+        document.getElementById('optional-size').style.display = 'none';
+      }
+
     
       if ('n' in node) {
         document.getElementById('optional-number-inside').style.display = 'block';

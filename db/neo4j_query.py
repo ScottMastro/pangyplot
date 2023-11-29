@@ -175,8 +175,12 @@ def get_top_level_chains(chrom, start, end):
             for r in record["ends"]:
                 link = get_link_record(r)
                 links.append(link)
+                if str(link["target"]) == "2778407":
+                    print("chain",link)
+
             chain = get_chain_record(record["c"]) 
             chains.append(chain)
+
 
     print("nchains", len(chains))
     driver.close()
@@ -205,9 +209,10 @@ def get_top_level_bubbles(chrom, start, end):
             for r in record["ends"]:
                 link = get_link_record(r)
                 links.append(link)
+                if str(link["target"]) == "2778407":
+                    print("bubble",link)
             bubble = get_bubble_record(record["b"]) 
             bubbles.append(bubble)
-
     print("nbubs", len(bubbles))
     driver.close()
     return bubbles,links
@@ -224,7 +229,7 @@ def get_top_level_segments(chrom, start, end):
                     MATCH (s)-[:INSIDE]->(n)
                     WHERE n.start >= $start AND n.end <= $end AND n.chrom = $chrom
                 }
-                MATCH (s)-[r:LINKS_TO]-(m:Segment) 
+                MATCH (s)-[r:LINKS_TO]->(m:Segment) 
                 RETURN s, collect(r) AS links
                 """
         parameters = {"start": start, "end": end, "chrom": chrom}
@@ -236,6 +241,9 @@ def get_top_level_segments(chrom, start, end):
             for r in record["links"]:
                 link = get_link_record(r)
                 links.append(link)
+                if str(link["target"]) == "2778407":
+                    print("segment",link)
+
             segment = get_segment_record(record["s"]) 
             segments.append(segment)
 
