@@ -127,9 +127,11 @@ def shoot():
     after = len(graph.nodes)
     print(f"{after}/{before} segments retained.")
 
-    print("Finding bubbles and chains...")
+    print("Finding bubbles chains...")
     find_bubbles(graph)
+    print("Connecting bubbles...")
     connect_bubbles(graph)
+    print("Building hierarchy...")
     find_parents(graph)
 
     b_numbers = graph.bubble_number()
