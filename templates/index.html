@@ -6,15 +6,16 @@
     <title>grapher</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename= 'images/favicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename= 'css/style.css') }}">   
+    <link rel="stylesheet" href="{{ url_for('static', filename= 'css/button.css') }}">   
 
     <script src="{{url_for('static', filename='javascript/force-graph.min.js')}}"></script>
     <script src="{{url_for('static', filename='javascript/d3.js')}}"></script>
     <script src="{{url_for('static', filename='javascript/d3-annotation.min.js')}}"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    <script src="{{url_for('static', filename='javascript/cytoband/cytoband.js')}}"></script>
-    <script src="{{url_for('static', filename='javascript/cytoband/genome-drawer.js')}}"></script>
-    <script src="{{url_for('static', filename='javascript/cytoband/chromosome-drawer.js')}}"></script>
+    <script src="{{url_for('static', filename='javascript/ui/cytoband/cytoband.js')}}"></script>
+    <script src="{{url_for('static', filename='javascript/ui/cytoband/genome-drawer.js')}}"></script>
+    <script src="{{url_for('static', filename='javascript/ui/cytoband/chromosome-drawer.js')}}"></script>
 
 
 </head>
@@ -44,9 +45,33 @@
 
 
 <select id="path-selector" name="path-selector">
-    <!-- The options will be appended here by the JavaScript -->
+    <!-- The options will be appended here by JavaScript -->
 </select>
 <input type="submit" value="Submit">
+
+<div id="color-option-button-container" class="button-container">
+
+    <input type="radio" id="color-option-btn1" name="selector" checked>
+    <label for="color-option-btn1" class="option-button option-button-selected">
+        <img src="{{ url_for('static', filename= 'images/option_allele_frequency.svg') }}"></label>
+    
+    <input type="radio" id="color-option-btn2" name="selector">
+    <label for="color-option-btn2" class="option-button option-button-unselected">
+        <img src="{{ url_for('static', filename= 'images/option_node_size.svg') }}"></label>
+  
+    <input type="radio" id="color-option-btn3" name="selector">
+    <label for="color-option-btn3" class="option-button option-button-unselected">
+        <img src="{{ url_for('static', filename= 'images/option_ref_alt.svg') }}"></label>
+  
+    <input type="radio" id="color-option-btn4" name="selector">
+    <label for="color-option-btn4" class="option-button option-button-unselected">
+        <img src="{{ url_for('static', filename= 'images/test.png') }}"></label>
+  
+    <input type="radio" id="color-option-btn5" name="selector">
+    <label for="color-option-btn5" class="option-button option-button-unselected">
+        <img src="{{ url_for('static', filename= 'images/test.png') }}"></label>
+  </div>
+
 
 <div id="graph-container">
 
@@ -75,6 +100,7 @@
 <script src="{{url_for('static', filename='javascript/draw-helper.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/graph-select.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/path-manager.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/ui/button-selector.js')}}"></script>
 
 </body>
 </html>

@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
-from db.db import db_init
+from db.neo4j_db import db_init
 import db.query as query
 import db.drop as drop
 
@@ -8,7 +8,7 @@ from db.parser.parse_gfa import parse_graph
 from db.parser.parse_layout import parse_layout
 from db.parser.parse_gff3 import parse_gff3
 from db.parser.parse_bubbles import parse_bubbles
-import bubble_gun
+import db.bubble_gun as bubble_gun
 from db.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
 
 import argparse

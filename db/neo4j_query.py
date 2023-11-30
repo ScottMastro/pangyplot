@@ -1,6 +1,6 @@
-from db.db import get_session
+from db.neo4j_db import get_session
 import json
-from db.record import chain_record, bubble_record, segment_record, node_record, link_record_simple
+import db.record as record
 
 #singleton chain
 """
@@ -25,8 +25,8 @@ def query_all_segments():
                     SKIP $skip
                     LIMIT $limit
                     """
-            result = session.run(query, skip=skip, limit=batch_size)
-            batch = [(record['s.id'], record['s.length']) for record in result]
+            results = session.run(query, skip=skip, limit=batch_size)
+            batch = [(record['s.id'], record['s.length']) for record in results]
 
             if not batch:
                 break  # Exit the loop if no more records are returned
@@ -46,8 +46,8 @@ def query_all_links():
                     SKIP $skip
                     LIMIT $limit
                     """
-            result = session.run(query, skip=skip, limit=batch_size)
-            batch = [(record['l.from_strand'], record['s1.id'], record['l.to_strand'], record['s2.id']) for record in result]
+            results = session.run(query, skip=skip, limit=batch_size)
+            batch = [(result['l.from_strand'], result['s1.id'], result['l.to_strand'], record['s2.id']) for result in results]
 
             if not batch:
                 break 
@@ -73,23 +73,19 @@ def get_subgraph(nodeid):
                 OPTIONAL MATCH (n)-[r2:LINKS_TO]-(s2:Segment)
                 RETURN n, labels(n) AS type, collect(DISTINCT r1) AS ends, collect(DISTINCT r2) AS links
                 """
-        result = session.run(query, {"i": nodeid})
+        results = session.run(query, {"i": nodeid})
 
-        for record in result:
-            node = node_record(record["n"], record["type"][0])
+        ends = record.link_records_simple(results, "ends")
+        links = record.link_records_simple(results, "links")
+
+        for result in results:
+            node = result.node_record(result["n"], result["type"][0])
             if node is not None:
                 nodes.append(node)
 
-            for r in record["ends"]:
-                link = link_record_simple(r)
-                links.append(link)
-
-            for r in record["links"]:
-                link = link_record_simple(r)
-                links.append(link)
 
     print("nnodes", len(nodes))
-    return nodes, links
+    return nodes, ends+links
 
 def get_subgraph_simple(nodeid):
     nodes,links = [],[]
@@ -104,19 +100,19 @@ def get_subgraph_simple(nodeid):
                 OPTIONAL MATCH (n)-[r:END]-(s:Segment)
                 RETURN n, s, labels(n) AS type, collect(DISTINCT r) AS ends
                 """
-        result = session.run(query, {"i": nodeid})
+        results = session.run(query, {"i": nodeid})
 
-        for record in result:
-            node = node_record(record["n"], record["type"][0])
+        for result in results:
+            node = record.node_record(result["n"], result["type"][0])
             if node is not None:
                 nodes.append(node)
-            node = segment_record(record["s"])
+            node = record.segment_record(result["s"])
             if node is not None:
                 nodes.append(node)
 
 
-            for r in record["ends"]:
-                link = link_record_simple(r)
+            for result in results["ends"]:
+                link = record.link_record_simple(result)
                 links.append(link)
 
     print("nnodes", len(nodes))
@@ -131,16 +127,16 @@ def get_bubble_subgraph(nodeid):
             MATCH (s)-[r:LINKS_TO]-(s2:Segment)
             RETURN s, b, collect(r) AS links
             """
-        result = session.run(query, {"i": nodeid})
+        results = session.run(query, {"i": nodeid})
 
         segments,links = [],[]
 
-        for record in result:
-            for r in record["links"]:
-                link = link_record_simple(r)
+        for result in results:
+            for r in result["links"]:
+                link = record.link_record_simple(r)
                 links.append(link)
 
-            segment = segment_record(record["s"]) 
+            segment = record.segment_record(result["s"]) 
             segments.append(segment)
 
     print("nsegs", len(segments))
@@ -160,18 +156,16 @@ def get_top_level_chains(chrom, start, end):
             RETURN c, collect(r) AS ends
             """
         parameters = {"start": start, "end": end, "chrom": chrom}
-        result = session.run(query, parameters)
+        results = session.run(query, parameters)
 
         chains,links = [],[]
 
-        for record in result:
-            for r in record["ends"]:
-                link = link_record_simple(r)
+        for result in results:
+            for r in result["ends"]:
+                link = record.link_record_simple(r)
                 links.append(link)
-                if str(link["target"]) == "2778407":
-                    print("chain",link)
 
-            chain = chain_record(record["c"]) 
+            chain = record.chain_record(result["c"]) 
             chains.append(chain)
 
 
@@ -192,17 +186,16 @@ def get_top_level_bubbles(chrom, start, end):
                 RETURN b, collect(r) AS ends
                 """
         parameters = {"start": start, "end": end, "chrom": chrom}
-        result = session.run(query, parameters)
+        results = session.run(query, parameters)
 
         bubbles,links = [],[]
 
-        for record in result:
-            for r in record["ends"]:
-                link = link_record_simple(r)
+        for result in results:
+            for r in result["ends"]:
+                link = record.link_record_simple(r)
                 links.append(link)
-                if str(link["target"]) == "2778407":
-                    print("bubble",link)
-            bubble = bubble_record(record["b"]) 
+
+            bubble = record.bubble_record(result["b"]) 
             bubbles.append(bubble)
     print("nbubs", len(bubbles))
     return bubbles,links
@@ -222,18 +215,16 @@ def get_top_level_segments(chrom, start, end):
                 RETURN s, collect(r) AS links
                 """
         parameters = {"start": start, "end": end, "chrom": chrom}
-        result = session.run(query, parameters)
+        results = session.run(query, parameters)
 
         segments,links = [],[]
 
-        for record in result:
-            for r in record["links"]:
-                link = link_record_simple(r)
+        for result in results:
+            for r in result["links"]:
+                link = record.link_record_simple(r)
                 links.append(link)
-                if str(link["target"]) == "2778407":
-                    print("segment",link)
 
-            segment = segment_record(record["s"]) 
+            segment = record.segment_record(result["s"]) 
             segments.append(segment)
 
     segIds={s["nodeid"] for s in segments}
@@ -268,15 +259,15 @@ def get_segments(chrom, start, end):
         RETURN n, r, m
         """
         parameters = {"start": start, "end": end, "chrom": chrom}
-        result = session.run(query, parameters)
+        results = session.run(query, parameters)
 
         nodeIds = dict()
         nodes = []
         relationships = []
-        for record in result:
-            n = record["n"]
-            r = record["r"]
-            m = record["m"]
+        for result in results:
+            n = result["n"]
+            r = result["r"]
+            m = result["m"]
 
             if n["id"] not in nodeIds:
                 node = {k: n[k] for k in n.keys()}
@@ -305,9 +296,9 @@ def get_lengths_by_id(node_ids):
         RETURN id, n.sequence AS seq
         """
         parameters = {'ids': node_ids}
-        result = session.run(query, parameters)
+        results = session.run(query, parameters)
 
-        lengths = {record['id']: len(record['seq']) for record in result}
+        lengths = {result['id']: len(result['seq']) for result in results}
         return lengths
 
 def get_annotation_range(chrom, start, end):
@@ -320,10 +311,10 @@ def get_annotation_range(chrom, start, end):
                 RETURN a
                 """
         parameters = {"start": start, "end": end, "chrom": chrom}
-        result = session.run(query, parameters)
+        results = session.run(query, parameters)
 
-        for record in result:
-            r = record["a"]
+        for result in results:
+            r = result["a"]
             annotation = {k: r[k] for k in r.keys()}
             annotation["aid"] = r.id
 

@@ -464,7 +464,7 @@ function explode_complex_nodes(nodes){
     });
 }
 
-fetch("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
+//fetch("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
 
 //fetch("chr7", 144084904, 144140209); //PRSS region
 

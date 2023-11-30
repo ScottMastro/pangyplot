@@ -1,5 +1,5 @@
 import gzip,os
-from db.insert_annotation import add_annotations
+from db.insert.insert_annotation import add_annotations
 
 def get_reader(gff3):
     if gff3.endswith(".gz"):

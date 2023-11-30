@@ -1,6 +1,6 @@
 import json
-from db.insert_bubble import insert_bubbles, add_bubble_properties
-from db.insert_chain import insert_chains, add_chain_properties
+from db.insert.insert_bubble import insert_bubbles, add_bubble_properties
+from db.insert.insert_chain import insert_chains, add_chain_properties
 from db.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
 
 def process_line(line):
