@@ -1,9 +1,16 @@
 from BubbleGun.Graph import Graph
 from BubbleGun.Node import Node
 from BubbleGun.compact_graph import merge_start,merge_end
+from BubbleGun.find_bubbles import find_bubbles
+from BubbleGun.connect_bubbles import connect_bubbles
+from BubbleGun.find_parents import find_parents
 
 import db.neo4j_query as neo4jdb 
 from db.compact_segment import compact_segment 
+
+from db.insert_bubble import insert_bubbles, add_bubble_properties
+from db.insert_chain import insert_chains, add_chain_properties
+
 
 def read_from_db():
     nodes = dict()
@@ -74,12 +81,63 @@ def compact_graph(graph):
                 else:
                     break
 
+def insert_all(graph):
+    chains,bubbles = [], []
+
+    for chain in graph.b_chains:
+        chains.append({
+                "id": chain.id, 
+                "ends": chain.ends,
+                "sb": None if not chain.parent_sb else chain.parent_sb,
+                "pc": None if not chain.parent_chain else chain.parent_chain,
+                "bubbles":[bubble.id for bubble in chain.bubbles]
+                })
+        
+        for bubble in chain.bubbles:
+            type = "simple" 
+            if bubble.is_super():
+                type = "super"
+            elif bubble.is_insertion():
+                type = "insertion"
+
+            bubbles.append({
+                "id": bubble.id,
+                "type": type,
+                "ends": [bubble.source.id, bubble.sink.id],
+                "chain_id": None if not bubble.chain_id else bubble.chain_id,
+                "sb": None if not bubble.parent_sb else bubble.parent_sb,
+                "pc": None if not bubble.parent_chain else bubble.parent_chain,
+                "inside":[segment.id for segment in bubble.inside]
+                })
+            
+    insert_bubbles(bubbles)
+    insert_chains(chains)
+    add_bubble_properties()
+    add_chain_properties()
+
+
 def shoot():
+    print("Fetching graph...")
     graph = Graph()
     graph.nodes = read_from_db()
 
-    print(len(graph.nodes))
+    print("Compacting graph...")
+    before = len(graph.nodes)
     compact_graph(graph) 
-    print(len(graph.nodes))
+    after = len(graph.nodes)
+    print(f"{after}/{before} segments retained.")
 
+    print("Finding bubbles and chains...")
+    find_bubbles(graph)
+    connect_bubbles(graph)
+    find_parents(graph)
+
+    b_numbers = graph.bubble_number()
+    print("The number of Simple Bubbles is {}\n"
+        "The number of Superbubbles is {}\n"
+        "The number of insertions is {}".format(b_numbers[0], b_numbers[1],
+                                                b_numbers[2]))
+
+    insert_all(graph)
+  
 
