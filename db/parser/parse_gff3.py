@@ -1,5 +1,5 @@
 import gzip,os
-import db.neo4j_db as neo4jdb
+from db.insert_annotation import add_annotations
 
 def get_reader(gff3):
     if gff3.endswith(".gz"):
@@ -46,4 +46,4 @@ def parse_gff3(gff3):
             if annotation:
                 annotation["file"] = filename
                 annotations.append(annotation)
-    neo4jdb.add_annotations(annotations)
+    add_annotations(annotations)

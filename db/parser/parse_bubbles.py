@@ -1,5 +1,7 @@
 import json
-import db.neo4j_db as neo4jdb
+from db.insert_bubble import insert_bubbles, add_bubble_properties
+from db.insert_chain import insert_chains, add_chain_properties
+from db.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
 
 def process_line(line):
 
@@ -41,9 +43,10 @@ def parse_bubbles(jsonFile):
         chains.append(chain)
         bubbles.extend(chainData["bubbles"])
     
-    neo4jdb.add_bubbles(bubbles)
-    neo4jdb.add_chains(chains)
-    neo4jdb.add_null_nodes()
-    neo4jdb.add_bubble_properties()
-    neo4jdb.connect_bubble_ends_to_chain()
-    neo4jdb.add_chain_complexity()
+    insert_bubbles(bubbles)
+    insert_chains(chains)
+    add_null_nodes()
+    add_bubble_properties()
+    add_chain_properties()
+    connect_bubble_ends_to_chain()
+    add_chain_subtype()

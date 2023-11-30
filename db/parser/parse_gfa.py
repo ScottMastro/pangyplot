@@ -1,6 +1,6 @@
 import gzip,re
 from statistics import mean
-import db.neo4j_db as neo4jdb
+from db.insert_segment import insert_segments, insert_segment_links
 
 def get_reader(gfa):
     if gfa.endswith(".gz"):
@@ -258,9 +258,9 @@ def parse_graph(gfa, layoutCoords):
                 links.append(link)
 
             if count % 100000 == 0:
-                print(".")
+                print(".", end='', flush=True)
             if len(segments) > 100000:
-                neo4jdb.add_segments(segments)
+                insert_segments(segments)
                 segments=[]
 
 
@@ -278,5 +278,5 @@ def parse_graph(gfa, layoutCoords):
                 link["haplotype"] = [False] * n
                 link["frequency"] = 0
 
-        neo4jdb.add_segments(segments)
-        neo4jdb.add_relationships(links)
+        insert_segments(segments)
+        insert_segment_links(links)

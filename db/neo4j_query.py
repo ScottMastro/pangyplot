@@ -32,7 +32,6 @@ def query_all_segments():
                 break  # Exit the loop if no more records are returned
             nodes.extend(batch)
             skip += batch_size
-            print(".")
     return nodes
 
 def query_all_links():
@@ -53,7 +52,6 @@ def query_all_links():
             if not batch:
                 break 
             
-            print(batch[:10])
             links.extend(batch)
             skip += batch_size
 

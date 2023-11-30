@@ -3,13 +3,13 @@ from cytoband import get_cytoband
 from db.db import db_init
 import db.query as query
 import db.drop as drop
-import db.neo4j_db as neo4jdb
 
 from db.parser.parse_gfa import parse_graph
 from db.parser.parse_layout import parse_layout
 from db.parser.parse_gff3 import parse_gff3
 from db.parser.parse_bubbles import parse_bubbles
 import bubble_gun
+from db.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
 
 import argparse
 
@@ -84,7 +84,6 @@ if __name__ == '__main__':
         parser.add_argument('--gencode', help='Add genocode annotations', action='store_true')
         args = parser.parse_args()
 
-        neo4jdb.add_chain_complexity()
         flag = False
         for attr, value in vars(args).items():
             if value:
@@ -119,11 +118,13 @@ if __name__ == '__main__':
             layoutCoords = parse_layout(args.layout)
             print("Parsing GFA...")
             parse_graph(args.gfa, layoutCoords)
-            print("Reading Graph...")
+            print("Calculating bubbles...")
             bubble_gun.shoot()
-           
 
-            
+            add_null_nodes()
+            connect_bubble_ends_to_chain()
+            add_chain_subtype()
+
             print("Done.")
             
         #if args.ref:
