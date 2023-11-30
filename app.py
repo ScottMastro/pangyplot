@@ -1,18 +1,22 @@
 from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
-import db.neo4j_db as neo4jdb
+from db.db import db_init
 import db.query as query
+import db.drop as drop
+import db.neo4j_db as neo4jdb
+
 from db.parser.parse_gfa import parse_graph
 from db.parser.parse_layout import parse_layout
 from db.parser.parse_gff3 import parse_gff3
 from db.parser.parse_bubbles import parse_bubbles
+import bubble_gun
 
 import argparse
 
 app = Flask(__name__)
 
 def create_app():
-    neo4jdb.db_init()
+    db_init()
 @app.route('/select', methods=["GET"])
 def select():
     chrom = request.args.get("chromosome")
@@ -88,9 +92,9 @@ if __name__ == '__main__':
 
         if args.drop:
             print("dropping all")
-            neo4jdb.drop_all()
-            #neo4jdb.drop_bubbles()
-            #neo4jdb.drop_annotations()
+            drop.drop_all()
+            #drop.drop_bubbles()
+            #drop.drop_annotations()
 
         if args.gencode:
             args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
@@ -115,6 +119,11 @@ if __name__ == '__main__':
             layoutCoords = parse_layout(args.layout)
             print("Parsing GFA...")
             parse_graph(args.gfa, layoutCoords)
+            print("Reading Graph...")
+            bubble_gun.shoot()
+           
+
+            
             print("Done.")
             
         #if args.ref:

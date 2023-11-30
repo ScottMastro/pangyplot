@@ -1,69 +1,50 @@
 import os
-from flask_sqlalchemy import SQLAlchemy
+from neo4j import GraphDatabase
 from dotenv import load_dotenv
+from db.create_index import create_restraint, create_index
 
-db = SQLAlchemy()
+NEO4J_DRIVER = None
 
-def db_init(app):
+def init_driver():
     load_dotenv()
-
     db_name = os.getenv("DB_NAME")
     db_user = os.getenv("DB_USER")
     db_pass = os.getenv("DB_PASS")
     db_host = os.getenv("DB_HOST")
     db_port = os.getenv("DB_PORT")
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"postgresql://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}"
+    global NEO4J_DRIVER
+    uri = f"{db_name}://{db_host}:{db_port}"
+    NEO4J_DRIVER = GraphDatabase.driver(uri, auth=(db_user, db_pass))
 
-    db.init_app(app)
+def get_session():
+    if NEO4J_DRIVER is None:
+        raise Exception("Neo4j driver is not initialized.")
+    return NEO4J_DRIVER.session()
 
-    with app.app_context():
+def close_driver():
+    if NEO4J_DRIVER is not None:
+        NEO4J_DRIVER.close()
 
-        from db.model import link, segment, path, bubble, annotation 
-        db.create_all()
+def db_init():
+    init_driver()
 
-        preview_table(link.Link)
-        preview_table(segment.Segment)
-        preview_table(path.Path)
-        preview_table(bubble.Bubble)
-        preview_table(bubble.BubbleInside)
-        preview_table(annotation.Annotation)
+    with get_session() as session:
+        create_restraint(session, "Segment", "id")
+        create_index(session, "Segment", "chrom")
+        create_index(session, "Segment", "start")
+        create_index(session, "Segment", "end")
 
-def preview_table(table, n=5):
-    tablename = table.__table__.name
-    try:
-        inspector = db.inspect(db.engine)
-        print(f"Table: {tablename}")
-        for column in inspector.get_columns(tablename):
-            print(f"- {column['name']}: {column['type']}")
+        create_restraint(session, "Bubble", "id")
+        create_index(session, "Bubble", "chrom")
+        create_index(session, "Bubble", "start")
+        create_index(session, "Bubble", "end")
 
-        rows = table.query.limit(n).all()
-        row_count = table.query.count()
-        print("nrows = ", row_count)
-        print("--------")
-        for row in rows:
-            print(row)
-        print("--------")
-    except:
-        print("Failed to print table " + tablename)
+        create_restraint(session, "Chain", "id")
+        create_index(session, "Chain", "chrom")
+        create_index(session, "Chain", "start")
+        create_index(session, "Chain", "end")
 
-def drop(table):
-
-    tablename = table.__table__.name
-    connection = db.engine.connect()
-    metadata = db.MetaData(bind=db.engine)
-    your_table = db.Table(tablename, metadata, autoload=True)
-    your_table.drop(connection)
-    db.session.commit()
-    connection.close()
-
-def drop_all():
-
-    from db.model import link, segment, bubble, path, annotation 
-
-    drop(link.Link)
-    drop(segment.Segment)
-    drop(path.Path)
-    drop(bubble.Bubble)
-    drop(bubble.BubbleInside)
-    #drop(annotation.Annotation)
+        create_index(session, "Annotation", "chrom")
+        create_index(session, "Annotation", "start")
+        create_index(session, "Annotation", "end")

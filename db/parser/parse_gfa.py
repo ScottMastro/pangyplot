@@ -155,9 +155,17 @@ def parse_line_P(line):
     result["type"] = "P"
     result["sample"] = cols[1]
     result["hap"] = None
-    result["start"] = None
-    result["end"] = None
+
+    if ":" in result["sample"] and "-" in result["sample"]:
+        result["sample"] = cols[1].split(":")[0]
+        result["start"] = int(cols[1].split(":")[1].split("-")[0])
+        result["end"] = int(cols[1].split(":")[1].split("-")[1])
+    else:
+        result["start"] = None
+        result["end"] = None
     result["path"], result["strand"] = path_to_lists(P_to_W(cols[2]))
+
+    return result
 
 def parse_line_W(line):
 
@@ -185,9 +193,9 @@ def get_path_positions(path, lenDict):
     path["position"] = positions
     return path
 
-def collapse_paths(collapseDict, sampleIdDict, path):
-
-    sampleId = path["sample"] + "." + path["hap"]
+def collapse_path(collapseDict, sampleIdDict, path):
+    suffix = "" if path["hap"] is None else "." + path["hap"]
+    sampleId = path["sample"] + suffix
     if sampleId not in sampleIdDict:
         if len(sampleIdDict) == 0:
             sampleIdDict[sampleId] = 0
@@ -199,7 +207,6 @@ def collapse_paths(collapseDict, sampleIdDict, path):
         toId = path["path"][i+1]
         fromStrand = path["strand"][i]
         toStrand = path["strand"][i+1]
-        #position = path["position"][i]
         fromKey = str(fromId) + fromStrand
         toKey = str(toId) + toStrand
         key = (fromKey, toKey)
@@ -225,7 +232,7 @@ def parse_graph(gfa, layoutCoords):
     segmentCount = 0
     segments, links = [],[]
     lenDict = dict()
-    collapseDict = dict() ; collapsed = False
+    collapseDict = dict()
     sampleIdDict = dict()
 
     with get_reader(gfa) as gfaFile:
@@ -244,24 +251,10 @@ def parse_graph(gfa, layoutCoords):
                     path = parse_line_P(line)
                 else:
                     path = parse_line_W(line)
-                collapseDict, sampleIdDict = collapse_paths(collapseDict, sampleIdDict, path)
+                collapseDict, sampleIdDict = collapse_path(collapseDict, sampleIdDict, path)
                 print("W", end='', flush=True)
             elif line[0] == "L":
-                if not collapsed:
-                    collapseDict = collapse_binary(collapseDict, sampleIdDict)
-                    collapsed = True
-
                 link = parse_line_L(line)
-                key = (str(link["from_id"]) + link["from_strand"],
-                       str(link["to_id"]) + link["to_strand"])
-                if key in collapseDict:
-                    hap = collapseDict[key]
-                    link["haplotype"] = hap
-                    link["frequency"] = sum(hap)/len(hap)
-                else:
-                    n = max([sampleIdDict[x] for x in sampleIdDict])+1
-                    link["haplotype"] = [False] * n
-                    link["frequency"] = 0
                 links.append(link)
 
             if count % 100000 == 0:
@@ -269,9 +262,21 @@ def parse_graph(gfa, layoutCoords):
             if len(segments) > 100000:
                 neo4jdb.add_segments(segments)
                 segments=[]
-            if len(links) > 100000:
-                neo4jdb.add_relationships(links)
-                links=[]
+
+
+        collapseDict = collapse_binary(collapseDict, sampleIdDict)
+
+        for link in links:
+            key = (str(link["from_id"]) + link["from_strand"],
+                    str(link["to_id"]) + link["to_strand"])
+            if key in collapseDict:
+                hap = collapseDict[key]
+                link["haplotype"] = hap
+                link["frequency"] = sum(hap)/len(hap)
+            else:
+                n = max([sampleIdDict[x] for x in sampleIdDict])+1
+                link["haplotype"] = [False] * n
+                link["frequency"] = 0
 
         neo4jdb.add_segments(segments)
         neo4jdb.add_relationships(links)
