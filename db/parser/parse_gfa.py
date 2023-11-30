@@ -1,6 +1,6 @@
 import gzip,re
 from statistics import mean
-from db.insert_segment import insert_segments, insert_segment_links
+from db.insert.insert_segment import insert_segments, insert_segment_links
 
 def get_reader(gfa):
     if gfa.endswith(".gz"):

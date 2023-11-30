@@ -1,4 +1,4 @@
-from db.db import get_session
+from db.neo4j_db import get_session
 from db.record import segment_record, link_record
 
 def get_segments(session, x, y):

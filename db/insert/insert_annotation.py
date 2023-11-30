@@ -1,4 +1,4 @@
-from db.db import get_session
+from db.neo4j_db import get_session
 
 def add_annotations(annotations, batch_size=10000):
     if len(annotations) == 0: return

@@ -1,4 +1,4 @@
-from db.db import get_session
+from db.neo4j_db import get_session
 
 def insert_bubble_nodes(session, bubbles, batch_size):
     for i in range(0, len(bubbles), batch_size):

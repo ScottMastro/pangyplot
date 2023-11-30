@@ -1,4 +1,4 @@
-from db.db import get_session
+from db.neo4j_db import get_session
 
 def insert_segments(segments, batch_size=10000):
     if len(segments) == 0: return

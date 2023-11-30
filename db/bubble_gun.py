@@ -8,9 +8,8 @@ from BubbleGun.find_parents import find_parents
 import db.neo4j_query as neo4jdb 
 from db.compact_segment import compact_segment 
 
-from db.insert_bubble import insert_bubbles, add_bubble_properties
-from db.insert_chain import insert_chains, add_chain_properties
-
+from db.insert.insert_bubble import insert_bubbles, add_bubble_properties
+from db.insert.insert_chain import insert_chains, add_chain_properties
 
 def read_from_db():
     nodes = dict()
