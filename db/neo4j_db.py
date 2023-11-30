@@ -1,16 +1,9 @@
-from neo4j import GraphDatabase,exceptions
-import time
-
-uri = "neo4j://localhost:7687"
-username = "neo4j"
-password = "password"  # Replace with the password you set
-
+from db.db import get_session
 
 def add_bubbles(bubbles, batch_size=10000):
     
     if len(bubbles) == 0: return
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
+    with get_session() as session:
 
         for i in range(0, len(bubbles), batch_size):
             batch = bubbles[i:i + batch_size]
@@ -66,14 +59,11 @@ def add_bubbles(bubbles, batch_size=10000):
             CREATE (s)-[:INSIDE]->(b)
             """
             session.run(query, {"links": batch})
-
-    driver.close()
     
 def add_chains(chains, batch_size=10000):
     
     if len(chains) == 0: return
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
+    with get_session() as session:
 
         for i in range(0, len(chains), batch_size):
             batch = chains[i:i + batch_size]
@@ -157,23 +147,18 @@ def add_chains(chains, batch_size=10000):
             """
             session.run(query, {"links": batch})
 
-    driver.close()
-
 def connect_bubble_ends_to_chain():
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
+    with get_session() as session:
         query = """
                 MATCH (s:Segment)-[:END]-(b:Bubble)-[:INSIDE]->(c:Chain)
                 WHERE NOT (c)-[:END]-(s)
                 MERGE (s)-[:INSIDE]->(c)
                 """
         session.run(query)
-    driver.close()
 
 
 def add_bubble_properties():
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
+    with get_session() as session:
         MATCH = "MATCH (s:Segment)-[r:INSIDE]->(b:Bubble) "
 
         q1= MATCH + " WITH b, MIN(s.start) AS start SET b.start = start"
@@ -187,8 +172,7 @@ def add_bubble_properties():
             print(query)
             session.run(query)
 
-    driver.close()
-    with driver.session() as session:
+    with get_session() as session:
 
         def layout_query(a,b):
             c = "MIN" if b=="1" else "MAX"
@@ -220,8 +204,7 @@ def add_bubble_properties():
             print(query)
             session.run(query)
 
-    driver.close()
-    with driver.session() as session:
+    with get_session() as session:
 
         MATCH = "MATCH (b:Bubble)-[r:INSIDE]->(c:Chain) "
         q1= MATCH + " WITH c, MIN(b.start) AS start SET c.start = start"
@@ -235,8 +218,7 @@ def add_bubble_properties():
             print(query)
             session.run(query)
 
-    driver.close()
-    with driver.session() as session:
+    with get_session() as session:
 
         q6 = MATCH + " WITH c, MIN(b.x1) AS x SET c.x1 = x"
         q7 = MATCH + " WITH c, MAX(b.x2) AS x SET c.x2 = x"
@@ -259,8 +241,7 @@ def add_bubble_properties():
             print(query)
             session.run(query)
 
-    driver.close()
-    with driver.session() as session:
+    with get_session() as session:
 
         MATCH = """
                 MATCH (e1)-[:END]->(n)-[:END]->(e2)
@@ -276,11 +257,9 @@ def add_bubble_properties():
             print(query)
             session.run(query)
             
-    driver.close()
 
 def add_chain_complexity():
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
+    with get_session() as session:
         query = """
         MATCH (b:Bubble)-[r:INSIDE]->(c:Chain)
         WITH c, 
@@ -291,13 +270,10 @@ def add_chain_complexity():
         """
         session.run(query)
             
-    driver.close()
-
 
 def add_segments(segments, batch_size=10000):
     if len(segments) == 0: return
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
+    with get_session() as session:
 
         for i in range(0, len(segments), batch_size):
             batch = segments[i:i + batch_size]
@@ -318,12 +294,9 @@ def add_segments(segments, batch_size=10000):
             """
             session.run(query, {"batch": batch})
 
-    driver.close()
-
 def add_relationships(links, batch_size=10000):
     if len(links) == 0: return
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
+    with get_session() as session:
 
         for i in range(0, len(links), batch_size):
             batch = links[i:i + batch_size]
@@ -338,12 +311,9 @@ def add_relationships(links, batch_size=10000):
             """
             session.run(query, {"batch": batch})
 
-    driver.close()
-
 
 def add_null_nodes():
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
+    with get_session() as session:
 
         query = """
                 MATCH (s1:Segment)-[l:LINKS_TO]->(s2:Segment)
@@ -364,12 +334,9 @@ def add_null_nodes():
 
         session.run(query)
 
-    driver.close()
-
 def add_annotations(annotations, batch_size=10000):
     if len(annotations) == 0: return
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
+    with get_session() as session:
 
         for i in range(0, len(annotations), batch_size):
             batch = annotations[i:i + batch_size]
@@ -379,144 +346,6 @@ def add_annotations(annotations, batch_size=10000):
                 SET a += ann
             """
             session.run(query, {"batch": batch})
-    driver.close()
-
-def drop_all():
-
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-
-    def delete_in_batches(tx, batch_size):
-        query = (
-            "MATCH (n) "
-            "WITH n LIMIT $batchSize "
-            "DETACH DELETE n "
-            "RETURN count(n) as deletedCount"
-        )
-        result = tx.run(query, batchSize=batch_size)
-        return result.single()[0]
-
-    with driver.session() as session:
-        total_deleted = 0
-        while True:
-            deleted = session.write_transaction(delete_in_batches, batch_size=10000)
-            if deleted == 0:
-                break
-            total_deleted += deleted
-            print(f"Deleted {total_deleted} nodes so far...")
-        print("Deletion complete.")
-    driver.close()
-
-def drop_bubbles():
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
-
-        def delete_bubbles(tx, batch_size):
-            query = (
-                "MATCH (n:Bubble) "
-                "WITH n LIMIT $batchSize "
-                "DETACH DELETE n "
-                "RETURN count(n) as deletedCount"
-            )
-            result = tx.run(query, batchSize=batch_size)
-            return result.single()[0]
-
-        total_deleted = 0
-        while True:
-            deleted = session.write_transaction(delete_bubbles, batch_size=10000)
-            if deleted == 0:
-                break
-            total_deleted += deleted
-            print(f"Deleted {total_deleted} bubbles so far...")
-
-        def delete_chains(tx, batch_size):
-            query = (
-                "MATCH (n:Chain) "
-                "WITH n LIMIT $batchSize "
-                "DETACH DELETE n "
-                "RETURN count(n) as deletedCount"
-            )
-            result = tx.run(query, batchSize=batch_size)
-            return result.single()[0]
-
-        total_deleted = 0
-        while True:
-            deleted = session.write_transaction(delete_chains, batch_size=10000)
-            if deleted == 0:
-                break
-            total_deleted += deleted
-            print(f"Deleted {total_deleted} bubbles so far...")
-
-        print("Deletion complete.")
-    driver.close()
-
-def drop_annotations():
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
-
-        def delete(tx, batch_size):
-            query = (
-                "MATCH (n:Annotation) "
-                "WITH n LIMIT $batchSize "
-                "DETACH DELETE n "
-                "RETURN count(n) as deletedCount"
-            )
-            result = tx.run(query, batchSize=batch_size)
-            return result.single()[0]
-
-        total_deleted = 0
-        while True:
-            deleted = session.write_transaction(delete, batch_size=10000)
-            if deleted == 0:
-                break
-            total_deleted += deleted
-            print(f"Deleted {total_deleted} annotations so far...")
-        print("Deletion complete.")
-    driver.close()
-
-def create_segment_index(session, type, property):
-    try:
-        session.run(f"CREATE INDEX FOR (n:{type}) ON (n.{property})")
-    except exceptions.ClientError as e:
-        if "EquivalentSchemaRuleAlreadyExists" in e.code:
-            #print("Index already exists.")
-            pass
-        else:
-            raise
-
-def create_restraint(session, type, property):
-    try:
-        session.run(f"CREATE CONSTRAINT FOR (n:{type}) REQUIRE n.{property} IS UNIQUE")
-    except exceptions.ClientError as e:
-        if "EquivalentSchemaRuleAlreadyExists" in e.code:
-            #print("Constraint already exists.")
-            pass
-        else:
-            raise
-
-def db_init():
-    driver = GraphDatabase.driver(uri, auth=(username, password))
-    with driver.session() as session:
-
-        #todo make compound indicies
-
-        create_restraint(session, "Segment", "id")
-        create_segment_index(session, "Segment", "chrom")
-        create_segment_index(session, "Segment", "start")
-        create_segment_index(session, "Segment", "end")
-
-        create_restraint(session, "Bubble", "id")
-        create_segment_index(session, "Bubble", "chrom")
-        create_segment_index(session, "Bubble", "start")
-        create_segment_index(session, "Bubble", "end")
-
-        create_restraint(session, "Chain", "id")
-        create_segment_index(session, "Chain", "chrom")
-        create_segment_index(session, "Chain", "start")
-        create_segment_index(session, "Chain", "end")
-
-        create_segment_index(session, "Annotation", "chrom")
-        create_segment_index(session, "Annotation", "start")
-        create_segment_index(session, "Annotation", "end")
 
 
-    driver.close()
+
