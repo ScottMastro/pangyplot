@@ -391,7 +391,7 @@ function fetch(chromosome, start, end) {
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
             var data = JSON.parse(xmlHttp.response);
-
+            
             // TODO
             //update_path_selector(data.paths)
 
@@ -422,7 +422,7 @@ function fetch_haps(chromosome, start, end) {
 }
 
 function fetch_subgraph(originNode){
-
+    
     GETTING_SUBGRAPH.add(originNode.nodeid)
     let url = "/subgraph?nodeid=" + originNode.nodeid;
 
@@ -464,7 +464,7 @@ function explode_complex_nodes(nodes){
     });
 }
 
-//fetch("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
+fetch("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
 
 //fetch("chr7", 144084904, 144140209); //PRSS region
 

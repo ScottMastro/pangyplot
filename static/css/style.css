@@ -1,13 +1,5 @@
-:root {
-    --highlight: #ffe268;
-    --darker-green: #384034;
-    --dark-green: #5d6c53;
-    --light-green: #93ac9d;
-    --lighter-green: #bcccc2;
-  }
-
-#pangyplot-logo{
-    height: 100px;
+body {
+    background-color: var(--site-background);
 }
 
 .annotation-highlight{
@@ -17,7 +9,6 @@
 
 #cytoband-container{
     display: flex;
-
 }
 
 #genome-cytoband-container{
@@ -45,7 +36,6 @@
         fill: var(--highlight);
         cursor: pointer;
     }
-
 }
 
 .annotation-text {
@@ -82,7 +72,7 @@
     top: 10px;
     left: 10px;
     padding: 10px;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: var(--detail-box);
     border-radius: 5px;
     z-index: 10;
   }

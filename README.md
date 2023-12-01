@@ -1,1 +1,3 @@
-# graph_viz
+# PangyPlot
+
+Pangenome graph visualization software

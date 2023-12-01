@@ -42,7 +42,7 @@ def get_top_level_segments(chrom, start, end):
 
         segments,links = [],[]
 
-        segments = record.segment_records(result, "s", "type")
+        segments = record.segment_records(result, "s")
         links = record.link_records_simple(result, "links")
 
     segIds={s["nodeid"] for s in segments}

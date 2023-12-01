@@ -35,11 +35,11 @@ def drop_index(session, index_name):
     session.run(f"DROP INDEX {index_name}")
 
 def drop_all_index(session):
-    indexes = session.query("SHOW INDEXES")
+    indexes = session.run("SHOW INDEXES")
     for index in indexes:
         try:
             index_name = index["name"]
-            session.query(f"DROP INDEX {index_name}")
+            session.run(f"DROP INDEX {index_name}")
             print(f"Index {index_name} dropped.")
         except exceptions.ClientError as e:
             print(f"Failed to drop index {index_name}: {e}")

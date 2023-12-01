@@ -7,7 +7,6 @@ import db.drop as drop
 from db.parser.parse_gfa import parse_graph
 from db.parser.parse_layout import parse_layout
 from db.parser.parse_gff3 import parse_gff3
-from db.parser.parse_bubbles import parse_bubbles
 import db.bubble_gun as bubble_gun
 from db.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
 
@@ -75,7 +74,7 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser(description="PangyPlot command line options.")
         parser.add_argument('--gfa', help='Path to the rGFA file', default=None)
         parser.add_argument('--layout', help='Path to the odgi layout TSV file', default=None)
-        parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', default=None)
+        parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', action="store_true")
         parser.add_argument('--gff3', help='Path to the GFF3 file', default=None)
         parser.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
         #parser.add_argument('--ref', help='GAF file with reference coordinates', default=None)
@@ -118,23 +117,23 @@ if __name__ == '__main__':
             layoutCoords = parse_layout(args.layout)
             print("Parsing GFA...")
             parse_graph(args.gfa, layoutCoords)
-            print("Calculating bubbles...")
-            bubble_gun.shoot()
-
-            add_null_nodes()
-            connect_bubble_ends_to_chain()
-            add_chain_subtype()
-
-            print("Done.")
             
         #if args.ref:
             #if ref.endswith(".gaf") or ref.endswith(".gaf.gz"):
             #    parse_coords(ref)
 
         if args.bubbles:
-            print("Parsing bubbles...")
-            parse_bubbles(args.bubbles)
+            #drop.drop_bubbles()
+            print("Calculating bubbles...")
+            bubble_gun.shoot()
+            add_null_nodes()
+            connect_bubble_ends_to_chain()
+            add_chain_subtype()
             print("Done.")
+
+            #print("Parsing bubbles...")
+            #parse_bubbles(args.bubbles)
+            #print("Done.")
             
         if args.gff3:
             print("Parsing GFF3...")

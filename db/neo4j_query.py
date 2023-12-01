@@ -29,7 +29,7 @@ def query_all_segments():
             batch = [(record['s.id'], record['s.length']) for record in results]
 
             if not batch:
-                break  # Exit the loop if no more records are returned
+                break
             nodes.extend(batch)
             skip += batch_size
     return nodes
@@ -47,8 +47,8 @@ def query_all_links():
                     LIMIT $limit
                     """
             results = session.run(query, skip=skip, limit=batch_size)
-            batch = [(result['l.from_strand'], result['s1.id'], result['l.to_strand'], record['s2.id']) for result in results]
-
+            batch = [(result['l.from_strand'], result['s1.id'], result['l.to_strand'], result['s2.id']) for result in results]
+    
             if not batch:
                 break 
             
@@ -56,8 +56,6 @@ def query_all_links():
             skip += batch_size
 
     return links
-
-
 
 def get_subgraph(nodeid):
     nodes,links = [],[]
