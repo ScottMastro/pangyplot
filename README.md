@@ -2,6 +2,12 @@
 
 ![PangyPlot logo](static/images/pangyplot_logo.svg)
 
+                Mastromatteo, Scott. 
+                <b>PangyPlot: a paper title</b>. 
+                <i>Journal</i>. 2024 XXX;Y(ZZZ):N-M.
+                doi: <a href="https://doi.org/DOI" target="_blank">DOI</a>.
+
+
 Pangenome graph visualization software
 
 
