@@ -1,0 +1,10 @@
+:root {
+    --site-background: #eee;
+    --highlight: #FFE268;
+    --darker-green: #384034;
+    --dark-green: #5D6C53;
+    --light-green: #93AC9D;
+    --lighter-green: #BCCCC2;
+    --font-color: #384034;
+    --detail-box: rgba(225, 225, 225, 0.8);
+  }

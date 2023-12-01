@@ -46,7 +46,7 @@ def insert_chain_links(session, chains, batch_size):
 
     for i in range(0, len(insideLinks), batch_size):
         batch = insideLinks[i:i + batch_size]
-        create_links(session, batch, "Segment", "INSIDE", "->")
+        create_links(session, batch, "Bubble", "INSIDE", "->")
 
     for i in range(0, len(superBubbles), batch_size):
         batch = superBubbles[i:i + batch_size]

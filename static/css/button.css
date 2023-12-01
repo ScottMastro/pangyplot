@@ -1,13 +1,11 @@
 .button-container {
-    height: 50px;
+    width: 400px;
     display: flex;
     justify-content: center;
     align-items: center;
 }
   
 .option-button {
-    width: 60px;
-    height: 60px;
     margin: 5px;
     cursor: pointer;
     padding: 5px;
@@ -28,7 +26,6 @@
     background-color: #FFE268;
 }
 
-  
 /* Hide the default radio button */
 input[type="radio"] {
     display: none;

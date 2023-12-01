@@ -1,4 +1,5 @@
 import db.neo4j_query as q
+from db.query_top_level import get_top_level, get_top_level_segments
 
 def remove_bubble_insertion_link(bubbles, bubbleLinks, segmentLinks):
     sourceDict, targetDict = dict(), dict()
@@ -31,14 +32,13 @@ def remove_bubble_insertion_link(bubbles, bubbleLinks, segmentLinks):
 
 def get_segments(chrom, start, end):
 
-    chains,chainLinks = q.get_top_level_chains(chrom, start, end)
-    bubbles,bubbleLinks = q.get_top_level_bubbles(chrom, start, end)
-    segments,segmentLinks = q.get_top_level_segments(chrom, start, end)
+    nodes,links = get_top_level(chrom, start, end)
+    segments,segmentLinks = get_top_level_segments(chrom, start, end)
 
     #segmentLinks = remove_bubble_insertion_link(bubbles, bubbleLinks, segmentLinks)
 
-    graph = {"nodes": chains + bubbles + segments, 
-             "links": chainLinks + bubbleLinks + segmentLinks}
+    graph = {"nodes": nodes + segments, 
+             "links": links + segmentLinks}
 
     return graph
 
