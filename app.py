@@ -1,14 +1,16 @@
 from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
 from db.neo4j_db import db_init
-import db.query as query
-import db.drop as drop
+import db.to_query as query
+import db.query.query_top_level as query_top
 
-from db.parser.parse_gfa import parse_graph
-from db.parser.parse_layout import parse_layout
-from db.parser.parse_gff3 import parse_gff3
+import db.modify.drop_data as drop
+
+from parser.parse_gfa import parse_graph
+from parser.parse_layout import parse_layout
+from parser.parse_gff3 import parse_gff3
 import db.bubble_gun as bubble_gun
-from db.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
+from db.modify.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
 
 import argparse
 
@@ -26,7 +28,7 @@ def select():
     start = int(start)
     end = int(end)
 
-    resultDict = query.get_segments(chrom, start, end)
+    resultDict = query_top.get_top_level(chrom, start, end)
     
     chr = chrom.split("#")[1]
     annotations = query.get_annotations(chr, start, end)
@@ -123,7 +125,7 @@ if __name__ == '__main__':
             #    parse_coords(ref)
 
         if args.bubbles:
-            #drop.drop_bubbles()
+            drop.drop_bubbles()
             print("Calculating bubbles...")
             bubble_gun.shoot()
             add_null_nodes()

@@ -1,5 +1,5 @@
 from db.neo4j_db import get_session
-from db.record import segment_record, link_record
+import db.utils.create_record as record
 
 def get_segments(session, x, y):
 
@@ -9,12 +9,12 @@ def get_segments(session, x, y):
             RETURN s1, s2
             """
 
-    result = session.run(query, {"x": x, "y": y})
+    results = session.run(query, {"x": x, "y": y})
 
     nodeX, nodeY = None, None
-    for record in result:
-        nodeX = segment_record(record["s1"])
-        nodeY = segment_record(record["s2"])
+    for result in results:
+        nodeX = record.segment_record(result["s1"])
+        nodeY = record.segment_record(result["s2"])
 
     return (nodeX,nodeY)
 
@@ -25,11 +25,11 @@ def get_other_links(session, x, y):
             WHERE s1.id <> $x AND s2.id = $y
             RETURN l
             """
-    result = session.run(query, {"x": x, "y": y})
+    results = session.run(query, {"x": x, "y": y})
 
     links = []
-    for record in result:
-        link = link_record(record["l"])
+    for result in results:
+        link = record.link_record(result["l"])
         links.append(link)
 
     return links

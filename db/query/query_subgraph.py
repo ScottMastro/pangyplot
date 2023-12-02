@@ -1,6 +1,6 @@
 from db.neo4j_db import get_session
 import json
-import db.record as record
+import db.utils.create_record as record
 
 #singleton chain
 """

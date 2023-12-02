@@ -31,33 +31,11 @@ def node_record(record, nodeType):
         return bubble_record(record)
     return None
 
-def node_records(records, key, typeKey):
-    nodes = []
-    for record in records:
-        node = node_record(record[key], record[typeKey]) 
-        nodes.append(node)
-    return nodes
-
-def segment_records(records, key):
-    nodes = []
-    for record in records:
-        node = segment_record(record[key]) 
-        nodes.append(node)
-    return nodes
-
 def link_record_simple(record):
     link = {"source": record.start_node.id,
             "target": record.end_node.id,
             "class": "edge"}
     return link
-
-def link_records_simple(records, key):
-    links = []
-    for record in records:
-        for r in record[key]:
-            link = link_record_simple(r)
-            links.append(link)
-    return links
 
 def link_record(record):
     link = {"source": record.start_node.id,
@@ -69,6 +47,10 @@ def link_record(record):
             "class": "edge"}
     return link
 
+
+
+
+#todo: delete
 def link_records(records, key):
     links = []
     for record in records:
@@ -76,3 +58,25 @@ def link_records(records, key):
             link = link_record(r)
             links.append(link)
     return links
+
+def link_records_simple(records, key):
+    links = []
+    for record in records:
+        for r in record[key]:
+            link = link_record_simple(r)
+            links.append(link)
+    return links
+
+def node_records(records, key, typeKey):
+    nodes = []
+    for record in records:
+        node = node_record(record[key], record[typeKey][0]) 
+        nodes.append(node)
+    return nodes
+
+def segment_records(records, key):
+    nodes = []
+    for record in records:
+        node = segment_record(record[key]) 
+        nodes.append(node)
+    return nodes

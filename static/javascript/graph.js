@@ -299,7 +299,7 @@ function draw_graph(graph){
     //    annotationDict[graph.annotations[i].index] = graph.annotations[i];
     //}
     //.linkDirectionalParticles(4)
-    console.log(graph);
+    console.log("forceGraph:", graph);
 
     forceGraph = ForceGraph()(CANVAS)
         .height(window.innerHeight)
@@ -315,7 +315,7 @@ function draw_graph(graph){
         .nodeRelSize(HOVER_PRECISION)
         .linkWidth(linkWidth)
         .nodeCanvasObject((node, ctx) => node_paint(node, ctx)) 
-        .onNodeClick(node => {explode_node(node)})
+        .onNodeClick(node => {node_click(node)})
 
         .nodeVal(node => get_node_size(node))
 
@@ -391,12 +391,12 @@ function fetch(chromosome, start, end) {
     xmlHttp.onreadystatechange = function() { 
         if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
             var data = JSON.parse(xmlHttp.response);
-            
+            console.log(data)
             // TODO
             //update_path_selector(data.paths)
 
             graph = process_graph_data(data);
-            graph = collapse_nodes(graph);
+            //graph = collapse_nodes(graph);
             draw_graph(graph);
         }
     }
@@ -463,6 +463,20 @@ function explode_complex_nodes(nodes){
         explode_node(node, update=false);
     });
 }
+
+
+function node_click(node) {
+    if (node["type"] == "null"){ return }
+    if (node["type"] == "segment"){ 
+        let query = "MATCH (n:Segment) WHERE ID(n) = " + node.nodeid + " RETURN n"
+        navigator.clipboard.writeText(query);
+        
+    }
+    else{
+        explode_node(node)
+    }
+}
+
 
 fetch("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
 
