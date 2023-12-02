@@ -11,12 +11,15 @@ body {
     display: flex;
 }
 
-#genome-cytoband-container{
+#genome-container{
     background-color: var(--lighter-green);
     padding:10px;
     margin:5px;
     border-radius: 10px;
     width: 34%;
+
+}
+#genome-cytoband-container{
 
     .genome-annotation-chr{
         font-size: 0.8em;
@@ -36,6 +39,10 @@ body {
         fill: var(--highlight);
         cursor: pointer;
     }
+}
+#other-chr-selector-container{
+    text-align: right;
+
 }
 
 .annotation-text {
@@ -94,4 +101,32 @@ body {
     border-color: rgba(255, 255, 255, 0.5);
     background-color: rgba(255, 255, 255, 0.2);
     pointer-events: none;
+}
+
+
+.loader {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 40%;
+    margin-left: -25px;
+    margin-top: -25px;
+    z-index: 100;
+} .loader-filter {
+    background-color: rgba(255, 255, 255, 0.4);
+    z-index: 99;
+    position: absolute;
+    width: 81%;
+    height: 100%;
+}
+
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }

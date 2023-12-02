@@ -106,7 +106,3 @@ def get_annotation_range(chrom, start, end):
 def get_annotations(chrom, start, end):
     annotations = get_annotation_range(chrom, start, end)
     return annotations
-
-def get_subgraph(nodeid):
-    segments,links = get_subgraph(nodeid)
-    return {"nodes": segments, "links": links}

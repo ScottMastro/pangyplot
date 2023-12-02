@@ -67,6 +67,8 @@ def add_bubble_properties():
             print(query)
             session.run(query)
 
+    with get_session() as session:
+
         def layout_query(a,b):
             c = "MIN" if b=="1" else "MAX"
             d = "<" if b=="1" else ">"
@@ -97,3 +99,19 @@ def add_bubble_properties():
             print(query)
             session.run(query)
 
+    with get_session() as session:
+
+        MATCH = """
+                MATCH (e1:Segment)-[:END]->(b:Bubble)-[:END]->(e2:Segment)
+                WHERE e1.chrom IS NOT NULL AND e2.chrom IS NOT NULL AND b.chrom is NULL 
+                """
+
+        q1 = MATCH + " SET b.start = CASE WHEN e1.end < e2.end THEN e1.end + 1 ELSE e2.end + 1 END"
+        q2 = MATCH + " SET b.end = CASE WHEN e1.start > e2.start THEN e1.start - 1 ELSE e2.start - 1 END"
+        q3 = MATCH + " SET b.chrom = e1.chrom"
+
+        print("Calculating chain properties...")
+        for query in [q1,q2,q3]:
+            print(query)
+            session.run(query)
+            

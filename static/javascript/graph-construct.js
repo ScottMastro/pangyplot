@@ -3,6 +3,7 @@ const XSCALE_NODE = 1
 const YSCALE_NODE = 1
 
 const KINK_SIZE = 100
+const MAX_KINKS = 20
 const NODE_SEGMENT_WIDTH = 21
 const SINGLE_NODE_THRESH = 6
 const EDGE_LENGTH = 10
@@ -81,6 +82,7 @@ function process_nodes(nodes) {
     nodes.forEach(node => {
         let length = node.hasOwnProperty("length") ? node["length"] : node["size"];
         let n = (length < SINGLE_NODE_THRESH) ? 1 : Math.floor(length / KINK_SIZE) + 2;
+        n = Math.min(n, MAX_KINKS)
         let nodeid = String(node.nodeid)
         
         nodeInfo[nodeid] = node
@@ -120,7 +122,7 @@ function process_nodes(nodes) {
                 newLink["nodeid"] = nodeid;
                 newLink["class"] = "node";
                 newLink["type"] = node["type"];
-                newLink["length"] = length / n;
+                newLink["length"] = Math.min(length / n, 1000) ;
                 newLink["width"] = NODE_SEGMENT_WIDTH;
                 newLink["annotations"] = []
                 graphLinks.push(newLink);

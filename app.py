@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, make_response
 from cytoband import get_cytoband 
 from db.neo4j_db import db_init
 import db.to_query as query
-import db.query.query_top_level as query_top
+from db.query.query_top_level import get_top_level
+from db.query.query_subgraph import get_subgraph
 
 import db.modify.drop_data as drop
 
@@ -28,7 +29,7 @@ def select():
     start = int(start)
     end = int(end)
 
-    resultDict = query_top.get_top_level(chrom, start, end)
+    resultDict = get_top_level(chrom, start, end)
     
     chr = chrom.split("#")[1]
     annotations = query.get_annotations(chr, start, end)
@@ -40,10 +41,17 @@ def select():
 @app.route('/subgraph', methods=["GET"])
 def subgraph():
     nodeid = request.args.get("nodeid")
+    chrom = request.args.get("chromosome")
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    start = int(start)
+    end = int(end)
+
     print(f"Getting subgraph for {nodeid}...")
 
     nodeid = int(nodeid)
-    resultDict = query.get_subgraph(nodeid)
+    resultDict = get_subgraph(nodeid, chrom, start, end)
     return resultDict, 200
 
 @app.route('/haplotypes', methods=["GET"])
@@ -125,7 +133,7 @@ if __name__ == '__main__':
             #    parse_coords(ref)
 
         if args.bubbles:
-            drop.drop_bubbles()
+            #drop.drop_bubbles()
             print("Calculating bubbles...")
             bubble_gun.shoot()
             add_null_nodes()

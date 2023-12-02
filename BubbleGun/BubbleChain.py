@@ -157,4 +157,5 @@ class BubbleChain:
                 start = next_key[1 - next_key.index(start)]
                 self.sorted.append(all_ends[next_key])
                 break
+            
         # ========= EDITED BY SCOTT MASTROMATTEO ===========

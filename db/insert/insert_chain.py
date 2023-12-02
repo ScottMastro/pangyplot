@@ -38,23 +38,23 @@ def insert_chain_links(session, chains, batch_size):
 
     for i in range(0, len(startLinks), batch_size):
         batch = startLinks[i:i + batch_size]
-        create_links(session, batch, "Segment", "END", "->",)
+        create_links(session, batch, "Segment", "END", "->",) #n->c
 
     for i in range(0, len(endLinks), batch_size):
         batch = endLinks[i:i + batch_size]
-        create_links(session, batch, "Segment", "END", "<-",)
+        create_links(session, batch, "Segment", "END", "<-",) #n<-c
 
     for i in range(0, len(insideLinks), batch_size):
         batch = insideLinks[i:i + batch_size]
-        create_links(session, batch, "Bubble", "INSIDE", "->")
+        create_links(session, batch, "Bubble", "INSIDE", "->") #n->c
 
     for i in range(0, len(superBubbles), batch_size):
         batch = superBubbles[i:i + batch_size]
-        create_links(session, batch, "Bubble", "PARENT", "<-")
+        create_links(session, batch, "Bubble", "PARENT", "<-") #n<-c
 
     for i in range(0, len(parentChains), batch_size):
         batch = parentChains[i:i + batch_size]
-        create_links(session, batch, "Chain", "PARENT", "<-")
+        create_links(session, batch, "Chain", "PARENT", "<-") #n<-c
 
 def insert_chains(chains, batch_size=10000):
     if len(chains) == 0: return
@@ -104,13 +104,14 @@ def add_chain_properties():
     with get_session() as session:
 
         MATCH = """
-                MATCH (e1)-[:END]->(n)-[:END]->(e2)
-                WHERE e1.start IS NOT NULL AND e2.start IS NOT NULL AND n.end is NULL 
+                MATCH (e1:Segment)-[:END]->(c:Chain)-[:END]->(e2:Segment)
+                WHERE e1.chrom IS NOT NULL AND e2.chrom IS NOT NULL AND c.chrom is NULL 
                 """
 
-        q1 = MATCH + " SET n.chrom = e1.chrom"
-        q2 = MATCH + " SET n.start = CASE WHEN e1.start < e2.start THEN e1.start ELSE e2.start END + 1"
-        q3 = MATCH + " SET n.end = CASE WHEN e1.end > e2.end THEN e1.end ELSE e2.end END - 1"
+        q1 = MATCH + " SET c.start = CASE WHEN e1.end < e2.end THEN e1.end + 1 ELSE e2.end + 1 END"
+        q2 = MATCH + " SET c.end = CASE WHEN e1.start > e2.start THEN e1.start - 1 ELSE e2.start - 1 END"
+        q3 = MATCH + " SET c.chrom = e1.chrom"
+
 
         print("Calculating chain properties...")
         for query in [q1,q2,q3]:

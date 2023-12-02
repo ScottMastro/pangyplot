@@ -24,7 +24,16 @@
 {% include 'navbar.html' %}
 
 <div id="cytoband-container">
-    <div id="genome-cytoband-container"></div> 
+    <div id="genome-container">
+        <div id="genome-cytoband-container"></div> 
+
+        <div id="other-chr-selector-container">
+        <select id="other-chr-selector" name="chr-selector">
+            <!-- The options will be appended here by JavaScript -->
+        </select>
+        <input type="submit" value="Submit">
+        </div> 
+    </div>
     <div id="chromosome-container">
         <div id="chromosome-cytoband-container"></div>
         <div id="filter">
@@ -46,28 +55,34 @@
 
 
 <div id="color-option-button-container" class="button-container">
-
-    <input type="radio" id="color-option-btn1" name="selector" checked>
+    <div class="button-container-title">Color Options</div>
+    <input type="radio" id="color-option-btn1" checked>
     <label for="color-option-btn1" class="option-button option-button-selected">
         <img src="{{ url_for('static', filename= 'images/option_allele_frequency.svg') }}"></label>
     
-    <input type="radio" id="color-option-btn2" name="selector">
+    <input type="radio" id="color-option-btn2">
     <label for="color-option-btn2" class="option-button option-button-unselected">
         <img src="{{ url_for('static', filename= 'images/option_node_size.svg') }}"></label>
   
-    <input type="radio" id="color-option-btn3" name="selector">
+    <input type="radio" id="color-option-btn3">
     <label for="color-option-btn3" class="option-button option-button-unselected">
         <img src="{{ url_for('static', filename= 'images/option_ref_alt.svg') }}"></label>
   
-    <input type="radio" id="color-option-btn4" name="selector">
+    <input type="radio" id="color-option-btn4">
     <label for="color-option-btn4" class="option-button option-button-unselected">
         <img src="{{ url_for('static', filename= 'images/option_length.svg') }}"></label>
 
+        <input type="radio" id="color-option-btn5">
+        <label for="color-option-btn4" class="option-button option-button-unselected">
+            <img src="{{ url_for('static', filename= 'images/option_base_composition.svg') }}"></label>
+    
 </div>
 
 
 <div id="graph-container">
-
+    <div class="loader-filter"></div>
+    <div class="loader"></div>
+    
     <div id="graph-info">
         <div>Node ID: <span id="info-node-id"></span></div>
         <div>Node Type: <span id="info-node-type"></span></div>
@@ -85,6 +100,38 @@
     <div id="graph"></div>
 
 </div>
+
+<button id="download-image-button">Download Image</button>
+<script>
+
+    function getFormattedDateTime() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+    }
+
+    document.getElementById('download-image-button').addEventListener('click', function() {
+        const canvas = document.querySelector('.force-graph-container canvas');
+        if (!canvas) {
+            console.error('Canvas element not found');
+            return;
+        }
+    
+        const dateTimeStr = getFormattedDateTime();
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `pangyplot_${dateTimeStr}.png`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);    
+    });
+</script>
 
 <script src="{{url_for('static', filename='javascript/force-graph.min.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/d3.js')}}"></script>
