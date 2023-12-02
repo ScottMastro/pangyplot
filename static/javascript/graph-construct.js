@@ -15,7 +15,6 @@ function source_id(nodeid){
     return NODEIDS[nodeid][NODEIDS[nodeid].length-1]
 }
 function target_id(nodeid){
-    console.log(nodeid)
     return NODEIDS[nodeid][0]
 }
 
@@ -48,7 +47,6 @@ function process_edge_links(links) {
     let graphLinks = [];
     links.forEach(link => {
         let newLink = {};
-        console.log(link)
         newLink["source"] = source_id(link["source"]);
         newLink["target"] =  target_id(link["target"]);
         newLink["sourceid"] = String(link["source"]);
@@ -56,6 +54,7 @@ function process_edge_links(links) {
         newLink["class"] = "edge";
         newLink["length"] = EDGE_LENGTH;
         newLink["width"] = EDGE_WIDTH;
+        newLink["annotations"] = []
         graphLinks.push(newLink);
     });
 
@@ -243,7 +242,6 @@ function process_subgraph(subgraph, originNode, graph){
     graph = delete_node(graph, originNode.nodeid);
 
     let links = filter_raw_links(subgraph.links);
-    console.log(links)
     
     links = process_edge_links(links);
     
@@ -261,7 +259,6 @@ function process_graph_data(data){
     let result = process_nodes(data.nodes);
     let nodes = result[0];
     let nodeLinks = result[1];
-    console.log(NODEIDS)
 
     let links = process_edge_links(data.links);
     var graph = {"nodes": nodes, "links": links.concat(nodeLinks)}

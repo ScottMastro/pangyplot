@@ -7,7 +7,7 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.svg') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">   
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/button.css') }}">   
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/option-button.css') }}">   
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">   
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/citation-modal.css') }}">
@@ -23,7 +23,6 @@
 
 {% include 'navbar.html' %}
 
-
 <div id="cytoband-container">
     <div id="genome-cytoband-container"></div> 
     <div id="chromosome-container">
@@ -35,14 +34,16 @@
             <input type="text" id="end-coord" name="end-coord"><br><br>
         </div>
 
+
+        <select id="path-selector" name="path-selector">
+            <!-- The options will be appended here by JavaScript -->
+        </select>
+        <input type="submit" value="Submit">
+
     </div>
 </div>
 
 
-<select id="path-selector" name="path-selector">
-    <!-- The options will be appended here by JavaScript -->
-</select>
-<input type="submit" value="Submit">
 
 <div id="color-option-button-container" class="button-container">
 
@@ -61,11 +62,8 @@
     <input type="radio" id="color-option-btn4" name="selector">
     <label for="color-option-btn4" class="option-button option-button-unselected">
         <img src="{{ url_for('static', filename= 'images/option_length.svg') }}"></label>
-  
-    <input type="radio" id="color-option-btn5" name="selector">
-    <label for="color-option-btn5" class="option-button option-button-unselected">
-        <img src="{{ url_for('static', filename= 'images/test.png') }}"></label>
-  </div>
+
+</div>
 
 
 <div id="graph-container">

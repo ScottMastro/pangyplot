@@ -1,7 +1,7 @@
 import os
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
-from db.create_index import create_restraint, create_compound_index, drop_all_index
+from db.utils.create_index import create_restraint, create_compound_index, drop_all_index
 
 NEO4J_DRIVER = None
 

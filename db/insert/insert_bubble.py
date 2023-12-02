@@ -34,15 +34,15 @@ def link_bubble_links(session, bubbles, batch_size):
 
     for i in range(0, len(startLinks), batch_size):
         batch = startLinks[i:i + batch_size]
-        create_links(session, batch, "END", "->",)
+        create_links(session, batch, "END", "->",) #s->b
 
     for i in range(0, len(endLinks), batch_size):
         batch = endLinks[i:i + batch_size]
-        create_links(session, batch, "END", "<-")
+        create_links(session, batch, "END", "<-") #s<-b
 
     for i in range(0, len(insideLinks), batch_size):
         batch = insideLinks[i:i + batch_size]
-        create_links(session, batch, "INSIDE", "->")
+        create_links(session, batch, "INSIDE", "->") #s->b
 
 def insert_bubbles(bubbles, batch_size=10000):
     if len(bubbles) == 0: return

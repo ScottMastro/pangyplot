@@ -5,8 +5,8 @@ from BubbleGun.find_bubbles import find_bubbles
 from BubbleGun.connect_bubbles import connect_bubbles
 from BubbleGun.find_parents import find_parents
 
-import db.neo4j_query as neo4jdb 
-from db.compact_segment import compact_segment 
+from db.query.query_all import query_all_segments, query_all_links
+from db.modify.compact_segment import compact_segment 
 
 from db.insert.insert_bubble import insert_bubbles, add_bubble_properties
 from db.insert.insert_chain import insert_chains, add_chain_properties
@@ -17,8 +17,8 @@ def read_from_db():
     nodes = dict()
 
     print("Getting segments...")
+    segments = query_all_segments()
 
-    segments = neo4jdb.query_all_segments()
     for s in segments:
         n_id, n_len = s
         n_id = str(n_id)
@@ -28,8 +28,7 @@ def read_from_db():
         #nodes[n_id].seq = ...
 
     print("Getting links...")
-
-    edges = neo4jdb.query_all_links()
+    edges = query_all_links()
 
     edgeDict = {}
     for e in edges:
@@ -126,7 +125,7 @@ def insert_all(graph):
             bubbles.append({
                 "id": bubble.id,
                 "type": type,
-                "ends": [bubble.source.id, bubble.sink.id],
+                "ends": [bubble.sink.id, bubble.source.id],
                 "chain_id": None if not bubble.chain_id else bubble.chain_id,
                 "sb": None if not bubble.parent_sb else bubble.parent_sb,
                 "pc": None if not bubble.parent_chain else bubble.parent_chain,
