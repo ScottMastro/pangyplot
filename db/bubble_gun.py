@@ -109,7 +109,7 @@ def insert_all(graph):
     for chain in graph.b_chains:
         chains.append({
                 "id": chain.id, 
-                "ends": chain.ends,
+                "ends": [chain.ends[1], chain.ends[0]],
                 "sb": None if not chain.parent_sb else chain.parent_sb,
                 "pc": None if not chain.parent_chain else chain.parent_chain,
                 "bubbles":[bubble.id for bubble in chain.bubbles]

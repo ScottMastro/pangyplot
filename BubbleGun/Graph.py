@@ -58,9 +58,7 @@ class Graph:
         """
         if len(chain.sorted) == 0:
             chain.find_ends()
-            print("chain sort start")
             chain.sort()
-            print("chain sort done")
             if len(chain.ends) != 2:  # circular chains or other weird stuff
                 nodes_set = set(chain.list_chain())
                 self.write_graph(set_of_nodes=nodes_set, append=True,

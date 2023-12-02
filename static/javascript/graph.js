@@ -35,6 +35,11 @@ const HIGHLIGHT_LINK_COLOR="#FF0000";
 
 const HOVER_PRECISION=10;
 
+function get_graph_height(){return window.innerHeight*0.8}
+function get_graph_width(){return window.innerWidth*0.8}
+
+
+
 function force(alpha) {
     for (let i = 0, n = nodes.length, node, k = alpha * 0.1; i < n; ++i) {
       node = nodes[i];
@@ -279,16 +284,17 @@ function post_render(ctx, graphData){
     ctx.restore();
 }
 
+
+
 function updateGraphData(graph) {
     forceGraph.graphData({ nodes: graph.nodes, links: graph.links });
 };
 
 window.addEventListener('resize', () => {
     forceGraph
-        .height(window.innerHeight)
-        .width(window.innerWidth);
+        .height(get_graph_height())
+        .width(get_graph_width());
 });
-
 
 function draw_graph(graph){
 
@@ -301,9 +307,10 @@ function draw_graph(graph){
     //.linkDirectionalParticles(4)
     console.log("forceGraph:", graph);
 
+    // todo https://github.com/vasturiano/d3-force-registry
     forceGraph = ForceGraph()(CANVAS)
-        .height(window.innerHeight)
-        .width(window.innerWidth)
+        .height(get_graph_height())
+        .width(get_graph_width())
         .graphData(graph)
         .backgroundColor(BACKGROUND_COLOR)
         .d3VelocityDecay(VELOCITY_DECAY)
@@ -318,6 +325,7 @@ function draw_graph(graph){
         .onNodeClick(node => {node_click(node)})
 
         .nodeVal(node => get_node_size(node))
+
 
         //.onLinkHover(highlight_link)
         //.linkHoverPrecision(HOVER_PRECISION)
@@ -422,9 +430,17 @@ function fetch_haps(chromosome, start, end) {
 }
 
 function fetch_subgraph(originNode){
-    
+    //showLoader()
     GETTING_SUBGRAPH.add(originNode.nodeid)
+
+    let chromosome = "CHM13"+encodeURIComponent('#')+"chr18";
+    let start = "47506000";
+    let end = "47600000";
+
     let url = "/subgraph?nodeid=" + originNode.nodeid;
+    url = url + "&chromosome=" + chromosome;
+    url = url + "&start=" + start;
+    url = url + "&end=" + end;
 
     var xmlHttp = new XMLHttpRequest();
     xmlHttp.onreadystatechange = function() { 
@@ -434,7 +450,11 @@ function fetch_subgraph(originNode){
             graph = forceGraph.graphData();
             graph = process_subgraph(subgraph, originNode, graph);
             updateGraphData(graph);
-
+            
+            GETTING_SUBGRAPH.delete(originNode.nodeid)
+            if (GETTING_SUBGRAPH.size == 0){
+                hideLoader()
+            }
             HIGHLIGHT_NODE = null;
         }
     }
@@ -477,7 +497,16 @@ function node_click(node) {
     }
 }
 
+function showLoader() {
+    document.querySelector('.loader').style.display = 'block';
+    document.querySelector('.loader-filter').style.display = 'block';
+}
 
+function hideLoader() {
+    document.querySelector('.loader').style.display = 'none';
+    document.querySelector('.loader-filter').style.display = 'none';
+}
+hideLoader()
 fetch("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
 
 //fetch("chr7", 144084904, 144140209); //PRSS region
