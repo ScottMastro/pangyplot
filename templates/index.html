@@ -5,12 +5,14 @@
     <meta charset="UTF-8">
     <title>PangyPlot</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cytoband.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">   
     <link rel="stylesheet" href="{{ url_for('static', filename='css/option-button.css') }}">   
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">   
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/citation-modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/color-picker.css') }}">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   
@@ -23,8 +25,8 @@
 
 {% include 'navbar.html' %}
 
-<div id="cytoband-container">
-    <div id="genome-container">
+<div id="cytoband-div" class="fixed-height-2-5">
+    <div id="genome-container" class="container">
         <div id="genome-cytoband-container"></div> 
 
         <div id="other-chr-selector-container">
@@ -34,7 +36,7 @@
         <input type="submit" value="Submit">
         </div> 
     </div>
-    <div id="chromosome-container">
+    <div id="chromosome-container" class="container">
         <div id="chromosome-cytoband-container"></div>
         <div id="filter">
             <label for="start-coord">Start:</label>
@@ -53,31 +55,54 @@
 </div>
 
 
-
-<div id="color-option-button-container" class="button-container">
-    <div class="button-container-title">Color Options</div>
-    <input type="radio" id="color-option-btn1" checked>
-    <label for="color-option-btn1" class="option-button option-button-selected">
-        <img src="{{ url_for('static', filename= 'images/option_allele_frequency.svg') }}"></label>
+<div id="color-div" class="fixed-height-1">
+<div id="color-style-container" class="container">
+    <div class="container-title">Color Options</div>
+    <div class="color-style-btn option-button option-button-selected">
+        <img src="{{ url_for('static', filename= 'images/option_allele_frequency.svg') }}"></div>
     
-    <input type="radio" id="color-option-btn2">
-    <label for="color-option-btn2" class="option-button option-button-unselected">
-        <img src="{{ url_for('static', filename= 'images/option_node_size.svg') }}"></label>
+    <div class="color-style-btn option-button option-button-unselected">
+        <img src="{{ url_for('static', filename= 'images/option_node_size.svg') }}"></div>
   
-    <input type="radio" id="color-option-btn3">
-    <label for="color-option-btn3" class="option-button option-button-unselected">
-        <img src="{{ url_for('static', filename= 'images/option_ref_alt.svg') }}"></label>
+    <div class="color-style-btn option-button option-button-unselected">
+        <img src="{{ url_for('static', filename= 'images/option_ref_alt.svg') }}"></div>
   
-    <input type="radio" id="color-option-btn4">
-    <label for="color-option-btn4" class="option-button option-button-unselected">
-        <img src="{{ url_for('static', filename= 'images/option_length.svg') }}"></label>
+    <div class="color-style-btn option-button option-button-unselected">
+        <img src="{{ url_for('static', filename= 'images/option_length.svg') }}"></div>
 
-        <input type="radio" id="color-option-btn5">
-        <label for="color-option-btn4" class="option-button option-button-unselected">
-            <img src="{{ url_for('static', filename= 'images/option_base_composition.svg') }}"></label>
+    <div class="color-style-btn option-button option-button-unselected">
+        <img src="{{ url_for('static', filename= 'images/option_base_composition.svg') }}"></div>
     
 </div>
 
+<div id="color-picker-container" class="container" >
+    <div class="container-title">Color Picker</div>
+    <div id="gradient-display">
+        <div id="color-picker-manual">
+            <input type="color" id="color1" class="color-picker" value="#0762e5">
+            <input type="color" id="color2" class="color-picker" value="#f2dc0f">
+            <input type="color" id="color3" class="color-picker" value="#ff6700">
+        </div>
+    </div>
+    
+    <div id="preset-color-container">
+
+        <div class="preset-color option-button option-button-selected"
+            data-color1="#0762e5" data-color2="#f2dc0f" data-color3="#ff6700">Sunset</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#efedf5" data-color2="#bcbddc" data-color3="#756bb1">Purples</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#ffeda0" data-color2="#feb24c" data-color3="#f03b20">Heat</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#f7fcb9" data-color2="#addd8e" data-color3="#31a354">Greens</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#eff3ff" data-color2="#6baed6" data-color3="#08519c">Blues</div>
+
+
+        
+    </div>
+</div>
+</div>
 
 <div id="graph-container">
     <div class="loader-filter"></div>
@@ -147,8 +172,9 @@
 <script src="{{url_for('static', filename='javascript/draw-helper.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/graph-select.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/path-manager.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/button-selector.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/ui/option-button.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/citation-modal.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/ui/color-picker.js')}}"></script>
 
 
 </body>

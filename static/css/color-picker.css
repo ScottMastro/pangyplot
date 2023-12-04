@@ -1,0 +1,54 @@
+#color-div{
+    display:flex;
+}
+
+#color-picker-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#color-style-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#gradient-display {
+    width: 300px;
+    height: 100%;
+    border: 1px solid #000;
+    border-radius: 5px;
+}
+#color-picker-manual{
+    display: flex;
+    justify-content: space-between;
+}
+
+#preset-color-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.color-style-btn{
+    height: 100%;
+}
+.color-picker {
+    margin: 2px;
+} .preset-color {
+    margin: 10px;
+    cursor: pointer;
+}
+
+
+
+input[type="color"] {
+    cursor: pointer;
+    height: 2em;
+    border-radius: 2px;
+    padding: 0;
+    border-width: 0px;
+    box-shadow: 1px 1px 3px 0px var(--font-color);
+    margin: 1em;
+}

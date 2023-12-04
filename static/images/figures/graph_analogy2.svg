@@ -2,18 +2,24 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="396.40765mm"
    height="325.66287mm"
    viewBox="0 0 396.40765 325.66287"
    version="1.1"
    id="svg5"
-   inkscape:version="1.3.1 (9b9bdc1480, 2023-11-25, custom)"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
    sodipodi:docname="graph_analogy2.svg"
-   xml:space="preserve"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+   xml:space="preserve"><metadata
+     id="metadata156"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><sodipodi:namedview
      id="namedview7"
      pagecolor="#ffffff"
      bordercolor="#999999"
@@ -24,15 +30,15 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="0.4108488"
-     inkscape:cx="878.66875"
-     inkscape:cy="798.34723"
-     inkscape:window-width="1850"
-     inkscape:window-height="1016"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:zoom="0.58102794"
+     inkscape:cx="119.02563"
+     inkscape:cy="559.15653"
+     inkscape:window-width="1208"
+     inkscape:window-height="960"
+     inkscape:window-x="1992"
+     inkscape:window-y="27"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer1" /><defs
+     inkscape:current-layer="g1" /><defs
      id="defs2" /><g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
@@ -49,7 +55,8 @@
          id="tspan47761"
          style="stroke-width:0.264583"
          x="8.6788797"
-         y="1.8831062" /></text><text
+         y="1.8831062" /></text>
+<text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="88.461197"
@@ -59,7 +66,8 @@
          id="tspan47832"
          style="stroke-width:0.264583"
          x="88.461197"
-         y="-34.849907" /></text><rect
+         y="-34.849907" /></text>
+<rect
        style="fill:#e3e2db;fill-opacity:1;stroke:none;stroke-width:0;stroke-linejoin:round;stroke-dasharray:none;stop-color:#000000"
        id="rect184669"
        width="396.40765"
@@ -75,39 +83,42 @@
          id="tspan187768-8-6"
          style="stroke-width:0.264583"
          x="-74.455307"
-         y="27.406326" /></text><g
+         y="27.406326" /></text>
+<g
        id="g1"
        transform="translate(-15.096361,2.6263076)"><text
          xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         style="font-style:normal;font-weight:normal;font-size:10.58329964px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458299"
          x="-534.88043"
          y="-5.4668374"
          id="text187690"><tspan
            sodipodi:role="line"
            id="tspan187688"
-           style="stroke-width:0.264583"
+           style="stroke-width:0.26458299"
            x="-534.88043"
            y="-5.4668374">Segment</tspan><tspan
            sodipodi:role="line"
-           style="stroke-width:0.264583"
+           style="stroke-width:0.26458299"
            x="-534.88043"
            y="7.7622871"
-           id="tspan200146">&quot;Unit #&quot;</tspan></text><text
+           id="tspan200146">&quot;Unit&quot;</tspan></text>
+<text
          xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+         style="font-style:normal;font-weight:normal;font-size:10.58329964px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458299"
          x="-535.2215"
          y="74.98838"
          id="text187694"><tspan
            sodipodi:role="line"
-           style="stroke-width:0.264583"
+           style="stroke-width:0.26458299"
            x="-535.2215"
            y="74.98838"
            id="tspan187704">Bubble</tspan><tspan
            sodipodi:role="line"
-           style="stroke-width:0.264583"
+           style="stroke-width:0.26458299"
            x="-535.2215"
            y="88.217506"
-           id="tspan200150">&quot;Street #&quot;</tspan></text><text
+           id="tspan200150">&quot;Building&quot;</tspan></text>
+<text
          xml:space="preserve"
          style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="-535.2215"
@@ -122,7 +133,8 @@
            style="stroke-width:0.264583"
            x="-535.2215"
            y="166.62119"
-           id="tspan200152">&quot;Street&quot;</tspan></text><text
+           id="tspan200152">&quot;Street&quot;</tspan></text>
+<text
          xml:space="preserve"
          style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="-534.88043"
@@ -137,7 +149,8 @@
            style="stroke-width:0.264583"
            x="-534.88043"
            y="245.02486"
-           id="tspan200154">&quot;City&quot;</tspan></text><g
+           id="tspan200154">&quot;City&quot;</tspan></text>
+<g
          id="g188573-0"
          transform="translate(-408.81963,-22.227675)"><text
            xml:space="preserve"
@@ -149,7 +162,8 @@
              id="tspan187706-10"
              style="stroke-width:0.264583"
              x="-31.306818"
-             y="17.791777">A</tspan></text></g><g
+             y="17.791777">A</tspan></text>
+</g><g
          id="g196510"
          transform="translate(-400.96536,-12.038848)"><g
            id="g188577"
@@ -183,7 +197,8 @@
                id="tspan187706"
                style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
                x="-24.125391"
-               y="10.313169">A</tspan></text><text
+               y="10.313169">A</tspan></text>
+<text
              xml:space="preserve"
              style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
              x="-23.740402"
@@ -193,7 +208,8 @@
                id="tspan187768"
                style="stroke-width:0.264583"
                x="-23.740402"
-               y="39.901646">T</tspan></text></g><text
+               y="39.901646">T</tspan></text>
+</g><text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="21.048555"
@@ -203,7 +219,8 @@
              id="tspan187768-8"
              style="stroke-width:0.264583"
              x="21.048555"
-             y="94.574547">GGTCA</tspan></text><text
+             y="94.574547">GGTCA</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="-39.047409"
@@ -213,7 +230,8 @@
              id="tspan188612"
              style="stroke-width:0.264583"
              x="-39.047409"
-             y="94.574547">TTC</tspan></text></g><g
+             y="94.574547">TTC</tspan></text>
+</g><g
          id="g188577-4"
          transform="translate(-380.20175,128.15933)"
          style="fill:#c43541;fill-opacity:1"><path
@@ -248,7 +266,8 @@
              id="tspan187706-1"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="-24.125391"
-             y="10.313169">A</tspan></text><text
+             y="10.313169">A</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="-23.740402"
@@ -258,7 +277,8 @@
              id="tspan187768-55"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="-23.740402"
-             y="39.901646">T</tspan></text></g><text
+             y="39.901646">T</tspan></text>
+</g><text
          xml:space="preserve"
          style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="-381.3851"
@@ -268,7 +288,8 @@
            id="tspan187768-8-0"
            style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
            x="-381.3851"
-           y="153.26157">GGTCA</tspan></text><g
+           y="153.26157">GGTCA</tspan></text>
+<g
          id="g188908"
          transform="translate(-466.29535,48.307053)"><g
            id="g188577-4-1"
@@ -298,7 +319,8 @@
              id="tspan187706-1-7"
              style="stroke-width:0.264583"
              x="135.39227"
-             y="90.165451">AT</tspan></text><text
+             y="90.165451">AT</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="137.80099"
@@ -308,7 +330,8 @@
              id="tspan187768-55-7"
              style="stroke-width:0.264583"
              x="137.80099"
-             y="119.75393">C</tspan></text><g
+             y="119.75393">C</tspan></text>
+<g
            id="g189711"
            transform="translate(78.128632,70.503216)"><text
              xml:space="preserve"
@@ -320,7 +343,8 @@
                id="tspan187768-8-0-1"
                style="stroke-width:0.264583"
                x="84.043709"
-               y="34.376381">A</tspan></text><g
+               y="34.376381">A</tspan></text>
+<g
              id="g188577-4-1-3"
              transform="translate(132.02108,9.2741451)"><path
                style="fill:#000000;stroke-width:0.0219607"
@@ -350,7 +374,8 @@
                id="tspan187768-8-0-4-1"
                style="stroke-width:0.264583"
                x="131.14328"
-               y="34.376389">CC...</tspan></text><text
+               y="34.376389">CC...</tspan></text>
+<text
              xml:space="preserve"
              style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
              x="107.24478"
@@ -360,7 +385,8 @@
                id="tspan187706-1-7-8"
                style="stroke-width:0.264583"
                x="107.24478"
-               y="19.587309">T</tspan></text><text
+               y="19.587309">T</tspan></text>
+<text
              xml:space="preserve"
              style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
              x="106.77195"
@@ -370,7 +396,8 @@
                id="tspan187768-55-7-0"
                style="stroke-width:0.264583"
                x="106.77195"
-               y="49.175785">C</tspan></text></g></g><text
+               y="49.175785">C</tspan></text>
+</g></g><text
          xml:space="preserve"
          style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
          x="-441.17551"
@@ -380,7 +407,8 @@
            id="tspan188612-6"
            style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
            x="-441.17551"
-           y="153.26157">TTC</tspan></text><g
+           y="153.26157">TTC</tspan></text>
+<g
          id="g196624"
          transform="translate(-327.82961,-111.32488)"><g
            id="g188577-4-0-7"
@@ -425,7 +453,8 @@
                id="tspan187706-1-5-9"
                style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
                x="-24.125391"
-               y="10.313169">A</tspan></text><text
+               y="10.313169">A</tspan></text>
+<text
              xml:space="preserve"
              style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
              x="-23.740402"
@@ -435,7 +464,8 @@
                id="tspan187768-55-72-6"
                style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
                x="-23.740402"
-               y="39.901646">T</tspan></text></g><text
+               y="39.901646">T</tspan></text>
+</g><text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="-0.097921185"
@@ -445,7 +475,8 @@
              id="tspan187768-8-0-4-8"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="-0.097921185"
-             y="321.84164">GGTCA</tspan></text><text
+             y="321.84164">GGTCA</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="-59.888287"
@@ -455,7 +486,8 @@
              id="tspan188612-6-5-9"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="-59.888287"
-             y="321.84164">TTC</tspan></text><text
+             y="321.84164">TTC</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="-60.438568"
@@ -465,7 +497,8 @@
              id="tspan188612-6-5-1-93"
              style="stroke-width:0.264583"
              x="-60.438568"
-             y="364.42645">AATAGGGGCT</tspan></text><text
+             y="364.42645">AATAGGGGCT</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="-113.34587"
@@ -475,7 +508,8 @@
              id="tspan188612-6-5-1-4-9"
              style="stroke-width:0.264583"
              x="-113.34587"
-             y="341.39056">...TCAG</tspan></text><g
+             y="341.39056">...TCAG</tspan></text>
+<g
            id="g188577-4-1-7-9"
            transform="translate(78.041944,296.73941)"
            style="fill:#c43541;fill-opacity:1"><path
@@ -507,7 +541,8 @@
              id="tspan187706-1-7-9-6"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="49.999737"
-             y="307.05258">AT</tspan></text><text
+             y="307.05258">AT</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="52.792843"
@@ -517,7 +552,8 @@
              id="tspan187768-55-7-09-3"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="52.792843"
-             y="336.64105">C</tspan></text><text
+             y="336.64105">C</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="77.164177"
@@ -527,7 +563,8 @@
              id="tspan187768-8-0-1-6-5"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="77.164177"
-             y="321.76672">A</tspan></text><g
+             y="321.76672">A</tspan></text>
+<g
            id="g188577-4-1-3-2-7"
            transform="translate(125.14154,296.6645)"
            style="fill:#c43541;fill-opacity:1"><path
@@ -559,7 +596,8 @@
              id="tspan187768-8-0-4-1-9-2"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="124.26374"
-             y="321.76672">CC...</tspan></text><text
+             y="321.76672">CC...</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="100.36526"
@@ -569,7 +607,8 @@
              id="tspan187706-1-7-8-7-3"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="100.36526"
-             y="306.97766">T</tspan></text><text
+             y="306.97766">T</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#c43541;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="99.892418"
@@ -579,7 +618,8 @@
              id="tspan187768-55-7-0-5-9"
              style="fill:#c43541;fill-opacity:1;stroke-width:0.264583"
              x="99.892418"
-             y="336.56613">C</tspan></text><g
+             y="336.56613">C</tspan></text>
+<g
            id="g188577-4-1-7-4-5"
            transform="translate(54.526914,341.0879)"><path
              style="fill:#000000;stroke-width:0.0219607"
@@ -609,7 +649,8 @@
              id="tspan187706-1-7-9-8-9"
              style="stroke-width:0.264583"
              x="29.019403"
-             y="351.40109">G</tspan></text><text
+             y="351.40109">G</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="29.277781"
@@ -619,7 +660,8 @@
              id="tspan187768-55-7-09-8-6"
              style="stroke-width:0.264583"
              x="29.277781"
-             y="380.98956">C</tspan></text><text
+             y="380.98956">C</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="53.64912"
@@ -629,7 +671,8 @@
              id="tspan187768-8-0-1-6-8-5"
              style="stroke-width:0.264583"
              x="53.64912"
-             y="366.11523">G</tspan></text><g
+             y="366.11523">G</tspan></text>
+<g
            id="g188577-4-1-3-2-0-6"
            transform="translate(101.62651,341.01299)"><path
              style="fill:#000000;stroke-width:0.0219607"
@@ -659,7 +702,8 @@
              id="tspan187768-8-0-4-1-9-1-8"
              style="stroke-width:0.264583"
              x="75.489861"
-             y="380.03613">—</tspan></text><text
+             y="380.03613">—</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="76.81794"
@@ -669,7 +713,8 @@
              id="tspan187706-1-7-8-7-9-2"
              style="stroke-width:0.264583"
              x="76.81794"
-             y="351.32614">G</tspan></text><text
+             y="351.32614">G</tspan></text>
+<text
            xml:space="preserve"
            style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
            x="99.892418"
@@ -679,4 +724,5 @@
              id="tspan188612-6-5-1-9-2"
              style="stroke-width:0.264583"
              x="99.892418"
-             y="366.15784">CTCAGTAG...</tspan></text></g></g></g></svg>
+             y="366.15784">CTCAGTAG...</tspan></text>
+</g></g></g></svg>
