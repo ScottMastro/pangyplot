@@ -1,23 +1,17 @@
-.navbar-logo {
-    height: 80px;
-    margin: 10px;
-    padding: 10px;
+#navbar {
+    display: flex;
+}
+
+#navbar-logo {
+    height: auto;
     width: auto;
+    padding: 10px;
     border-radius: 5px;
     background-color: var(--font-color);
 }
 
-.navbar {
-    display: flex;
-    background-color: var(--lighter-green);
-    overflow: hidden;
-    border-radius: 5px;
-    margin: 5px;
-}
-
 .navbar-button-container{
     flex: 1;
-    padding: 10px;
 }
 
 .navbar-button {
@@ -54,7 +48,6 @@
     align-items: center;
     justify-content: center;
 }
-
 
 .navbar-blank {
     flex: 10;
