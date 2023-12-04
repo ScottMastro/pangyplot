@@ -19,6 +19,10 @@ Features
     Customizable Visualization: Tailor the visualization to suit your data and research needs.
     High-Performance Rendering: Optimized for large genomic datasets.
 
+![Analogy](static/images/figures/graph_analogy.svg)
+![Analogy](static/images/figures/graph_analogy2.svg)
+
+
 # Getting Started
 
 ## Prerequisites
