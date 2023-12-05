@@ -13,7 +13,6 @@ var Y_COORD_SHIFT = 0;
 var X_COORD_SCALE = 1;
 var Y_COORD_SCALE = 1;
 
-const BACKGROUND_COLOR="#101020";
 const VELOCITY_DECAY=0.1;
 //const VELOCITY_DECAY=1;
 const MIN_ZOOM=0.01;
@@ -25,12 +24,13 @@ const NODE_MID_SIZE=15;
 const NODE_END_SIZE=30;
 const HIGHLIGHT_SIZE=60;
 
-const CHAIN_COLOR="#F3DE8A";
-const BUBBLE_COLOR="#E05263";
-const SEGMENT_COLOR="#659157";
+var NODE_COLOR1="#F3DE8A";
+var NODE_COLOR2="#E05263";
+var NODE_COLOR3="#659157";
+var LINK_COLOR="#969696";
+var BACKGROUND_COLOR="#101020";
 
 const REF_COLOR="#3C5E81";
-const LINK_COLOR="#969696";
 const HIGHLIGHT_LINK_COLOR="#FF0000";
 
 const HOVER_PRECISION=10;
@@ -106,11 +106,11 @@ function get_link_color(link){
     if (link.class === "node"){        
         switch (link.type) {
             case "segment":
-                return SEGMENT_COLOR;
+                return NODE_COLOR1;
             case "bubble":
-                return BUBBLE_COLOR;
+                return NODE_COLOR2;
             case "chain":
-                return CHAIN_COLOR;
+                return NODE_COLOR3;
             default:
                 return REF_COLOR;
         }
@@ -130,11 +130,11 @@ function get_link_color(link){
 function get_node_color(node){
     switch (node.type) {
         case "segment":
-            return SEGMENT_COLOR;
+            return NODE_COLOR1;
         case "bubble":
-            return BUBBLE_COLOR;
+            return NODE_COLOR2;
         case "chain":
-            return CHAIN_COLOR;
+            return NODE_COLOR3;
         case "null":
             return LINK_COLOR;        
         default:
@@ -199,6 +199,15 @@ function draw_gene_name(ctx, graphData){
 function pre_render(ctx, graphData){
     LAST_ZOOM = ctx.canvas.__zoom["k"];
     ctx.save();
+
+    NODE_COLOR1 = document.getElementById('color1').value;
+    NODE_COLOR2 = document.getElementById('color2').value;
+    NODE_COLOR3 = document.getElementById('color3').value;
+
+    BACKGROUND_COLOR = document.getElementById('bg-color').value;
+    LINK_COLOR = document.getElementById('link-color').value;
+
+    forceGraph.backgroundColor(BACKGROUND_COLOR);
 
     draw_gene_outline(ctx, graphData);
 
