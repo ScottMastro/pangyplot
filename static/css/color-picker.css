@@ -1,22 +1,30 @@
 #color-div{
     display:flex;
 }
-
-#color-picker-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 #color-style-container {
     display: flex;
     justify-content: center;
     align-items: center;
+    width: 33%;
 }
+
+#color-picker-node-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 52%;
+}
+
+#color-picker-etc-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 15%;
+}
+
 #gradient-display {
-    width: 300px;
-    height: 100%;
-    border: 1px solid #000;
+    height: 95%;
+    border: 1px solid var(--dark-green);
     border-radius: 5px;
 }
 #color-picker-manual{
@@ -26,9 +34,8 @@
 
 #preset-color-container{
     display: flex;
-    justify-content: center;
-    align-items: center;
-
+    align-items: stretch;
+    flex-wrap: wrap;
 }
 
 .color-style-btn{
@@ -36,9 +43,12 @@
 }
 .color-picker {
     margin: 2px;
-} .preset-color {
-    margin: 10px;
+} 
+.preset-color {
+    margin: 5px;
     cursor: pointer;
+    padding: 7px;
+    flex: 1;
 }
 
 

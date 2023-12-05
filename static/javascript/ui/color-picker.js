@@ -12,12 +12,12 @@ function applyGradient(color1, color2, color3) {
     document.getElementById('gradient-display').style.background = gradient;
 }
 
-document.querySelectorAll('.color-picker').forEach(picker => {
+document.querySelectorAll('.node-color-picker').forEach(picker => {
     picker.addEventListener('change', () => {
         const color1 = document.getElementById('color1').value;
         const color2 = document.getElementById('color2').value;
         const color3 = document.getElementById('color3').value;
-        unselectAllButtons("color-picker-container")
+        unselectAllButtons("preset-color-container")
         applyGradient(color1, color2, color3);
     });
 });
@@ -46,3 +46,6 @@ if (defaultChoice) {
     applyGradient(color1, color2, color3);
     updateColorPickers(color1, color2, color3);
 }
+
+document.getElementById('link-color').value = "#969696";
+document.getElementById('bg-color').value = "#101020";
