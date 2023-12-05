@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, jsonify, make_response
 from cytoband import get_cytoband 
 from db.neo4j_db import db_init
 import db.to_query as query
@@ -59,6 +59,17 @@ def haplotypes():
 
     resultDict={}
     return resultDict, 200
+
+@app.route('/search')
+def search():    
+    query = request.args.get('query')
+    #perform_search(query)
+    results = [{"id":1, "name":"aPPLE"},
+               {"id":2, "name":"CYS"},
+               {"id":3, "name":"CFTR"},
+                {"id":2, "name":"DYS"},
+] 
+    return jsonify(results)
 
 
 @app.route('/cytoband', methods=["GET"])

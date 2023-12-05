@@ -39,7 +39,8 @@
 }
 
 .color-style-btn{
-    height: 100%;
+    height: 95%;
+    padding: 2px;
 }
 .color-picker {
     margin: 2px;
