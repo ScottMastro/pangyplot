@@ -48,35 +48,29 @@ def link_record(record):
     return link
 
 
+def gene_annotation_record(record):
+    data = {k: record[k] for k in record.keys()}
+    return data
+
+def gene_record(record):
+    gene = {k: record[k] for k in record.keys()}
+    return gene
+def transcript_record(record):
+    transcript = {k: record[k] for k in record.keys()}
+    return transcript
 
 
-#todo: delete
-def link_records(records, key):
-    links = []
-    for record in records:
-        for r in record[key]:
-            link = link_record(r)
-            links.append(link)
-    return links
-
-def link_records_simple(records, key):
-    links = []
-    for record in records:
-        for r in record[key]:
-            link = link_record_simple(r)
-            links.append(link)
-    return links
-
-def node_records(records, key, typeKey):
-    nodes = []
-    for record in records:
-        node = node_record(record[key], record[typeKey][0]) 
-        nodes.append(node)
-    return nodes
-
-def segment_records(records, key):
-    nodes = []
-    for record in records:
-        node = segment_record(record[key]) 
-        nodes.append(node)
-    return nodes
+def annotation_record(record, nodeType):
+    if nodeType == "Gene":
+        return gene_record(record)
+    if nodeType == "Exon":
+        return gene_annotation_record(record)
+    if  nodeType == "Transcript":
+        return transcript_record(record) 
+    if nodeType == "CDS":
+        return gene_annotation_record(record)
+    if nodeType == "Codon":
+        return gene_annotation_record(record)
+    if nodeType == "UTR":
+        return gene_annotation_record(record)
+    return None
