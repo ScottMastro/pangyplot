@@ -398,7 +398,7 @@ function shift_coord(graph) {
     return graph
 }
 
-function fetch(chromosome, start, end) {
+function fetch_graph(chromosome, start, end) {
 
     let url = "/select?chromosome=" + chromosome;
     url = url + "&start=" + start;
@@ -516,10 +516,10 @@ function hideLoader() {
     document.querySelector('.loader-filter').style.display = 'none';
 }
 hideLoader()
-fetch("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
+fetch_graph("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
 
-//fetch("chr7", 144084904, 144140209); //PRSS region
+//fetch_graph("chr7", 144084904, 144140209); //PRSS region
 
-//fetch("chr7", 0, 1440859040);
+//fetch_graph("chr7", 0, 1440859040);
 
-//fetch_haps("chrM", 0, 142775343);
+//fetch_graph("chrM", 0, 142775343);

@@ -51,6 +51,14 @@
         </select>
         <input type="submit" value="Submit">
 
+        <form action="/search" method="get">
+            <input type="text" name="query" id="gene-search-box" list="gene-list" placeholder="Search by gene..." onkeyup="search()">
+            <datalist id="gene-list">
+                        <!-- Search results will be dynamically added here -->
+            </datalist>
+        </form>
+        
+        
     </div>
 </div>
 
@@ -202,6 +210,7 @@
 <script src="{{url_for('static', filename='javascript/ui/option-button.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/citation-modal.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/color-picker.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/ui/search.js')}}"></script>
 
 
 </body>

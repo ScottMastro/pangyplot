@@ -1,5 +1,3 @@
-
-
 .option-button {
     text-align:center;
     cursor: pointer;
@@ -23,7 +21,7 @@
     opacity: 1;
 }
 .option-button-selected {
-    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     background-color: #FFE268;
 }
 
