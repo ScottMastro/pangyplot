@@ -1,7 +1,7 @@
 import os
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
-from db.utils.create_index import create_restraint, create_compound_index, drop_all_index
+from db.utils.create_index import create_restraint, create_index, drop_all_index
 
 NEO4J_DRIVER = None
 
@@ -36,6 +36,11 @@ def db_init():
 
         for x in ["Segment", "Bubble", "Chain"]:
             create_restraint(session, x, "id")
-            create_compound_index(session, x, compoundPosition)
+            create_index(session, x, compoundPosition)
 
-        create_compound_index(session, "Annotation", compoundPosition)
+        create_index(session, "Annotation", compoundPosition)
+        create_index(session, "Gene", compoundPosition)
+
+        create_restraint(session, "Gene", "id")
+        create_restraint(session, "Transcript", "id")
+        create_restraint(session, "Exon", "id")

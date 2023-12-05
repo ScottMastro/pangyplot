@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, jsonify, make_response
 from cytoband import get_cytoband 
 from db.neo4j_db import db_init
-import db.to_query as query
 from db.query.query_top_level import get_top_level
+from db.query.query_annotation import get_genes_in_range
 from db.query.query_subgraph import get_subgraph
 
 import db.modify.drop_data as drop
@@ -31,9 +31,8 @@ def select():
 
     resultDict = get_top_level(chrom, start, end)
     
-    chr = chrom.split("#")[1]
-    annotations = query.get_annotations(chr, start, end)
-    resultDict["annotations"] = annotations
+    resultDict["genes"] = get_genes_in_range(chrom, start, end)
+    resultDict["annotations"] = []
 
     print("ready")
     return resultDict, 200
@@ -97,6 +96,7 @@ if __name__ == '__main__':
         parser.add_argument('--layout', help='Path to the odgi layout TSV file', default=None)
         parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', action="store_true")
         parser.add_argument('--gff3', help='Path to the GFF3 file', default=None)
+        parser.add_argument('--ref', help='Reference assembly name', default=None)
         parser.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
         #parser.add_argument('--ref', help='GAF file with reference coordinates', default=None)
         parser.add_argument('--demo', help='Use DRB1 demo data', action='store_true')
@@ -117,6 +117,7 @@ if __name__ == '__main__':
 
         if args.gencode:
             args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
+            args.ref = "CHM13"
 
         if args.demo:
             args.gfa = "static/data/DRB1-3123_sorted.gfa"
@@ -133,16 +134,16 @@ if __name__ == '__main__':
             print("Both GFA and layout TSV file required to construst graph!")
             parser.print_help()
 
+        if (args.gff3 and args.ref is None):
+            print("Need specify --ref when parsing GFF3 file!")
+            parser.print_help()
+
         if args.gfa and args.layout:
             print("Parsing layout...")
             layoutCoords = parse_layout(args.layout)
             print("Parsing GFA...")
             parse_graph(args.gfa, layoutCoords)
             
-        #if args.ref:
-            #if ref.endswith(".gaf") or ref.endswith(".gaf.gz"):
-            #    parse_coords(ref)
-
         if args.bubbles:
             #drop.drop_bubbles()
             print("Calculating bubbles...")
@@ -155,10 +156,11 @@ if __name__ == '__main__':
             #print("Parsing bubbles...")
             #parse_bubbles(args.bubbles)
             #print("Done.")
-            
-        if args.gff3:
+        
+        if args.gff3 and args.ref:
+            drop.drop_annotations()
             print("Parsing GFF3...")
-            parse_gff3(args.gff3)
+            parse_gff3(args.gff3, args.ref)
             print("Done.")
 
 
