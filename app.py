@@ -19,6 +19,8 @@ app = Flask(__name__)
 
 def create_app():
     db_init()
+
+
 @app.route('/select', methods=["GET"])
 def select():
     chrom = request.args.get("chromosome")
@@ -31,10 +33,22 @@ def select():
 
     resultDict = get_top_level(chrom, start, end)
     
+    return resultDict, 200
+
+@app.route('/genes', methods=["GET"])
+def genes():
+    chrom = request.args.get("chromosome")
+    start = request.args.get("start")
+    end = request.args.get("end")
+    print(f"Getting genes in {chrom}:{start}-{end}...")
+    
+    start = int(start)
+    end = int(end)
+    
+    resultDict = {}
     resultDict["genes"] = get_genes_in_range(chrom, start, end)
     resultDict["annotations"] = []
 
-    print("ready")
     return resultDict, 200
 
 @app.route('/subgraph', methods=["GET"])

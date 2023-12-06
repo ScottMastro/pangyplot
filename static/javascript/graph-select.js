@@ -39,10 +39,10 @@ document.getElementById(GRAPH_ID).addEventListener('pointermove', (e) => {
 });
 
 const runBoxSelect = (left, bottom, top, right) => {
-    const tl = forceGraph.screen2GraphCoords(left, top);
-    const br = forceGraph.screen2GraphCoords(right, bottom);
+    const tl = FORCE_GRAPH.screen2GraphCoords(left, top);
+    const br = FORCE_GRAPH.screen2GraphCoords(right, bottom);
     const hitNodes = [];
-    forceGraph.graphData()["nodes"].forEach(node => {
+    FORCE_GRAPH.graphData()["nodes"].forEach(node => {
         if (tl.x < node.x && node.x < br.x && br.y > node.y && node.y > tl.y) {
             hitNodes.push(node);
         };

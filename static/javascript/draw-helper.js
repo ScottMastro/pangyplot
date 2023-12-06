@@ -66,10 +66,10 @@ function add_text(text, ctx, x, y, size, color, align="center", baseline="middle
 
 
 const COLOR_CACHE = {}
-function intToColor(seed, adjust=0) {
+function int_to_color(seed, adjust=0) {
     const originalSeed = seed;
 
-    if (! COLOR_CACHE.hasOwnProperty(seed)) { 
+    if (!(seed in COLOR_CACHE)) {
         var a = 1664525;
         var c = 1013904223;
         var m = Math.pow(2, 32);
@@ -101,4 +101,21 @@ function intToColor(seed, adjust=0) {
                         + b.toString() + ")";
     //console.log(color)
     return color;
+}
+
+function str_to_color(string, adjust=0){
+    if (string in COLOR_CACHE) {
+        return COLOR_CACHE[string]
+    }
+    
+    var hash = 0;
+    for (var i = 0; i < string.length; i++) {
+        var char = string.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; 
+    }
+    
+    color = int_to_color(hash, adjust)
+    COLOR_CACHE[string] = color
+    return(color)
 }
