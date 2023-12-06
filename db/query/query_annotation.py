@@ -61,3 +61,59 @@ def get_genes_in_range(chrom, start, end):
 
 
 
+
+'''
+# Function to create a full-text node index
+def create_fulltext_node_index(driver):
+    with driver.session() as session:
+        session.write_transaction(_create_ft_index)
+
+def _create_ft_index(tx):
+    query = (
+        "CALL db.index.fulltext.createNodeIndex("
+        "'productSearch', ['Product'], ['name', 'description'])"
+    )
+    tx.run(query)
+
+# Connect to Neo4j
+driver = GraphDatabase.driver(uri, auth=(username, password))
+
+# Create the full-text node index
+create_fulltext_node_index(driver)
+
+# Close the driver connection when done
+driver.close()
+
+#===============================================
+
+
+# Function to perform a full-text search
+def fulltext_search(driver, search_term):
+    with driver.session() as session:
+        result = session.read_transaction(_search_ft_index, search_term)
+        return [record for record in result]
+
+def _search_ft_index(tx, search_term):
+    query = (
+        "CALL db.index.fulltext.queryNodes('productSearch', $term) "
+        "YIELD node, score "
+        "RETURN node.name, node.description, score"
+    )
+    return tx.run(query, term=search_term)
+
+# Search term
+search_term = "yourSearchTerm"  # Replace with your search term
+
+# Perform the search
+search_results = fulltext_search(driver, search_term)
+
+# Print results
+for result in search_results:
+    print(result)
+
+
+'''
+
+
+
+
