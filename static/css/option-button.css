@@ -9,13 +9,11 @@
 .option-button-unselected {
     background-color: var(--light-green);
     box-shadow: 3px 3px 5px rgba(0, 0, 0, 0);
-} .option-button-unselected img {
     mix-blend-mode: multiply;
     filter: grayscale(100%);
     opacity: 0.5;
 }.option-button-unselected:hover {
     background-color: var(--highlight);
-} .option-button-unselected:hover img {
     mix-blend-mode: normal;
     filter: none;
     opacity: 1;
@@ -28,9 +26,4 @@
 /* Hide the default radio button */
 input[type="radio"] {
     display: none;
-}
-
-.option-button img {
-    width: 100%;
-    height: 100%;
 }

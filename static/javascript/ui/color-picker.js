@@ -17,7 +17,7 @@ document.querySelectorAll('.node-color-picker').forEach(picker => {
         const color1 = document.getElementById('color1').value;
         const color2 = document.getElementById('color2').value;
         const color3 = document.getElementById('color3').value;
-        unselectAllButtons("preset-color-container")
+        unselectAllButtons("preset-color-button-container")
         applyGradient(color1, color2, color3);
     });
 });

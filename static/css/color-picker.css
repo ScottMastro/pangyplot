@@ -1,58 +1,54 @@
 #color-div{
     display:flex;
 }
-#color-style-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 33%;
-}
 
-#color-picker-node-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 52%;
-}
-
-#color-picker-etc-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 15%;
-}
-
-#gradient-display {
-    height: 95%;
-    border: 1px solid var(--dark-green);
-    border-radius: 5px;
-}
-#color-picker-manual{
-    display: flex;
-    justify-content: space-between;
-}
-
-#preset-color-container{
-    display: flex;
-    align-items: stretch;
-    flex-wrap: wrap;
-}
-
-.color-style-btn{
-    height: 95%;
-    padding: 2px;
-}
-.color-picker {
-    margin: 2px;
-} 
-.preset-color {
-    margin: 5px;
-    cursor: pointer;
-    padding: 7px;
+#color-style-container{
+    flex: 3;
+} #color-node-container{
+    flex: 2;
+} #color-preset-container{
+    flex: 4;
+} #color-link-container{
+    flex: 1;
+} #color-background-container{
     flex: 1;
 }
 
+.color-style-btn {
+    padding: 5px;
+} .color-style-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
 
+#gradient-display {
+    border: 1px solid var(--dark-green);
+} #color-picker-manual{
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+#preset-color-button-container{
+    column-gap: 4px !important;
+    row-gap: 4px;
+    display: flex;
+    align-items: stretch;
+    flex-wrap: wrap;
+} .preset-color {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex: 1;
+}
+
+.single-color-picker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+} 
 
 input[type="color"] {
     cursor: pointer;

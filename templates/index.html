@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/citation-modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/color-picker.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/graph.css') }}">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   
@@ -25,77 +26,100 @@
 
 {% include 'navbar.html' %}
 
-<div id="cytoband-div" class="fixed-height-2-5">
-    <div id="genome-container" class="container">
-        <div id="genome-cytoband-container"></div> 
+
+<div id="cytoband-div" class="">
+
+<div id="genome-container" class="container fixed-height-2-5">
+    <div class="container-title">Human Genome</div>
+    <div id="genome-cytoband-container" class="container-content">
+        <!-- The figure will be appended here by JavaScript -->
 
         <div id="other-chr-selector-container">
-        <select id="other-chr-selector" name="chr-selector">
-            <!-- The options will be appended here by JavaScript -->
-        </select>
-        <input type="submit" value="Submit">
-        </div> 
-    </div>
-    <div id="chromosome-container" class="container">
-        <div id="chromosome-cytoband-container"></div>
+            <div id="other-chr-label">Other chromosome</div>:
+
+            <select id="other-chr-selector" name="chr-selector">
+                <!-- The options will be appended here by JavaScript -->
+            </select>
+        </div>
+        
+        
+    </div> 
+</div>
+
+<div id="chromosome-container" class="container fixed-height-2-5">
+    <div class="container-title">Search by Region</div>
+
+    <div id="chromosome-features-container" class="container-content">
+
+        <div id="chromosome-cytoband-container">
+            <!-- The figure will be appended here by JavaScript -->
+        </div>
+
+        <form action="/search" method="get">
+            <label>Search by gene:</label>
+            <i class="fa fa-search"></i>
+            <input type="text" name="query" id="gene-search-box" list="gene-list" placeholder="Type in gene name..." onkeyup="search()">
+            <datalist id="gene-list">
+                        <!-- Search results will be dynamically added here -->
+            </datalist>
+        </form>
+
         <div id="filter">
             <label for="start-coord">Start:</label>
             <input type="text" id="start-coord" name="start-coord">
             <label for="end-coord">End:</label>
             <input type="text" id="end-coord" name="end-coord"><br><br>
         </div>
+     
+    
 
+    </div>   
+</div>
 
-        <select id="path-selector" name="path-selector">
-            <!-- The options will be appended here by JavaScript -->
-        </select>
-        <input type="submit" value="Submit">
+</div>
 
-        <form action="/search" method="get">
-            <input type="text" name="query" id="gene-search-box" list="gene-list" placeholder="Search by gene..." onkeyup="search()">
-            <datalist id="gene-list">
-                        <!-- Search results will be dynamically added here -->
-            </datalist>
-        </form>
+<div id="color-div">
+
+<div id="color-style-container" class="container fixed-height-1">
+    <div class="container-title">Color Style</div>
+
+    <div id="color-style-button-container" class="container-content">
+
+        <div class="color-style-btn option-button option-button-selected">
+            <img src="{{ url_for('static', filename= 'images/option_allele_frequency.svg') }}"></div>
         
-        
+        <div class="color-style-btn option-button option-button-unselected">
+            <img src="{{ url_for('static', filename= 'images/option_node_size.svg') }}"></div>
+    
+        <div class="color-style-btn option-button option-button-unselected">
+            <img src="{{ url_for('static', filename= 'images/option_ref_alt.svg') }}"></div>
+    
+        <div class="color-style-btn option-button option-button-unselected">
+            <img src="{{ url_for('static', filename= 'images/option_length.svg') }}"></div>
+
+        <div class="color-style-btn option-button option-button-unselected">
+            <img src="{{ url_for('static', filename= 'images/option_base_composition.svg') }}"></div>
+    
     </div>
 </div>
 
+<div id="color-node-container" class="container fixed-height-1" >
+    <div class="container-title"><span>Node Color</span></div>
 
-<div id="color-div" class="fixed-height-1">
-<div id="color-style-container" class="container">
-    <div class="container-title">Color Style</div>
-    <div class="color-style-btn option-button option-button-selected">
-        <img src="{{ url_for('static', filename= 'images/option_allele_frequency.svg') }}"></div>
-    
-    <div class="color-style-btn option-button option-button-unselected">
-        <img src="{{ url_for('static', filename= 'images/option_node_size.svg') }}"></div>
-  
-    <div class="color-style-btn option-button option-button-unselected">
-        <img src="{{ url_for('static', filename= 'images/option_ref_alt.svg') }}"></div>
-  
-    <div class="color-style-btn option-button option-button-unselected">
-        <img src="{{ url_for('static', filename= 'images/option_length.svg') }}"></div>
-
-    <div class="color-style-btn option-button option-button-unselected">
-        <img src="{{ url_for('static', filename= 'images/option_base_composition.svg') }}"></div>
-    
-</div>
-
-<!-- https://colorbrewer2.org/#type=sequential&scheme=YlGnBu&n=3 -->
-<div id="color-picker-node-container" class="container" >
-    <div class="container-title">Node Color</div>
-    <div id="gradient-display">
+    <div id="gradient-display" class="container-content">
         <div id="color-picker-manual">
             <input type="color" id="color1" class="node-color-picker" value="#0762e5">
             <input type="color" id="color2" class="node-color-picker" value="#f2dc0f">
             <input type="color" id="color3" class="node-color-picker" value="#ff6700">
         </div>
     </div>
-    
-    <div id="preset-color-container">
 
+</div>
+
+<div id="color-preset-container" class="container fixed-height-1" >
+    <div class="container-title">Preset Node Colors</div>
+
+    <div id="preset-color-button-container" class="container-content">
         <div class="preset-color option-button option-button-selected"
         data-color1="#0762e5" data-color2="#f2dc0f" data-color3="#ff6700">Primary</div>
         <div class="preset-color option-button option-button-unselected"
@@ -126,17 +150,23 @@
             data-color1="#fcb683" data-color2="#d6496a" data-color3="#181331">Magma</div>
         <div class="preset-color option-button option-button-unselected"
             data-color1="#f7d1b7" data-color2="#e33540" data-color3="#441b46">Rocket</div>
-
     </div>
 </div>
 
-<div id="color-picker-etc-container" class="container" >
+<div id="color-link-container" class="container fixed-height-1" >
     <div class="container-title">Link Color</div>
-    <input type="color" id="link-color" class="color-picker" value="#969696">
-    <div class="container-title">Background Color</div>
-    <input type="color" id="bg-color" class="color-picker" value="#101020">
-
+    <div class="single-color-picker container-content">
+        <input type="color" id="link-color" class="color-picker" value="#969696">
+    </div>
 </div>
+
+<div id="color-background-container" class="container fixed-height-1">
+    <div class="container-title">Background Color</div>
+    <div class="single-color-picker container-content">
+        <input type="color" id="bg-color" class="color-picker" value="#101020">
+    </div>
+</div>
+
 </div>
 
 <div id="graph-container">
@@ -162,6 +192,13 @@
 </div>
 
 <button id="download-image-button">Download Image</button>
+
+<select id="path-selector" name="path-selector">
+    <!-- The options will be appended here by JavaScript -->
+</select>
+<input type="submit" value="Submit">
+
+
 <script>
 
     function getFormattedDateTime() {
@@ -196,6 +233,7 @@
 <script src="{{url_for('static', filename='javascript/force-graph.min.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/d3.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/d3-annotation.min.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/ui/cytoband/other-chromosomes.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/cytoband/cytoband.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/cytoband/genome-drawer.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/cytoband/chromosome-drawer.js')}}"></script>

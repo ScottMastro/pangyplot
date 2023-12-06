@@ -110,11 +110,10 @@ function addAnnotations(svg, annotations) {
     annotationsGroup.call(makeAnnotations);
 
     svg.selectAll('.annotation text')
-    .attr('class', 'annotation-text')
+    .attr('class', 'chromosome-label-text')
 
 }
-
-function highlightGenomeChr(chrName) {
+function clearAllChrHighlightsMain(){
     let rectangles = document.getElementsByClassName("chromosome-selection-genome");
     for (let i = 0; i < rectangles.length; i++) {
         rectangles[i].classList.remove("chromosome-selection-highlight");
@@ -124,14 +123,24 @@ function highlightGenomeChr(chrName) {
     for (let i = 0; i < annotations.length; i++) {
         let content = annotations[i].childNodes[2].childNodes[0];
         let bg = content.childNodes[0];
+
+        bg.classList.remove("chromosome-label-highlight");
+    }
+}
+
+function highlightGenomeChr(chrName) {
+    clearAllChrHighlightsMain()
+    clearAllChrHighlightsOther()
+
+    let rectangles = document.getElementsByClassName("chromosome-selection-genome");
+    let annotations = document.getElementsByClassName("genome-annotation-chr")[0].firstElementChild.childNodes;
+    for (let i = 0; i < annotations.length; i++) {
+        let content = annotations[i].childNodes[2].childNodes[0];
+        let bg = content.childNodes[0];
         let label = content.childNodes[1].childNodes[0];
 
-        bg.classList.remove("annotation-highlight");
-        label.classList.remove("annotation-highlight-label");
-
         if (label.textContent === chrName) {
-            bg.classList.add("annotation-highlight");
-            label.classList.add("annotation-highlight-label");
+            bg.classList.add("chromosome-label-highlight");
             rectangles[i].classList.add("chromosome-selection-highlight");
         }
     }

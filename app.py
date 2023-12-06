@@ -4,6 +4,7 @@ from db.neo4j_db import db_init
 from db.query.query_top_level import get_top_level
 from db.query.query_annotation import get_genes_in_range
 from db.query.query_subgraph import get_subgraph
+from db.query.query_all import query_all_chromosomes
 
 import db.modify.drop_data as drop
 
@@ -66,6 +67,23 @@ def subgraph():
     nodeid = int(nodeid)
     resultDict = get_subgraph(nodeid, chrom, start, end)
     return resultDict, 200
+
+@app.route('/chromosomes', methods=["GET"])
+def chromosomes():
+    canonical = [f"chr{n}" for n in range(1, 23)] + ["chrX", "chrY"]
+    noncanonicalOnly = request.args.get('noncanonical', 'false').lower() == 'true'
+    
+    chromosomes = query_all_chromosomes()
+    if noncanonicalOnly:
+        chromosomes = [chrom for chrom in chromosomes if chrom.split("#")[-1] not in canonical]
+    
+    # TODO: remove
+    chromosomes.append("chrM")
+    chromosomes.append("altcontig1")
+    chromosomes.append("altcontig2")
+
+    return chromosomes, 200
+
 
 @app.route('/haplotypes', methods=["GET"])
 def haplotypes():
