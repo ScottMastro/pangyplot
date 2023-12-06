@@ -12,20 +12,17 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">   
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/citation-modal.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gene-search.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/color-picker.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/graph.css') }}">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  
-
 </head>
 
 <body>
 
 {% include 'citation-modal.html' %}
-
 {% include 'navbar.html' %}
-
 
 <div id="cytoband-div" class="">
 
@@ -55,24 +52,18 @@
             <!-- The figure will be appended here by JavaScript -->
         </div>
 
-        <form action="/search" method="get">
-            <label>Search by gene:</label>
-            <i class="fa fa-search"></i>
-            <input type="text" name="query" id="gene-search-box" list="gene-list" placeholder="Type in gene name..." onkeyup="search()">
-            <datalist id="gene-list">
-                        <!-- Search results will be dynamically added here -->
-            </datalist>
-        </form>
-
         <div id="filter">
+            
+            <i class="fa fa-search"></i>
+            <input type="text" id="searchBar" placeholder="Search genes...">
+            <div id="suggestions" class="suggestions-dropdown"></div>
+            
             <label for="start-coord">Start:</label>
             <input type="text" id="start-coord" name="start-coord">
             <label for="end-coord">End:</label>
             <input type="text" id="end-coord" name="end-coord"><br><br>
         </div>
-     
-    
-
+        
     </div>   
 </div>
 
@@ -249,8 +240,7 @@
 <script src="{{url_for('static', filename='javascript/ui/option-button.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/citation-modal.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/color-picker.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/search.js')}}"></script>
-
+<script src="{{url_for('static', filename='javascript/ui/gene-search.js')}}"></script>
 
 </body>
 </html>

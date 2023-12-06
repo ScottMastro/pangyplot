@@ -1,4 +1,5 @@
-from db.neo4j_db import get_session
+from operator import ge
+from db.neo4j_db import get_session, GENE_TEXT_INDEX
 import db.utils.create_record as record
 
 def create_gene_objects(data):
@@ -29,7 +30,6 @@ def create_gene_objects(data):
 
     return [geneDict[gid] for gid in geneDict]
 
-
 def query_gene_range(chrom, start, end):
     with get_session() as session:
         geneData = []
@@ -49,7 +49,6 @@ def query_gene_range(chrom, start, end):
             geneData.append([gene, transcript, type, other])
 
     return create_gene_objects(geneData)
-   
 
 def get_genes_in_range(chrom, start, end):
     genes = query_gene_range( chrom, start, end)
@@ -59,61 +58,38 @@ def get_genes_in_range(chrom, start, end):
 
     return genes
 
+def text_search_gene_query(session, searchTerm, before, after, maxResults=20):
+    genes = []
 
+    queryTerm = ("*" if before else "") + searchTerm +  ("*" if after else "")
+    query = f"""
+        CALL db.index.fulltext.queryNodes("{GENE_TEXT_INDEX}", "{queryTerm}")
+        YIELD node, score
+        RETURN node, score LIMIT {maxResults}
+        """
 
+    results = session.run(query)
 
-'''
-# Function to create a full-text node index
-def create_fulltext_node_index(driver):
-    with driver.session() as session:
-        session.write_transaction(_create_ft_index)
+    for result in results:
+        gene = record.gene_record(result["node"])
+        genes.append(gene)
+    return genes
 
-def _create_ft_index(tx):
-    query = (
-        "CALL db.index.fulltext.createNodeIndex("
-        "'productSearch', ['Product'], ['name', 'description'])"
-    )
-    tx.run(query)
+def text_search_gene(searchTerm, maxResults=20):
+    with get_session() as session:
 
-# Connect to Neo4j
-driver = GraphDatabase.driver(uri, auth=(username, password))
+        genes1 = text_search_gene_query(session, searchTerm, False, True, maxResults)
+        
+        if len(genes1) >= maxResults:
+            return genes1
 
-# Create the full-text node index
-create_fulltext_node_index(driver)
+        genes2 = text_search_gene_query(session, searchTerm, True, True, maxResults)
 
-# Close the driver connection when done
-driver.close()
+    genes, geneSet = [], set()
+    for gene in genes1+genes2:
+        if gene["id"] not in geneSet:
+            geneSet.add(gene["id"]) 
+            genes.append(gene)
 
-#===============================================
-
-
-# Function to perform a full-text search
-def fulltext_search(driver, search_term):
-    with driver.session() as session:
-        result = session.read_transaction(_search_ft_index, search_term)
-        return [record for record in result]
-
-def _search_ft_index(tx, search_term):
-    query = (
-        "CALL db.index.fulltext.queryNodes('productSearch', $term) "
-        "YIELD node, score "
-        "RETURN node.name, node.description, score"
-    )
-    return tx.run(query, term=search_term)
-
-# Search term
-search_term = "yourSearchTerm"  # Replace with your search term
-
-# Perform the search
-search_results = fulltext_search(driver, search_term)
-
-# Print results
-for result in search_results:
-    print(result)
-
-
-'''
-
-
-
+    return genes
 

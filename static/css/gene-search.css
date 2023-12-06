@@ -1,0 +1,27 @@
+.suggestions-dropdown {
+    display: none;
+    position: absolute;
+    border: 1px solid #ccc;
+    border-top: none;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #fff;
+}
+
+.suggestions-dropdown.active {
+    display: block;
+}
+
+.suggestion-item {
+    padding: 5px;
+    background-color: #fff; /* Default background color */
+    outline: none; /* Remove the default focus outline */
+}
+
+.suggestion-item:hover,
+.suggestion-item:focus { /* Style for hover and focus */
+    background-color: var(--highlight); /* Yellow background */
+}
+
+/* Add more styles for the suggestions dropdown as needed */

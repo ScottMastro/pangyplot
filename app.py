@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, make_response
 from cytoband import get_cytoband 
 from db.neo4j_db import db_init
 from db.query.query_top_level import get_top_level
-from db.query.query_annotation import get_genes_in_range
+from db.query.query_annotation import get_genes_in_range,text_search_gene
 from db.query.query_subgraph import get_subgraph
 from db.query.query_all import query_all_chromosomes
 
@@ -92,14 +92,17 @@ def haplotypes():
     return resultDict, 200
 
 @app.route('/search')
-def search():    
+def search():
+    type = request.args.get('type')
     query = request.args.get('query')
-    #perform_search(query)
-    results = [{"id":1, "name":"aPPLE"},
-               {"id":2, "name":"CYS"},
-               {"id":3, "name":"CFTR"},
-                {"id":2, "name":"DYS"},
-] 
+    
+    results = []
+
+    if type == "gene":
+        results = text_search_gene(query)
+        for gene in results:
+            gene["name"] = gene["gene"]
+
     return jsonify(results)
 
 
