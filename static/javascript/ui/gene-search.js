@@ -75,6 +75,18 @@ suggestionsElement.addEventListener('keydown', function(event) {
     }
 });
 
+suggestionsElement.addEventListener('wheel', function(event) {
+    const deltaY = event.deltaY;
+    const contentHeight = this.scrollHeight;
+    const visibleHeight = this.offsetHeight;
+    const scrollPosition = this.scrollTop;
+
+    // Check if the scroll is at the top or the bottom
+    if ((scrollPosition === 0 && deltaY < 0) || (scrollPosition + visibleHeight >= contentHeight && deltaY > 0)) {
+        event.preventDefault(); // Prevent scrolling the page
+    }
+});
+
 document.addEventListener('keydown', function(event) {
     if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
         navigateSuggestions(event.key);
@@ -85,3 +97,5 @@ document.addEventListener('keydown', function(event) {
         event.preventDefault(); // Prevent form submission or any other default Enter key behavior
     }
 });
+
+
