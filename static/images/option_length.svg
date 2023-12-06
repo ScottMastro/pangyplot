@@ -9,9 +9,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="145.39462mm"
-   height="145.39462mm"
-   viewBox="0 0 145.39462 145.39462"
+   width="50mm"
+   height="50mm"
+   viewBox="0 0 49.999999 49.999999"
    version="1.1"
    id="svg8"
    sodipodi:docname="option_length.svg"
@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.35"
-     inkscape:cx="-571.30631"
-     inkscape:cy="149.75052"
+     inkscape:zoom="5.6"
+     inkscape:cx="81.270196"
+     inkscape:cy="106.02182"
      inkscape:document-units="mm"
      inkscape:current-layer="g1012"
      showgrid="false"
@@ -35,7 +35,8 @@
      inkscape:window-height="2026"
      inkscape:window-x="0"
      inkscape:window-y="0"
-     inkscape:window-maximized="1" />
+     inkscape:window-maximized="1"
+     showguides="false" />
   <metadata
      id="metadata5">
     <rdf:RDF>
@@ -52,12 +53,13 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(186.52388,475.04721)">
+     transform="translate(278.16824,413.49629)">
     <g
        id="g1012"
        transform="translate(-1.5119048,6.8035714)">
       <g
-         id="g2268">
+         id="g2268"
+         transform="matrix(0.34470796,0,0,0.34470796,-212.5247,-254.37863)">
         <rect
            transform="rotate(117.66111)"
            y="335.76276"
@@ -79,10 +81,11 @@
            inkscape:connector-curvature="0"
            id="path2015"
            d="m -153.30364,-352.34666 c 0,0 -32.89952,-27.91199 13.58387,-61.75702 46.483393,-33.84504 4.85928,-51.8742 4.85928,-51.8742"
-           style="fill:none;stroke:#c83737;stroke-width:15.061;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+           style="fill:none;stroke:#c83737;stroke-width:15.06099987;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       </g>
       <g
-         id="g2273">
+         id="g2273"
+         transform="matrix(0.34470796,0,0,0.34470796,-212.5247,-254.37863)">
         <rect
            transform="rotate(7.3316704)"
            y="-443.65771"
@@ -107,7 +110,8 @@
            style="fill:none;stroke:#926e6e;stroke-width:15;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       </g>
       <g
-         id="g2277">
+         id="g2277"
+         transform="matrix(0.34470796,0,0,0.34470796,-212.5247,-254.37863)">
         <rect
            transform="rotate(-165)"
            y="325.08298"

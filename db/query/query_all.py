@@ -44,3 +44,12 @@ def query_all_links():
             skip += batch_size
 
     return links
+
+def query_all_chromosomes():
+    chromosomes = []
+    with get_session() as session:
+        result = session.run("MATCH (s:Segment) RETURN DISTINCT s.chrom")
+        chromosomes = [record["s.chrom"] for record in result if record["s.chrom"] is not None]
+
+    return chromosomes
+

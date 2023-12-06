@@ -3,39 +3,53 @@
 }
 
 #genome-container{
-    margin:5px;
-    width: 34%;
+    flex: 1;
 } #chromosome-container{
-    width: 66%;
-}
-.genome-annotation-chr{
-    font-size: 0.8em;
+    flex: 2;
 }
 
-.chromosome-band{
+#genome-cytoband-container{
+    display: flex;
+    flex-direction: column;
+}
+
+.genome-annotation-chr{
+    font-size: 0.8em;
+}.chromosome-band{
     pointer-events: none;
 } .chromosome-selection-genome{
     fill: var(--light-green);
-} .chromosome-selection-highlight{
-    fill: var(--highlight) !important;
 } .chromosome-selection-genome:hover{
     fill: var(--highlight);
     cursor: pointer;
+} .chromosome-selection-highlight{
+    fill: var(--highlight) !important;
+} .chromosome-label-text {
+    fill: var(--font-color);
+} .chromosome-label-highlight{
+    fill: var(--highlight) !important;
+    fill-opacity: 1;
 }
 
 #other-chr-selector-container{
-    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    column-gap: 10px;
+    order: 99;
+} #other-chr-selector{
+    width: 12em;
+} #other-chr-label{
+    padding: 1px;
+} .text-highlight{
+    background-color: var(--highlight);
 }
 
-.annotation-text {
-    fill: var(--darker-green);
-}
-.annotation-highlight-label{
-    fill: black;
-}
+#chromosome-features-container{
+    display: flex;
+    flex-direction: column;
 
-
-#chromosome-cytoband-container{
+} #chromosome-cytoband-container{
     background-color: var(--light-green);
     padding-top: 10px;
     margin-bottom: 10px;

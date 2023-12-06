@@ -7,4 +7,8 @@
     --lighter-green: #BCCCC2;
     --font-color: #384034;
     --detail-box: rgba(225, 225, 225, 0.8);
+
+    --title-height: 20px;
+    --fixed-height-1: 120px;
+    --fixed-height-2: 300px;
   }

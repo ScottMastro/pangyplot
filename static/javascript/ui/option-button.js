@@ -21,8 +21,5 @@ function setupButtonSelectionLogic(containerId) {
 
 
 
-// Apply the logic to the color-option-button-container
-setupButtonSelectionLogic('color-style-container');
-
-// Apply the same logic to the color-picker-container
-setupButtonSelectionLogic('preset-color-container');
+setupButtonSelectionLogic('color-style-button-container');
+setupButtonSelectionLogic('preset-color-button-container');
