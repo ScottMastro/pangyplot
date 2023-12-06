@@ -24,7 +24,6 @@ function clearAllChrHighlightsOther(){
 }
 
 document.getElementById('other-chr-selector').addEventListener('change', function() {
-    console.log('Selected chromosome:', this.value);
     clearAllChrHighlightsMain();
     clearAllChrHighlightsOther();
 

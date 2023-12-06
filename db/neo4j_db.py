@@ -1,9 +1,10 @@
 import os
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
-from db.utils.create_index import create_restraint, create_index, drop_all_index
+import db.utils.create_index as index
 
 NEO4J_DRIVER = None
+GENE_TEXT_INDEX = "gene_fulltext_index"
 
 def init_driver():
     load_dotenv()
@@ -31,16 +32,18 @@ def db_init():
 
     with get_session() as session:
 
-        #drop_all_index(session)
+        #index.drop_all_index(session)
         compoundPosition = ["chrom", "start", "end"]
 
         for x in ["Segment", "Bubble", "Chain"]:
-            create_restraint(session, x, "id")
-            create_index(session, x, compoundPosition)
+            index.create_restraint(session, x, "id")
+            index.create_index(session, x, compoundPosition)
 
-        create_index(session, "Annotation", compoundPosition)
-        create_index(session, "Gene", compoundPosition)
+        index.create_index(session, "Annotation", compoundPosition)
+        index.create_index(session, "Gene", compoundPosition)
 
-        create_restraint(session, "Gene", "id")
-        create_restraint(session, "Transcript", "id")
-        create_restraint(session, "Exon", "id")
+        index.create_restraint(session, "Gene", "id")
+        index.create_restraint(session, "Transcript", "id")
+        index.create_restraint(session, "Exon", "id")
+
+        index.create_fulltext_node_index(session, "Gene", GENE_TEXT_INDEX, ["gene", "id"])
