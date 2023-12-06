@@ -4,8 +4,7 @@ const CANVAS = document.getElementById(GRAPH_ID);
 const LIGHTNESS_SCALE=0.0;
 
 var GETTING_SUBGRAPH = new Set();
-var forceGraph = null;
-var annotationInfo = {};
+var FORCE_GRAPH = null;
 var nodeInfo = {};
 
 var X_COORD_SHIFT = 0;
@@ -86,16 +85,16 @@ function draw_gene_outline(ctx, graph){
 
     var hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE*(1/LAST_ZOOM/10))
     graph.nodes.forEach(node => {
-        node.annotations.forEach(annotation => {
-            color = intToColor(annotation, lightness=LIGHTNESS_SCALE);
+        node.genes.forEach(geneId => {
+            color = str_to_color(geneId, lightness=LIGHTNESS_SCALE);
             highlight_node(node, ctx, 0, hsize, color);
         });
      });
 
     hsize = Math.max(HIGHLIGHT_SIZE+40, (HIGHLIGHT_SIZE+40)*(1/LAST_ZOOM/10))
     graph.links.forEach(link => {
-        link.annotations.forEach(annotation => {
-            color = intToColor(annotation, lightness=LIGHTNESS_SCALE);
+        link.genes.forEach(geneId => {
+            color = str_to_color(geneId, lightness=LIGHTNESS_SCALE);
             highlight_link(link, ctx, 0, hsize, color);
         });
      });
@@ -123,7 +122,7 @@ function get_link_color(link){
         return LINK_COLOR;
     }
 
-   return intToColor(link.group)
+   return str_to_color(link.group)
     
 }
 
@@ -207,7 +206,7 @@ function pre_render(ctx, graphData){
     BACKGROUND_COLOR = document.getElementById('bg-color').value;
     LINK_COLOR = document.getElementById('link-color').value;
 
-    forceGraph.backgroundColor(BACKGROUND_COLOR);
+    FORCE_GRAPH.backgroundColor(BACKGROUND_COLOR);
 
     draw_gene_outline(ctx, graphData);
 
@@ -296,11 +295,11 @@ function post_render(ctx, graphData){
 
 
 function updateGraphData(graph) {
-    forceGraph.graphData({ nodes: graph.nodes, links: graph.links });
+    FORCE_GRAPH.graphData({ nodes: graph.nodes, links: graph.links });
 };
 
 window.addEventListener('resize', () => {
-    forceGraph
+    FORCE_GRAPH
         .height(get_graph_height())
         .width(get_graph_width());
 });
@@ -309,15 +308,10 @@ function draw_graph(graph){
 
     //graph = shift_coord(graph)
 
-    annotationDict = {}
-    //for (let i = 0, n = graph.annotations.length; i < n; ++i) {
-    //    annotationDict[graph.annotations[i].index] = graph.annotations[i];
-    //}
-    //.linkDirectionalParticles(4)
     console.log("forceGraph:", graph);
 
     // todo https://github.com/vasturiano/d3-force-registry
-    forceGraph = ForceGraph()(CANVAS)
+    FORCE_GRAPH = ForceGraph()(CANVAS)
         .height(get_graph_height())
         .width(get_graph_width())
         .graphData(graph)
@@ -335,7 +329,7 @@ function draw_graph(graph){
 
         .nodeVal(node => get_node_size(node))
 
-
+        //.linkDirectionalParticles(4)
         //.onLinkHover(highlight_link)
         //.linkHoverPrecision(HOVER_PRECISION)
 
@@ -356,19 +350,19 @@ function draw_graph(graph){
         }
     }
 
-    forceGraph.onRenderFramePre((ctx) => { pre_render(ctx, forceGraph.graphData()); })
-    forceGraph.onRenderFramePost((ctx) => { post_render(ctx, forceGraph.graphData()); })
+    FORCE_GRAPH.onRenderFramePre((ctx) => { pre_render(ctx, FORCE_GRAPH.graphData()); })
+    FORCE_GRAPH.onRenderFramePost((ctx) => { post_render(ctx, FORCE_GRAPH.graphData()); })
     // --- FORCES ---
 
     function link_force_distance(link) {
         return (link.type === "edge") ? 10 : link.length ;
     }
 
-    forceGraph.d3Force('link').distance(link_force_distance).strength(0.5).iterations(1)
-    forceGraph.d3Force('collide', d3.forceCollide(50).radius(50))    
-    forceGraph.d3Force('charge').strength(-500).distanceMax(1000)
+    FORCE_GRAPH.d3Force('link').distance(link_force_distance).strength(0.5).iterations(1)
+    FORCE_GRAPH.d3Force('collide', d3.forceCollide(50).radius(50))    
+    FORCE_GRAPH.d3Force('charge').strength(-500).distanceMax(1000)
     
-    //forceGraph.onEngineStop(() => forceGraph.zoomToFit(0));
+    //FORCE_GRAPH.onEngineStop(() => FORCE_GRAPH.zoomToFit(0));
 
 }
 
@@ -400,42 +394,51 @@ function shift_coord(graph) {
 
 function fetch_graph(chromosome, start, end) {
 
-    let url = "/select?chromosome=" + chromosome;
-    url = url + "&start=" + start;
-    url = url + "&end=" + end;
+    let url = `/select?chromosome=${chromosome}&start=${start}&end=${end}`;
 
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
-            var data = JSON.parse(xmlHttp.response);
-            console.log(data)
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("graph", data);
             // TODO
-            //update_path_selector(data.paths)
-
+            // update_path_selector(data.paths)
+    
             graph = process_graph_data(data);
-            //graph = collapse_nodes(graph);
+            graph = update_genes(graph);
+
+            // graph = collapse_nodes(graph);
             draw_graph(graph);
-        }
-    }
-    xmlHttp.open("GET", url, true);
-    xmlHttp.send();
+        })
+        .catch(error => {
+            console.error('There was a problem fetching the graph data:', error);
+        });
+    
 }
+
 
 function fetch_haps(chromosome, start, end) {
 
-    let url = "/haplotypes?chromosome=" + chromosome;
-    url = url + "&start=" + start;
-    url = url + "&end=" + end;
+    let url = `/haplotypes?chromosome=${chromosome}&start=${start}&end=${end}`;
 
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
-            var data = JSON.parse(xmlHttp.response);
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
             console.log(data);
-        }
-    }
-    xmlHttp.open("GET", url, true);
-    xmlHttp.send();
+        })
+        .catch(error => {
+            console.error('There was a problem fetching haplotypes:', error);
+        });
+    
 }
 
 function fetch_subgraph(originNode){
@@ -446,29 +449,32 @@ function fetch_subgraph(originNode){
     let start = "47506000";
     let end = "47600000";
 
-    let url = "/subgraph?nodeid=" + originNode.nodeid;
-    url = url + "&chromosome=" + chromosome;
-    url = url + "&start=" + start;
-    url = url + "&end=" + end;
+    let url = `/subgraph?nodeid=${originNode.nodeid}&chromosome=${chromosome}&start=${start}&end=${end}`;
 
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState === 4 && xmlHttp.status === 200){
-            var subgraph = JSON.parse(xmlHttp.response);
-
-            graph = forceGraph.graphData();
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(subgraph => {
+            graph = FORCE_GRAPH.graphData();
             graph = process_subgraph(subgraph, originNode, graph);
             updateGraphData(graph);
-            
-            GETTING_SUBGRAPH.delete(originNode.nodeid)
-            if (GETTING_SUBGRAPH.size == 0){
-                hideLoader()
+            graph = update_genes(graph);
+
+            GETTING_SUBGRAPH.delete(originNode.nodeid);
+            if (GETTING_SUBGRAPH.size === 0) {
+                hideLoader();
             }
             HIGHLIGHT_NODE = null;
-        }
-    }
-    xmlHttp.open("GET", url, true);
-    xmlHttp.send();
+        })
+        .catch(error => {
+            GETTING_SUBGRAPH.delete(originNode.nodeid);
+            console.error('There was a problem fetching the subgraph:', error);
+        });
+    
 
 }
 
@@ -516,6 +522,7 @@ function hideLoader() {
     document.querySelector('.loader-filter').style.display = 'none';
 }
 hideLoader()
+fetch_genes("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
 fetch_graph("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
 
 //fetch_graph("chr7", 144084904, 144140209); //PRSS region
