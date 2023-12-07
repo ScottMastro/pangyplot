@@ -3,8 +3,10 @@
     position: absolute;
     border: 1px solid #ccc;
     border-top: none;
-    z-index: 1000;
-    max-height: 200px;
+    z-index: 99;
+    max-height: 20em;
+    min-width: 20em;
+
     overflow-y: auto;
     background-color: #fff;
 }
@@ -14,14 +16,43 @@
 }
 
 .suggestion-item {
+    color: var(--font-color);
     padding: 5px;
-    background-color: #fff; /* Default background color */
-    outline: none; /* Remove the default focus outline */
+    outline: none;
+    border-bottom: 2px dotted var(--lighter-green);
 }
 
 .suggestion-item:hover,
-.suggestion-item:focus { /* Style for hover and focus */
-    background-color: var(--highlight); /* Yellow background */
+.suggestion-item:focus {
+    cursor: pointer;
+    background-color: var(--highlight);
 }
 
-/* Add more styles for the suggestions dropdown as needed */
+.suggestion-item-line{
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    column-gap: 3px;
+} .suggestion-item-chrom{
+    background-color: var(--lighter-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    font-size: small;
+    padding: 3px;
+} .suggestion-item-name{
+    font-weight: bold;
+}
+
+.suggestion-item-geneid{
+    font-style: italic;
+    font-size: small;
+} .suggestion-item-type{
+    font-size: xx-small;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    padding: 3px;
+}
