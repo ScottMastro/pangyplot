@@ -1,3 +1,6 @@
+const GENE_SEARCH_BAR = "gene-search-bar"
+const GENE_SUGGESTIONS = "gene-suggestions"
+
 function debounce(func, delay) {
     let debounceTimer;
     return function() {
@@ -8,12 +11,29 @@ function debounce(func, delay) {
     };
 }
 
+function geneToSearchItem(gene, index){
+    let chrom = gene.chrom.split("#");
+    chrom = chrom[chrom.length - 1];
+    let type = gene.gene_type.split("_").join(" ");
+    div = `<div class="suggestion-item" tabindex="${index}">
+            <div class="suggestion-item-line">
+                <div class="suggestion-item-chrom">${chrom}</div>
+                <div class="suggestion-item-name">${gene.name}</div>
+            </div>
+                <div class="suggestion-item-line">
+                    <div class="suggestion-item-geneid">${gene.id}</div>
+                    <div class="suggestion-item-type">${type}</div>
+                </div>
+            </div>`;
+    return(div);
+}
+
 function fetchSuggestions(input) {
     fetch(`/search?type=gene&query=${input}`)
         .then(response => response.json())
         .then(data => {
-            const suggestionsElement = document.getElementById('suggestions');
-            suggestionsElement.innerHTML = data.map((item, index) => `<div class="suggestion-item" tabindex="${index}">${item.name}</div>`).join('');
+            const suggestionsElement = document.getElementById(GENE_SUGGESTIONS);
+            suggestionsElement.innerHTML = data.map((gene, index) => geneToSearchItem(gene,index)).join('');
             suggestionsElement.classList.add('active');
         })
         .catch(error => console.error('Error:', error));
@@ -24,19 +44,29 @@ function onSuggestionClick(event) {
 }
 
 function selectSuggestionItem(item) {
-    if (item.classList.contains('suggestion-item')) {
-        const searchBar = document.getElementById('searchBar');
-        searchBar.value = item.textContent;
-        document.getElementById('suggestions').classList.remove('active');
+    let currentItem = item;
+    while (currentItem && !currentItem.classList.contains('suggestion-item')) {
+        currentItem = currentItem.parentElement;
+    }
+    
+    if (currentItem) {
+        const searchBar = document.getElementById(GENE_SEARCH_BAR);
+        const itemName = currentItem.querySelector('.suggestion-item-name');
+        console.log(itemName)
+        searchBar.value = itemName.textContent;
+        document.getElementById(GENE_SUGGESTIONS).classList.remove('active');
     }
 }
 
+var SWITCH_FOCUS = false;
 function navigateSuggestions(key) {
     const active = document.activeElement;
     if (key === 'ArrowDown') {
         if (active.classList.contains('suggestion-item')) {
             const next = active.nextElementSibling || active;
+            SWITCH_FOCUS=true;
             next.focus();
+            SWITCH_FOCUS=false;
         } else {
             const firstItem = document.querySelector('.suggestion-item');
             if (firstItem) firstItem.focus();
@@ -44,33 +74,62 @@ function navigateSuggestions(key) {
     } else if (key === 'ArrowUp') {
         if (active.classList.contains('suggestion-item')) {
             const prev = active.previousElementSibling || active;
+            SWITCH_FOCUS=true;
             prev.focus();
+            SWITCH_FOCUS=false;
         }
     }
 }
 
-const searchBar = document.getElementById('searchBar');
+const searchBar = document.getElementById(GENE_SEARCH_BAR);
 searchBar.addEventListener('input', debounce(function() {
     const input = this.value;
     if (input.length > 0) {
         fetchSuggestions(input);
     } else {
-        document.getElementById('suggestions').classList.remove('active');
+        document.getElementById(GENE_SUGGESTIONS).classList.remove('active');
     }
 }, 250));
 
-const suggestionsElement = document.getElementById('suggestions');
+const suggestionsElement = document.getElementById(GENE_SUGGESTIONS);
 suggestionsElement.addEventListener('click', onSuggestionClick);
 
+function isFocusWithinSuggestions() {
+    return suggestionsElement.contains(document.activeElement);
+}
+
+searchBar.addEventListener('blur', function(event) {
+    setTimeout(() => {
+        if (!isFocusWithinSuggestions()) {
+            suggestionsElement.classList.remove('active');
+        }
+    }, 0);
+});
+
+suggestionsElement.addEventListener('blur', function(event) {
+
+    if (!SWITCH_FOCUS && !isFocusWithinSuggestions()) {
+        if (document.activeElement !== searchBar) {
+            suggestionsElement.classList.remove('active');
+        }
+    }
+}, true);
+
+const updateSuggestionItemsFocusable = () => {
+    document.querySelectorAll('.suggestion-item').forEach(item => {
+        item.setAttribute('tabindex', '-1');
+    });
+};
+
 suggestionsElement.addEventListener('keydown', function(event) {
-    // Check if the key is alphanumeric (or any other keys you want to include)
-    if ((event.key.length === 1 && event.key.match(/\S/)) || event.key === 'Backspace') {
-        const searchBar = document.getElementById('searchBar');
+    key = event.key;
+    if (key === 'ArrowDown' || key === 'ArrowUp') {
+        return;
+    }
 
-        // Focus the search bar
+    if ((key.length === 1 && key.match(/\S/)) || key === 'Backspace') {
+        const searchBar = document.getElementById(GENE_SEARCH_BAR);
         searchBar.focus();
-
-        // Trigger the input event manually to fetch suggestions based on the updated value
         searchBar.dispatchEvent(new Event('input'));
     }
 });
@@ -81,7 +140,6 @@ suggestionsElement.addEventListener('wheel', function(event) {
     const visibleHeight = this.offsetHeight;
     const scrollPosition = this.scrollTop;
 
-    // Check if the scroll is at the top or the bottom
     if ((scrollPosition === 0 && deltaY < 0) || (scrollPosition + visibleHeight >= contentHeight && deltaY > 0)) {
         event.preventDefault(); // Prevent scrolling the page
     }
@@ -90,11 +148,11 @@ suggestionsElement.addEventListener('wheel', function(event) {
 document.addEventListener('keydown', function(event) {
     if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
         navigateSuggestions(event.key);
-        event.preventDefault(); // Prevent the default scrolling behavior
+        event.preventDefault();
     }
     if (event.key === 'Enter' && document.activeElement.classList.contains('suggestion-item')) {
         selectSuggestionItem(document.activeElement);
-        event.preventDefault(); // Prevent form submission or any other default Enter key behavior
+        event.preventDefault(); 
     }
 });
 
