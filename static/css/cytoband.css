@@ -14,7 +14,7 @@
 }
 
 .genome-annotation-chr{
-    font-size: 0.8em;
+    font-size: 1em;
 }.chromosome-band{
     pointer-events: none;
 } .chromosome-selection-genome{
@@ -45,17 +45,21 @@
     background-color: var(--highlight);
 }
 
+
 #chromosome-features-container{
     display: flex;
     flex-direction: column;
-
-} #chromosome-cytoband-container{
-    background-color: var(--light-green);
-    padding-top: 10px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-
 } .chromosome-annotation-band{
-    font-size: 0.5em;
+    font-size: 0.6em;
+} .chromosome-background{
+    fill: var(--light-green);
+} .chromosome-label-text{
+    fill: var(--font-color);
+    user-select:none;
+} .chromosome-selection-box{
+    stroke: var(--font-color);
+    fill: var(--highlight) !important;
+    fill-opacity: 0.2;
+    stroke-dasharray: 5 2;
 }
 
