@@ -1,3 +1,9 @@
+#gene-search-bar-container{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    column-gap: 10px;
+}
 .suggestions-dropdown {
     display: none;
     position: absolute;
@@ -6,7 +12,8 @@
     z-index: 99;
     max-height: 20em;
     min-width: 20em;
-
+    top: auto;
+    left: 0;
     overflow-y: auto;
     background-color: #fff;
 }

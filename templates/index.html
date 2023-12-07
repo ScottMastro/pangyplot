@@ -21,164 +21,55 @@
 
 <body>
 
-{% include 'citation-modal.html' %}
-{% include 'navbar.html' %}
 
-<div id="cytoband-div" class="">
+<div id="navbar" class="container fixed-height-1">
 
-<div id="genome-container" class="container fixed-height-2-5">
-    <div class="container-title">Human Genome</div>
-    <div id="genome-cytoband-container" class="container-content">
-        <!-- The figure will be appended here by JavaScript -->
+    {% include 'navbar.html' %}
+    {% include 'citation-modal.html' %}
 
-        <div id="other-chr-selector-container">
-            <div id="other-chr-label">Other chromosome</div>:
-
-            <select id="other-chr-selector" name="chr-selector">
-                <!-- The options will be appended here by JavaScript -->
-            </select>
-        </div>
-        
-        
-    </div> 
 </div>
 
-<div id="chromosome-container" class="container fixed-height-2-5">
-    <div class="container-title">Search by Region</div>
 
-    <div id="chromosome-features-container" class="container-content">
+<div id="cytoband-div" class="fixed-height-2-5">
 
-        <div id="chromosome-cytoband-container">
-            <!-- The figure will be appended here by JavaScript -->
-        </div>
+    {% include 'cytoband.html' %}
 
-        <div id="filter">
-            
+</div>
+
+<div id="position-div" style="display:flex;width:100%;" class="fixed-height-1">
+
+    <div id="gene-search-container" class="container">
+        <div class="container-title">Search by Gene</div>
+
+        <div id="gene-search-bar-container" class="container-content">
             <i class="fa fa-search"></i>
             <input type="text" id="gene-search-bar" placeholder="Search genes...">
             <div id="gene-suggestions" class="suggestions-dropdown"></div>
+
+        </div>
+    </div>
+
+
+    <div id="position-select-div" class="">
+        <div id="position-select-container" class="container">
+            <div class="container-title">Search by Position</div>
             
-            <label for="start-coord">Start:</label>
-            <input type="text" id="start-coord" name="start-coord">
-            <label for="end-coord">End:</label>
-            <input type="text" id="end-coord" name="end-coord"> 
-        </div>
-        
-    </div>   
-</div>
-
-</div>
-
-<div id="color-div">
-
-<div id="color-style-container" class="container fixed-height-1">
-    <div class="container-title">Color Style</div>
-
-    <div id="color-style-button-container" class="container-content">
-
-        <div class="color-style-btn option-button option-button-selected">
-            <img src="{{ url_for('static', filename= 'images/option_allele_frequency.svg') }}"></div>
-        
-        <div class="color-style-btn option-button option-button-unselected">
-            <img src="{{ url_for('static', filename= 'images/option_node_size.svg') }}"></div>
-    
-        <div class="color-style-btn option-button option-button-unselected">
-            <img src="{{ url_for('static', filename= 'images/option_ref_alt.svg') }}"></div>
-    
-        <div class="color-style-btn option-button option-button-unselected">
-            <img src="{{ url_for('static', filename= 'images/option_length.svg') }}"></div>
-
-        <div class="color-style-btn option-button option-button-unselected">
-            <img src="{{ url_for('static', filename= 'images/option_base_composition.svg') }}"></div>
-    
-    </div>
-</div>
-
-<div id="color-node-container" class="container fixed-height-1" >
-    <div class="container-title"><span>Node Color</span></div>
-
-    <div id="gradient-display" class="container-content">
-        <div id="color-picker-manual">
-            <input type="color" id="color1" class="node-color-picker" value="#0762e5">
-            <input type="color" id="color2" class="node-color-picker" value="#f2dc0f">
-            <input type="color" id="color3" class="node-color-picker" value="#ff6700">
+            <i class="fa-solid fa-dna"></i>
+            <input type="text" id="gene-search-bar" placeholder="chr:start-end">
         </div>
     </div>
 
 </div>
 
-<div id="color-preset-container" class="container fixed-height-1" >
-    <div class="container-title">Preset Node Colors</div>
-
-    <div id="preset-color-button-container" class="container-content">
-        <div class="preset-color option-button option-button-selected"
-        data-color1="#0762e5" data-color2="#f2dc0f" data-color3="#ff6700">Primary</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#659157" data-color2="#E05263" data-color3="#F3DE8A">Peach</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#1b9e77" data-color2="#d95f02" data-color3="#7570b3">Mystic</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#efedf5" data-color2="#bcbddc" data-color3="#756bb1">Purples</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#f7fcb9" data-color2="#addd8e" data-color3="#31a354">Greens</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#eff3ff" data-color2="#6baed6" data-color3="#08519c">Blues</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#ffeda0" data-color2="#feb24c" data-color3="#f03b20">Heat</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#d8b365" data-color2="#f5f5f5" data-color3="#5ab4ac">GoldenTide</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#af8dc3" data-color2="#f7f7f7" data-color3="#7fbf7b">Iris</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#f1a340" data-color2="#f7f7f7" data-color3="#998ec3">Sorbet</div>
-            <div class="preset-color option-button option-button-unselected"
-            data-color1="#91bfdb" data-color2="#ffffbf" data-color3="#fc8d59">CoralSky</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#fbe74c" data-color2="#31a186" data-color3="#461352">Viridis</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#94dbb4" data-color2="#36679e" data-color3="#35264b">Mako</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#fcb683" data-color2="#d6496a" data-color3="#181331">Magma</div>
-        <div class="preset-color option-button option-button-unselected"
-            data-color1="#f7d1b7" data-color2="#e33540" data-color3="#441b46">Rocket</div>
-    </div>
-</div>
-
-<div id="color-link-container" class="container fixed-height-1" >
-    <div class="container-title">Link Color</div>
-    <div class="single-color-picker container-content">
-        <input type="color" id="link-color" class="color-picker" value="#969696">
-    </div>
-</div>
-
-<div id="color-background-container" class="container fixed-height-1">
-    <div class="container-title">Background Color</div>
-    <div class="single-color-picker container-content">
-        <input type="color" id="bg-color" class="color-picker" value="#101020">
-    </div>
-</div>
+<div id="color-div" class="fixed-height-1">
+    
+    {% include 'color-picker.html' %}
 
 </div>
 
 <div id="graph-container">
-    <div class="loader-filter"></div>
-    <div class="loader"></div>
-    
-    <div id="graph-info">
-        <div>Node ID: <span id="info-node-id"></span></div>
-        <div>Node Type: <span id="info-node-type"></span></div>
-        <div>Chromosome: <span id="info-chromosome"></span></div>
-        <div>Start: <span id="info-start"></span></div>
-        <div>End: <span id="info-end"></span></div>
-        <div>Length: <span id="info-length"></span></div>
-        <div>Sequence: <span id="info-sequence"></span>
-            <button id="info-copy-sequence" title="Copy sequence"><i class="fa fa-copy"></i></button>
-        </div>
-        <div id="optional-size" style="display: none;">Size: <span id="info-size"></span></div>
-        <div id="optional-subtype" style="display: none;">Subtype: <span id="info-subtype"></span></div>
-        <div id="optional-number-inside" style="display: none;">Number Inside: <span id="info-number-inside"></span></div>
-    </div>
-    <div id="graph"></div>
+
+    {% include 'graph.html' %}
 
 </div>
 
