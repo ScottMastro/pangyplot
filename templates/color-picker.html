@@ -1,0 +1,86 @@
+<div id="color-style-container" class="container">
+    <div class="container-title">Color Style</div>
+
+    <div id="color-style-button-container" class="container-content">
+
+        <div class="color-style-btn option-button option-button-selected">
+            <img src="{{ url_for('static', filename= 'images/option_allele_frequency.svg') }}"></div>
+        
+        <div class="color-style-btn option-button option-button-unselected">
+            <img src="{{ url_for('static', filename= 'images/option_node_size.svg') }}"></div>
+    
+        <div class="color-style-btn option-button option-button-unselected">
+            <img src="{{ url_for('static', filename= 'images/option_ref_alt.svg') }}"></div>
+    
+        <div class="color-style-btn option-button option-button-unselected">
+            <img src="{{ url_for('static', filename= 'images/option_length.svg') }}"></div>
+
+        <div class="color-style-btn option-button option-button-unselected">
+            <img src="{{ url_for('static', filename= 'images/option_base_composition.svg') }}"></div>
+    
+    </div>
+</div>
+
+<div id="color-node-container" class="container" >
+    <div class="container-title"><span>Node Color</span></div>
+
+    <div id="gradient-display" class="container-content">
+        <div id="color-picker-manual">
+            <input type="color" id="color1" class="node-color-picker" value="#0762e5">
+            <input type="color" id="color2" class="node-color-picker" value="#f2dc0f">
+            <input type="color" id="color3" class="node-color-picker" value="#ff6700">
+        </div>
+    </div>
+
+</div>
+
+<div id="color-preset-container" class="container" >
+    <div class="container-title">Preset Colors</div>
+
+    <div id="preset-color-button-container" class="container-content">
+        <div class="preset-color option-button option-button-selected"
+            data-color1="#0762e5" data-color2="#f2dc0f" data-color3="#ff6700">Primary</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#659157" data-color2="#E05263" data-color3="#F3DE8A">Peach</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#1b9e77" data-color2="#d95f02" data-color3="#7570b3">Mystic</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#efedf5" data-color2="#bcbddc" data-color3="#756bb1">Purples</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#f7fcb9" data-color2="#addd8e" data-color3="#31a354">Greens</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#eff3ff" data-color2="#6baed6" data-color3="#08519c">Blues</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#ffeda0" data-color2="#feb24c" data-color3="#f03b20">Heat</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#d8b365" data-color2="#f5f5f5" data-color3="#5ab4ac">GoldenTide</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#af8dc3" data-color2="#f7f7f7" data-color3="#7fbf7b">Iris</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#f1a340" data-color2="#f7f7f7" data-color3="#998ec3">Sorbet</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#91bfdb" data-color2="#ffffbf" data-color3="#fc8d59">CoralSky</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#fbe74c" data-color2="#31a186" data-color3="#461352">Viridis</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#94dbb4" data-color2="#36679e" data-color3="#35264b">Mako</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#fcb683" data-color2="#d6496a" data-color3="#181331">Magma</div>
+        <div class="preset-color option-button option-button-unselected"
+            data-color1="#f7d1b7" data-color2="#e33540" data-color3="#441b46">Rocket</div>
+    </div>
+</div>
+
+<div id="color-link-container" class="container" >
+    <div class="container-title">Link Color</div>
+    <div class="single-color-picker container-content">
+        <input type="color" id="link-color" class="color-picker" value="#969696">
+    </div>
+</div>
+
+<div id="color-background-container" class="container">
+    <div class="container-title">Background Color</div>
+    <div class="single-color-picker container-content">
+        <input type="color" id="bg-color" class="color-picker" value="#101020">
+    </div>
+</div>
