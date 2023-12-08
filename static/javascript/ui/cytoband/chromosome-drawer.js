@@ -9,7 +9,6 @@ var CHROM_DRAG_RECTX;
 
 function drawChromosome(chromosomeData) {
     resetChromosomeContainer(CHR_CANVAS_CONTAINER_ID);
-    console.log(getChromosomeSize(chromosomeData))
     CURRENT_CHROMOSOME_SIZE = getChromosomeSize(chromosomeData);
     const dimensions = calculateChromosomeDimensions();
     const svg = createChromosomeSvg(CHR_CANVAS_CONTAINER_ID, dimensions, CHR_CANVAS_ID);
@@ -203,17 +202,12 @@ function addDragSelect(svg){
                 return;
             }
             updateStartEndCoordinates(DRAG_STARTX, DRAG_ENDX);
-            // You can now translate these coordinates to another coordinate system
-            // For example, if your other system's range is from 0 to 1
-            // These values are already in the proportion format
         }
-
     });
 
     svg.on('mouseleave', function() {
 
         IS_DRAGGING = false;
-        console.log(`Dragged from x=${DRAG_STARTX} to x=${DRAG_ENDX}`);
         updateStartEndCoordinates(DRAG_STARTX, DRAG_ENDX);
 
     });
@@ -223,9 +217,13 @@ function updateStartEndCoordinates(start, end){
     if (end < start){
         let x = end; end = start; start = x;
     }
-    let startBox = document.getElementById("start-coord");
-    startBox.value = Math.round(start*CURRENT_CHROMOSOME_SIZE);
-    let endBox = document.getElementById("end-coord");
-    endBox.value = Math.round(end*CURRENT_CHROMOSOME_SIZE);
+
+    //console.log(`Dragged from x=${start} to x=${end}`);
+
+    let startPos = Math.round(start*CURRENT_CHROMOSOME_SIZE);
+    startPos = Math.max(1, startPos);
+    let endPos = Math.round(end*CURRENT_CHROMOSOME_SIZE);
+
+    updateGoValues(null, startPos, endPos);
 
 }

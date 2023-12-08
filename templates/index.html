@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>PangyPlot</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cytoband.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">   
@@ -13,10 +14,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/citation-modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/gene-search.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/position-go.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/color-picker.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/graph.css') }}">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 
 <body>
@@ -39,23 +40,40 @@
 <div id="position-div" style="display:flex;width:100%;" class="fixed-height-1">
 
     <div id="gene-search-container" class="container">
-        <div class="container-title">Search by Gene</div>
+        <div class="container-title">Select by Gene</div>
 
-        <div id="gene-search-bar-container" class="container-content">
+        <div id="gene-search-container-content" class="container-content">
             <i class="fa fa-search"></i>
+
+            <div style="display: block;">
             <input type="text" id="gene-search-bar" placeholder="Search genes...">
             <div id="gene-suggestions" class="suggestions-dropdown"></div>
-
+            </div>
         </div>
     </div>
 
+    <div id="position-select-container" class="container">
+        <div class="container-title">Select by Position</div>
 
-    <div id="position-select-div" class="">
-        <div id="position-select-container" class="container">
-            <div class="container-title">Search by Position</div>
-            
-            <i class="fa-solid fa-dna"></i>
+        <div id="position-select-container-content" class="container-content">
+            <i class="fa-solid fa-location-crosshairs"></i>           
+
             <input type="text" id="gene-search-bar" placeholder="chr:start-end">
+        </div>
+    </div>
+
+    <div id="go-container" class="container">
+        <div class="container-title">Go</i></div>
+
+        <div id="go-container-content" class="container-content">
+            <div id="go-chrom-start-end">
+                <span id="go-chrom" class="important-text"><i class="fa-regular fa-square"></i></span>
+                <span class="less-important-text">:</span>
+                <span id="go-start" class="important-text"><i class="fa-regular fa-square"></i></span>
+                <span class="less-important-text">-</span>
+                <span id="go-end" class="important-text"><i class="fa-regular fa-square"></i></span>
+            </div>
+            <button id="go-button">Go <i class="fa-solid fa-bolt-lightning"></i></button>
         </div>
     </div>
 
@@ -132,6 +150,7 @@
 <script src="{{url_for('static', filename='javascript/ui/citation-modal.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/color-picker.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/gene-search.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/ui/position-go.js')}}"></script>
 
 </body>
 </html>

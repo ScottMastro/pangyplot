@@ -23,10 +23,13 @@ function clearAllChrHighlightsOther(){
     label.classList.remove('text-highlight');
 }
 
-document.getElementById('other-chr-selector').addEventListener('change', function() {
+document.getElementById('other-chr-selector').addEventListener('change', function(event) {
     clearAllChrHighlightsMain();
     clearAllChrHighlightsOther();
 
+    var chrName = event.target.value;
+    updateGoValues(chrName, null, null);
+    
     let label = document.getElementById("other-chr-label");
     label.classList.add('text-highlight');
 });

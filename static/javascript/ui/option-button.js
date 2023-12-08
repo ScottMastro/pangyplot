@@ -19,7 +19,5 @@ function setupButtonSelectionLogic(containerId) {
   });
 }
 
-
-
-setupButtonSelectionLogic('color-style-button-container');
-setupButtonSelectionLogic('preset-color-button-container');
+setupButtonSelectionLogic('color-style-container-content');
+setupButtonSelectionLogic('color-preset-container-content');

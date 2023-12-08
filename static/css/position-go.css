@@ -1,0 +1,34 @@
+#gene-search-container{
+    flex: 3;
+} #position-select-container{
+    flex: 2;
+} #go-container{
+    flex: 2;
+} 
+
+#go-container-content{
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+} #go-chrom-start-end{
+    position: relative;
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: var(--dark-green);
+    padding: 5px;
+    transition: background-color 0.3s;
+}
+
+#go-button{
+    flex: 1;
+}
+
+.important-text{
+    color: var(--font-color);
+    text-shadow:  2px 2px rgba(0, 0, 0, 0.1);
+} .less-important-text{
+    color: var(--font-color);
+}

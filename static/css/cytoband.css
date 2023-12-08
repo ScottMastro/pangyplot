@@ -8,7 +8,7 @@
     flex: 2;
 }
 
-#genome-cytoband-container{
+#genome-container-content{
     display: flex;
     flex-direction: column;
 }
@@ -24,6 +24,7 @@
     cursor: pointer;
 } .chromosome-selection-highlight{
     fill: var(--highlight) !important;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 } .chromosome-label-text {
     fill: var(--font-color);
 } .chromosome-label-highlight{
@@ -46,7 +47,7 @@
 }
 
 
-#chromosome-features-container{
+#chromosome-container-content{
     display: flex;
     flex-direction: column;
 } .chromosome-annotation-band{
