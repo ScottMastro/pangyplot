@@ -2,7 +2,8 @@ const CHR_CANVAS_CONTAINER_ID="chromosome-cytoband-container"
 const CHR_CANVAS_ID="chromosome-cytoband-canvas"
 var CURRENT_CHROMOSOME_SIZE=0
 var IS_DRAGGING = false;
-var DRAG_STARTX, DRAG_ENDX;
+var DRAG_STARTX = null;
+var DRAG_ENDX = null;
 var CHROM_DRAG_RECT;
 var CHROM_DRAG_RECTX;
 
@@ -128,11 +129,13 @@ function addChromosomeAnnotations(svg, annotations) {
         .attr('class', 'chromosome-label-text')
 }
 
-
 function addDragSelect(svg){
     const svgElement = svg.node();
     const svgRect = svgElement.getBoundingClientRect();
     svg.on('mousedown', function(event) {
+        DRAG_STARTX = null;
+        DRAG_ENDX = null;
+        
         // Starting x-coordinate (normalized)
         const [x, y] = d3.pointer(event, svgElement);
         const dimensions = calculateChromosomeDimensions();
@@ -206,24 +209,26 @@ function addDragSelect(svg){
     });
 
     svg.on('mouseleave', function() {
-
-        IS_DRAGGING = false;
-        updateStartEndCoordinates(DRAG_STARTX, DRAG_ENDX);
-
+        if (IS_DRAGGING) {
+            IS_DRAGGING = false;
+            updateStartEndCoordinates(DRAG_STARTX, DRAG_ENDX);
+        }
     });
 }
 
 function updateStartEndCoordinates(start, end){
-    if (end < start){
-        let x = end; end = start; start = x;
+    if (start != null && end != null && start != end){
+
+        if (end < start){
+            let x = end; end = start; start = x;
+        }
+
+        //console.log(`Dragged from x=${start} to x=${end}`);
+
+        let startPos = Math.round(start*CURRENT_CHROMOSOME_SIZE);
+        startPos = Math.max(1, startPos);
+        let endPos = Math.round(end*CURRENT_CHROMOSOME_SIZE);
+
+        updateGoValues(null, startPos, endPos);
     }
-
-    //console.log(`Dragged from x=${start} to x=${end}`);
-
-    let startPos = Math.round(start*CURRENT_CHROMOSOME_SIZE);
-    startPos = Math.max(1, startPos);
-    let endPos = Math.round(end*CURRENT_CHROMOSOME_SIZE);
-
-    updateGoValues(null, startPos, endPos);
-
 }

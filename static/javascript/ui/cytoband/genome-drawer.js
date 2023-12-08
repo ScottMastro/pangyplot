@@ -67,6 +67,7 @@ function drawGenomeChromosomeBorder(svg, x, border, chrName) {
         .attr("height", border.height)
         .attr("class", "chromosome-selection-genome")
         .on('click', function() {
+            updateGoValues(chrName, null, null);
             highlightGenomeChr(chrName);
             fetchAndDrawChromosomeData(chrName);
         });
@@ -131,8 +132,6 @@ function clearAllChrHighlightsMain(){
 function highlightGenomeChr(chrName) {
     clearAllChrHighlightsMain();
     clearAllChrHighlightsOther();
-
-    updateGoValues(chrName, null, null);
 
     let rectangles = document.getElementsByClassName("chromosome-selection-genome");
     let annotations = document.getElementsByClassName("genome-annotation-chr")[0].firstElementChild.childNodes;
