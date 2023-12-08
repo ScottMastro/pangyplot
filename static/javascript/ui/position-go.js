@@ -1,6 +1,9 @@
-
-
 document.getElementById('go-button').addEventListener('click', function() {
+    let chrom = document.getElementById('go-chrom').textContent = chromValue;
+    let start = document.getElementById('go-start').textContent = startValue;
+    let end = document.getElementById('go-end').textContent = endValue;
+
+    //todo
     console.log('Button was clicked!');
 });
 
@@ -15,6 +18,20 @@ function updateGoValues(chromValue = null, startValue = null, endValue = null) {
         document.getElementById('go-end').textContent = endValue;
     }
 }
+
+function parseGenomicCoordinates() {
+    const input = document.getElementById('position-select-bar').value;
+    const pattern = /^chr[a-zA-Z0-9]+:\d+-\d+$/; // Pattern to match "chr:start-end"
+
+    if (pattern.test(input)) {
+        // If input is valid, dispatch a custom event with the input value
+        const event = new CustomEvent('genomicCoordinatesChanged', { detail: input });
+        document.dispatchEvent(event);
+    } else {
+        alert('Invalid genomic coordinates. Please use the format "chr:start-end".');
+    }
+}
+
 
 function copyToClipboard(text) {
     const textarea = document.createElement('textarea');
@@ -32,7 +49,7 @@ document.getElementById('go-chrom-start-end').addEventListener('click', function
     const textToCopy = chrom + ':' + start + '-' + end;
 
     copyToClipboard(textToCopy);
-    showCopySuccess();
+    showCopySuccess("go-chrom-start-end");
 });
 
 const goCopyEffectWaitTime = 400;
@@ -56,13 +73,13 @@ function showCopySuccess() {
     }
 }
 
-function showCopyPopup() {
+function showCopyPopup(elementId) {
     const popup = document.createElement('div');
     popup.textContent = 'Copied!';
     popup.id = 'copyPopup';
     document.body.appendChild(popup);
 
-    const area = document.getElementById('go-chrom-start-end');
+    const area = document.getElementById('elementId');
     const areaRect = area.getBoundingClientRect();
     popup.style.position = 'absolute';
     popup.style.left = `${areaRect.left}px`;
