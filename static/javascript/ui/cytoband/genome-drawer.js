@@ -1,4 +1,4 @@
-const GENOME_CANVAS_CONTAINER_ID="genome-cytoband-container"
+const GENOME_CANVAS_CONTAINER_ID="genome-container-content"
 const GENOME_CANVAS_ID="genome-cytoband-canvas"
 
 function drawGenome(data, chrOrder, initialChr) {
@@ -129,8 +129,10 @@ function clearAllChrHighlightsMain(){
 }
 
 function highlightGenomeChr(chrName) {
-    clearAllChrHighlightsMain()
-    clearAllChrHighlightsOther()
+    clearAllChrHighlightsMain();
+    clearAllChrHighlightsOther();
+
+    updateGoValues(chrName, null, null);
 
     let rectangles = document.getElementsByClassName("chromosome-selection-genome");
     let annotations = document.getElementsByClassName("genome-annotation-chr")[0].firstElementChild.childNodes;

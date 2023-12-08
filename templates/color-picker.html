@@ -1,10 +1,37 @@
 <div id="color-style-container" class="container">
     <div class="container-title">Color Style</div>
 
-    <div id="color-style-button-container" class="container-content">
+    <div id="color-style-container-content" class="container-content">
+        
 
         <div class="color-style-btn option-button option-button-selected">
-            <img src="{{ url_for('static', filename= 'images/option_allele_frequency.svg') }}"></div>
+            <i class="fa-solid fa-circle-nodes"></i>
+            <div>Node Type</div>
+        </div>
+
+        <div class="color-style-btn option-button option-button-unselected">
+            <i class="fa-solid fa-arrows-to-circle"></i>
+            <div>Bubble Size</div>
+        </div>
+
+        <div class="color-style-btn option-button option-button-unselected">
+            <i class="fa-solid fa-arrow-down-short-wide"></i>
+            <div>Node Length</div>
+        </div>
+
+        <div class="color-style-btn option-button option-button-unselected">
+            <i class="fa-solid fa-shuffle"></i>
+            <div>Ref/Alt</div>
+        </div>
+
+        <div class="color-style-btn option-button option-button-unselected">
+            <i class="fa-solid fa-dna"></i>            
+            <div>GC Content</div>
+        </div>
+
+        <i class="fa-solid fa-split"></i>
+        <!--
+
         
         <div class="color-style-btn option-button option-button-unselected">
             <img src="{{ url_for('static', filename= 'images/option_node_size.svg') }}"></div>
@@ -18,6 +45,7 @@
         <div class="color-style-btn option-button option-button-unselected">
             <img src="{{ url_for('static', filename= 'images/option_base_composition.svg') }}"></div>
     
+        -->
     </div>
 </div>
 
@@ -36,8 +64,8 @@
 
 <div id="color-preset-container" class="container" >
     <div class="container-title">Preset Colors</div>
-
-    <div id="preset-color-button-container" class="container-content">
+    
+    <div id="color-preset-container-content" class="container-content">
         <div class="preset-color option-button option-button-selected"
             data-color1="#0762e5" data-color2="#f2dc0f" data-color3="#ff6700">Primary</div>
         <div class="preset-color option-button option-button-unselected"

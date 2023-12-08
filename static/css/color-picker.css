@@ -3,7 +3,7 @@
 }
 
 #color-style-container{
-    flex: 3;
+    flex: 4;
 } #color-node-container{
     flex: 2;
 } #color-preset-container{
@@ -15,12 +15,24 @@
 }
 
 .color-style-btn {
+    display:flex;
+    flex-direction: column;
+    justify-content: space-around;
+    flex:1;
     padding: 5px;
+    color: var(--font-color);
+    font-size: small;
+
 } .color-style-btn img {
+    display: flex;
     width: 100%;
     height: 100%;
     object-fit: contain;
+} .color-style-btn i{
+    font-size: 2em !important;
+    pointer-events:none;
 }
+
 
 #gradient-display {
     border: 1px solid var(--dark-green);
@@ -30,7 +42,7 @@
     justify-content: space-between;
 }
 
-#preset-color-button-container{
+#color-preset-container-content{
     column-gap: 4px !important;
     row-gap: 4px;
     display: flex;

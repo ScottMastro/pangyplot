@@ -39,5 +39,30 @@ body {
     height: calc(100% - var(--title-height) - 20px);
 }
 
+button {
+    background-color: var(--light-green);
+    border: none;
+    color: var(--font-color);
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+} button:hover {
+    background-color: var(--highlight);
+} button:active {
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    transform: scale(0.95);
+    background-color: var(--darker-green);
+    color: var(--light-green);
+}
 
-
+#copyPopup {
+    position: absolute;
+    background-color: var(--darker-green);
+    color: var(--lighter-green);
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 100;
+    transition: opacity 0.5s;
+    opacity: 1;
+}
