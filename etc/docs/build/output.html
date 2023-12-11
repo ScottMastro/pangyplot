@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Output &mdash; PangyPlot 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.svg"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Power Simulation Package" href="power_calculation.html" />
+    <link rel="prev" title="Association Tests" href="tests.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PangyPlot
+              <img src="_static/pangyplot_logo.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="local_build.html">Local Build</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">Choosing Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Association Tests</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Output</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#p-value-file">P-value File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#filtered-file">Filtered File</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="power_calculation.html">Power Simulation Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PangyPlot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Output</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/output.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="output">
+<span id="id1"></span><h1>Output<a class="headerlink" href="#output" title="Permalink to this heading"></a></h1>
+<p>VikNGS will output the p-values calculated to a text file in the current directory (i.e. “.”) by default. Output directory can be changed from the user interface or using <code class="docutils literal notranslate"><span class="pre">-o</span> <span class="pre">[DIRECTORY]</span></code> on the command line version.</p>
+<p>In addition to p-values, VikNGS can also produce a file detailing which variants were filtered out prior to testing and an explanation why. In future versions of the software, we hope to provide more types of output in addition to these files.</p>
+<section id="p-value-file">
+<h2>P-value File<a class="headerlink" href="#p-value-file" title="Permalink to this heading"></a></h2>
+<p>This file will be produced upon completion of a series of association tests. Each line corresponds to a tested variant and records the resulting p-value. The file is tab-separated with the following columns:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Chromosome</span>&#160; <span class="pre">Position</span>&#160; <span class="pre">Reference</span> <span class="pre">Alternative</span> <span class="pre">P-value</span> <span class="pre">TestName</span>&#160; <span class="pre">CollapseGroupID</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">CollapseGroupID</span></code> is only present if variants were collapsed into groups (single p-value per collapsed group).</p>
+</section>
+<section id="filtered-file">
+<h2>Filtered File<a class="headerlink" href="#filtered-file" title="Permalink to this heading"></a></h2>
+<p>This file explains which variants were filtered prior to testing and the reasoning behind the filter. Each line corresponds to a single variant. This file will only be written if “Explain Filter” is checked on the user interface or if <code class="docutils literal notranslate"><span class="pre">--explain-filter</span></code> is added when running VikNGS from the command line. The file is tab-separated with the following columns:</p>
+<p><code class="docutils literal notranslate"><span class="pre">Chromosome</span>&#160; <span class="pre">Position</span>&#160; <span class="pre">Reference</span> <span class="pre">Alternative</span> <span class="pre">Explanation</span></code></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Explanation</span></code> values refer to the following:</p>
+<ul class="simple">
+<li><p>Invalid information: variant was not properly parsed from the VCF file</p></li>
+<li><p>Not SNP: variant was filtered for not being a single nucleotide polymorphism</p></li>
+<li><p>PASS fail: <strong>FILTER</strong> column of VCF file did not report “PASS”</p></li>
+<li><p>Missing: variant was missing (e.x. “./.”) more data than tolerable by the missing threshold parameter</p></li>
+<li><p>No variation: no variation detected in this particular variant (all individuals have the same genotype)</p></li>
+<li><p>MAF: variant has a minor allele frequency &gt; the MAF threshold (rare test) or &lt; the MAF threshold (common test)</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tests.html" class="btn btn-neutral float-left" title="Association Tests" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="power_calculation.html" class="btn btn-neutral float-right" title="Power Simulation Package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Scott Mastromatteo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

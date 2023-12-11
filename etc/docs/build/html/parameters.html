@@ -1,0 +1,407 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Choosing Parameters &mdash; vikNGS 0.0.1 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Association Tests" href="tests.html" />
+    <link rel="prev" title="Input Files" href="input.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> vikNGS
+          
+
+          
+            
+            <img src="_static/vikngs_logo.svg" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input Files</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Choosing Parameters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#command-line-parameters">Command Line Parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parameter-explaination">Parameter Explaination</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#minor-allele-frequency-cutoff">Minor Allele Frequency Cutoff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#missing-data-threshold">Missing Data Threshold</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#filter-by-genomic-coordinate">Filter By Genomic Coordinate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#must-pass">Must <em>PASS</em></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#read-depth-high-low-cutoff">Read Depth High/Low Cutoff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#collapse-variants">Collapse Variants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rare-vs-common-testing">Rare vs Common Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bootstrap-and-early-stopping">Bootstrap and Early Stopping</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#threads-and-batch-size">Threads and Batch Size</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot-results">Plot Results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Association Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="power_calculation.html">Power Calculator</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">vikNGS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Choosing Parameters</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/parameters.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="choosing-parameters">
+<h1>Choosing Parameters<a class="headerlink" href="#choosing-parameters" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="command-line-parameters">
+<h2>Command Line Parameters<a class="headerlink" href="#command-line-parameters" title="Permalink to this headline">¶</a></h2>
+<p>A command line version of vikNGS is available for users who wish to do association testing without running a user interface. The command line tool requires specification of a <a class="reference internal" href="input.html#multisample-vcf"><span class="std std-ref">multisample VCF file</span></a> and corresponding <a class="reference internal" href="input.html#sample-info"><span class="std std-ref">sample information file</span></a>. By default, the command will run a common association tests on a single thread.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="17%" />
+<col width="64%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Value/Default</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>--vcf, -i</strong></td>
+<td>[DIRECTORY]</td>
+<td>Directory of a multisample VCF file (required)</td>
+</tr>
+<tr class="row-odd"><td><strong>--sample, -g</strong></td>
+<td>[DIRECTORY]</td>
+<td>Directory of a file containing sample information (required)</td>
+</tr>
+<tr class="row-even"><td><strong>--bed,-b</strong></td>
+<td>[DIRECTORY]</td>
+<td>directory of a BED file for collapsing variants</td>
+</tr>
+<tr class="row-odd"><td><strong>--out, -o</strong></td>
+<td>[DIRECTORY]= .</td>
+<td>Directory for output (defaults to current directory)</td>
+</tr>
+<tr class="row-even"><td><strong>--help, -h</strong></td>
+<td>&#160;</td>
+<td>Print a help message and exit</td>
+</tr>
+<tr class="row-odd"><td><strong>--common, -c</strong></td>
+<td>&#160;</td>
+<td>Perform a common variant association test (default)</td>
+</tr>
+<tr class="row-even"><td><strong>--rare, -r</strong></td>
+<td>[TEST NAME]</td>
+<td>Perform a rare variant association test</td>
+</tr>
+<tr class="row-odd"><td><strong>--boot, -n</strong></td>
+<td>[INT]=1000</td>
+<td>Number of bootstrap iterations to calculate</td>
+</tr>
+<tr class="row-even"><td><strong>--stop, -s</strong></td>
+<td>&#160;</td>
+<td>Stop bootstrapping if p-value looks to be &gt; 0.05</td>
+</tr>
+<tr class="row-odd"><td><strong>--collapse, -k</strong></td>
+<td>[INT]=5</td>
+<td>Collapse every k variants (rare only)</td>
+</tr>
+<tr class="row-even"><td><strong>--gene</strong></td>
+<td>&#160;</td>
+<td>Collapse variants by gene if BED file specified (default)</td>
+</tr>
+<tr class="row-odd"><td><strong>--exon</strong></td>
+<td>&#160;</td>
+<td>Collapse variants by exon if BED file specified</td>
+</tr>
+<tr class="row-even"><td><strong>--from</strong></td>
+<td>[INT]</td>
+<td>Only include variants with <strong>POS</strong> larger than this value</td>
+</tr>
+<tr class="row-odd"><td><strong>--to</strong></td>
+<td>[INT]</td>
+<td>Only include variants with <strong>POS</strong> smaller than this value</td>
+</tr>
+<tr class="row-even"><td><strong>--chr</strong></td>
+<td>[CHR NAME]</td>
+<td>Only include variants on this chromosome</td>
+</tr>
+<tr class="row-odd"><td><strong>--maf, -m</strong></td>
+<td>[FLOAT]=0.05</td>
+<td>Minor allele frequency cut-off (common-rare threshold)</td>
+</tr>
+<tr class="row-even"><td><strong>--depth, -d</strong></td>
+<td>[INT]=30</td>
+<td>Read depth cut-off (low-high read depth threshold)</td>
+</tr>
+<tr class="row-odd"><td><strong>--missing, -x</strong></td>
+<td>[FLOAT]=0.1</td>
+<td>Missing data cut-off (maximum tolerance for missing data)</td>
+</tr>
+<tr class="row-even"><td><strong>--all, -a</strong></td>
+<td>&#160;</td>
+<td>Include variants which do not have <em>PASS</em> in the <strong>FILTER</strong> column</td>
+</tr>
+<tr class="row-odd"><td><strong>--threads, -t</strong></td>
+<td>[INT]=1</td>
+<td>Number of threads</td>
+</tr>
+<tr class="row-even"><td><strong>--batch, -h</strong></td>
+<td>[INT]=1000</td>
+<td>Number of variants to read from VCF before beginning tests</td>
+</tr>
+</tbody>
+</table>
+<p>TODO: TEST THESE EXAMPLES</p>
+<p><strong>Example 1.</strong> Running a common test on 16 threads for variants on chromosome 7 with minor allele frequency &gt; 10% and ignoring what is in the <strong>FILTER</strong> column of the VCF:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">vikNGS</span> <span class="o">--</span><span class="n">vcf</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">--</span><span class="n">sample</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">--</span><span class="nb">chr</span> <span class="n">chr7</span> <span class="o">-</span><span class="n">m</span> <span class="mf">0.1</span> <span class="o">--</span><span class="nb">all</span> <span class="o">-</span><span class="n">t</span> <span class="mi">16</span>
+</pre></div>
+</div>
+<p><strong>Example 2.</strong> Running a rare test (CAST) on 4 threads, collapsing variants along genes and using one million bootstrap iterations with early stopping:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">vikNGS</span> <span class="o">--</span><span class="n">vcf</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">--</span><span class="n">sample</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">--</span><span class="n">bed</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">-</span><span class="n">r</span> <span class="n">CAST</span> <span class="o">--</span><span class="n">gene</span> <span class="o">-</span><span class="n">n</span> <span class="mi">1000000</span> <span class="o">--</span><span class="n">stop</span> <span class="o">-</span><span class="n">t</span> <span class="mi">4</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="parameter-explaination">
+<span id="explain-param"></span><h2>Parameter Explaination<a class="headerlink" href="#parameter-explaination" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="minor-allele-frequency-cutoff">
+<h3>Minor Allele Frequency Cutoff<a class="headerlink" href="#minor-allele-frequency-cutoff" title="Permalink to this headline">¶</a></h3>
+<p>While reading the VCF file, vikNGS computes an allele frequency for each variant. The minor allele frequency (MAF) is estimated only using the samples included in the multisample VCF file. The MAF cutoff is used to define which variants are considered “rare” versus “common”. When running a common association test, variants with estimated minor allele frequencies <em>less than</em> the MAF cutoff (ie. rare variants) will be excluded from testing. Likewise, when running a rare association test, variants with estimated minor allele frequencies <em>greater than</em> the MAF cutoff (ie. common variants) will be excluded from testing.</p>
+</div>
+<div class="section" id="missing-data-threshold">
+<h3>Missing Data Threshold<a class="headerlink" href="#missing-data-threshold" title="Permalink to this headline">¶</a></h3>
+<p>Variants may have ambiguous or missing genotype information (ex. <strong>GT</strong> = ./.) for some of the individuals in the multisample VCF file. If too much data is missing, association tests may produce misleading results. Any variant that is missing more data than this threshold will be excluded from testing. The default value is 0.1 which means if more than 10% of sample calls cannot be determined, the variant will be ignored.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If running a quantitative association test, the proportion of missing data will be calculated from all samples. In a case-control test, two proportions will be calculated (one for all cases, one for all controls) if either cases <em>or</em> controls fail to satisfy the missing threshold, the variant will be excluded.</p>
+</div>
+</div>
+<div class="section" id="filter-by-genomic-coordinate">
+<h3>Filter By Genomic Coordinate<a class="headerlink" href="#filter-by-genomic-coordinate" title="Permalink to this headline">¶</a></h3>
+<p>Enables filtering of variants based on the <strong>CHR</strong> and <strong>POS</strong> values in the VCF file. Variants outside a specific chromosome or range of positions can be excluded.</p>
+</div>
+<div class="section" id="must-pass">
+<h3>Must <em>PASS</em><a class="headerlink" href="#must-pass" title="Permalink to this headline">¶</a></h3>
+<p>Variants which do not contain <em>PASS</em> in the <strong>FILTER</strong> column of the VCF are filtered out. By default this filtering step is on, turning it off will cause the contents of the <strong>FILTER</strong> column to be ignored.</p>
+</div>
+<div class="section" id="read-depth-high-low-cutoff">
+<h3>Read Depth High/Low Cutoff<a class="headerlink" href="#read-depth-high-low-cutoff" title="Permalink to this headline">¶</a></h3>
+<p>TODO
+samples with read depth above this threshold are considered high read depth samples (default=30).</p>
+</div>
+<div class="section" id="collapse-variants">
+<h3>Collapse Variants<a class="headerlink" href="#collapse-variants" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+<div class="section" id="rare-vs-common-testing">
+<h3>Rare vs Common Testing<a class="headerlink" href="#rare-vs-common-testing" title="Permalink to this headline">¶</a></h3>
+<p>See information on the  <a class="reference internal" href="tests.html#tests"><span class="std std-ref">Tests</span></a> page for details.</p>
+</div>
+<div class="section" id="bootstrap-and-early-stopping">
+<h3>Bootstrap and Early Stopping<a class="headerlink" href="#bootstrap-and-early-stopping" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+<div class="section" id="threads-and-batch-size">
+<h3>Threads and Batch Size<a class="headerlink" href="#threads-and-batch-size" title="Permalink to this headline">¶</a></h3>
+<p>TODO</p>
+</div>
+<div class="section" id="plot-results">
+<h3>Plot Results<a class="headerlink" href="#plot-results" title="Permalink to this headline">¶</a></h3>
+<p>Only available on the graphical user interface. A plotting interface will be displayed following the association testing in a new window if this setting is checked.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="tests.html" class="btn btn-neutral float-right" title="Association Tests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="input.html" class="btn btn-neutral" title="Input Files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Scott Mastromatteo.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.0.1',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local Build &mdash; PangyPlot 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/favicon.svg"/>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Input Files" href="input.html" />
+    <link rel="prev" title="PangyPlot" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PangyPlot
+              <img src="_static/pangyplot_logo.svg" class="logo" alt="Logo"/>
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Table of Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Local Build</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-example-on-user-interface">Running Example on User Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-command-line">Running Command Line</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="input.html">Input Files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parameters.html">Choosing Parameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Association Tests</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output.html">Output</a></li>
+<li class="toctree-l1"><a class="reference internal" href="power_calculation.html">Power Simulation Package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PangyPlot</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Local Build</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/local_build.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <span class="target" id="local-build"></span><section id="id1">
+<h1>Local Build<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h1>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this heading"></a></h2>
+<p>To download VikNGS, go to the <a class="reference external" href="https://github.com/ScottMastro/graph_viz">https://github.com/ScottMastro/graph_viz</a> and find the latest release. The releases contains precompiled versions of VikNGS for Windows, Mac and Linux operating systems. Download the appropriate release ZIP folder for your opperating system.</p>
+<p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/ScottMastro/graph_viz</span></code></p>
+<p>Unzip the folder and running file VikNGS-X.X.X should start up the user interface. The available versions were compiled on the following systems, so please try to run it under a similar setting:</p>
+<ul class="simple">
+<li><p>Windows: Windows 10 64x (compiled with Microsoft Visual C++ 2017)</p></li>
+<li><p>Mac: macOS 10.13.4 High Sierra</p></li>
+<li><p>Linux: Ubuntu 18.04 64x</p></li>
+</ul>
+<p>If there is an issue running the software, we recommend trying a different system or try <span class="xref std std-ref">compiling the software from the source code</span>.</p>
+</section>
+<section id="running-example-on-user-interface">
+<h2>Running Example on User Interface<a class="headerlink" href="#running-example-on-user-interface" title="Permalink to this heading"></a></h2>
+<p>In the same directory where the VikNGS-X.X.X application is found, two example files are present. Within the VikNGS interface, provide <em>example.vcf</em> as input in the section labelled “VCF File” and <em>example_info.txt</em> as input in the section labelled “Sample Information File”. Clicking the “RUN” button should then trigger the association tests using these files as input.</p>
+</section>
+<section id="running-command-line">
+<h2>Running Command Line<a class="headerlink" href="#running-command-line" title="Permalink to this heading"></a></h2>
+<p>From the command line, run the following commands:</p>
+<div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">wget</span> <span class="pre">https://github.com/ScottMastro/VikNGS/archive/master.zip</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">unzip</span> <span class="pre">master.zip</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">VikNGS-master/bin</span></code></div>
+<div class="line"><code class="docutils literal notranslate"><span class="pre">make</span></code></div>
+</div>
+<p>To test the binary executable file, try running the following command:</p>
+<div class="line-block">
+<div class="line"><code class="docutils literal notranslate"><span class="pre">./VikNGS</span> <span class="pre">--vcf</span> <span class="pre">../example/example.vcf</span> <span class="pre">--sample</span> <span class="pre">../example/example_info.txt</span></code></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="PangyPlot" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="input.html" class="btn btn-neutral float-right" title="Input Files" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Scott Mastromatteo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
