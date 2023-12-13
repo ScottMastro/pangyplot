@@ -1,6 +1,5 @@
 #gene-search-container-content{
     display: flex;
-    justify-content: flex-end;
     align-items: center;
     column-gap: 10px;
 }
