@@ -3,32 +3,31 @@
     align-items: center;
     column-gap: 10px;
 }
+#gene-search-bar-container{
+    flex:1;
+    display: block;
+}
 
 #selected-gene-container{
-    flex:4;
-    display: flex;
     height: 100%;
+    flex: 5;
+    display: flex;
     column-gap: 10px;
 }
 
+#gene-search-bar{
+    width: 8em;
+}
 .gene-selected-placeholder{
-    height: 100%;
+    min-height: 50px;
     flex: 1;
     border-radius: 5px;
 }
 .gene-selected-placeholder.placeholder-blank{
     border: 1px dashed var(--font-color) !important;
     box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important;
-    background: var(--lighter-green) !important;
-    mix-blend-mode:normal !important;
-    filter: none !important;
-    opacity: 1 !important;
+    pointer-events: none !important;
 }
-.gene-selected-placeholder.placeholder-filled{
-    border: none;
-    box-shadow: none;
-}
-
 
 .suggestions-dropdown {
     display: none;
@@ -89,4 +88,9 @@
     justify-content: center;
     border-radius: 5px;
     padding: 3px;
+}
+
+.gene-selection-item .gene-item-line{
+    display: block;
+    font-size: small;
 }
