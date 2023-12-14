@@ -19,9 +19,13 @@
     width: 8em;
 }
 .gene-selected-placeholder{
-    min-height: 50px;
     flex: 1;
+    min-height: 50px;
     border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
 }
 .gene-selected-placeholder.placeholder-blank{
     border: 1px dashed var(--font-color) !important;
@@ -91,6 +95,4 @@
 }
 
 .gene-selection-item .gene-item-line{
-    display: block;
-    font-size: small;
 }
