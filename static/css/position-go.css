@@ -1,18 +1,21 @@
+#position-div{
+    display: flex;
+}
+
 #gene-search-container{
-    flex: 3;
+    flex: 4;
 } #position-select-container{
-    flex: 2;
+    flex: 1;
 } #go-container{
     flex: 2;
 } 
 
 #go-container-content{
     display: flex;
-    flex-direction: column;
     row-gap: 10px;
 } #go-chrom-start-end{
     position: relative;
-    flex: 1;
+    flex: 4;
     display: flex;
     justify-content: space-around;
     border-radius: 5px;
@@ -20,6 +23,7 @@
     border-color: var(--dark-green);
     padding: 5px;
     transition: background-color 0.3s;
+    align-items: center;
 }
 
 #go-button{
