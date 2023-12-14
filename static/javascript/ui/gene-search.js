@@ -76,7 +76,6 @@ function updateSelectedGenePlaceholders(searchItem){
     
 }
 
-
 function debounce(func, delay) {
     let debounceTimer;
     return function() {
@@ -129,7 +128,6 @@ function onSuggestionClick(event) {
 }
 
 
-
 function selectSuggestionItem(item) {
     let currentItem = item;
     while (currentItem && !currentItem.classList.contains('suggestion-item')) {
@@ -139,9 +137,7 @@ function selectSuggestionItem(item) {
     if (currentItem) {
         updateSelectedGenePlaceholders(currentItem);
         const searchBar = document.getElementById(GENE_SEARCH_BAR);
-        const itemName = currentItem.querySelector('.gene-item-name');
-        console.log(itemName)
-        searchBar.value = itemName.textContent;
+        searchBar.value = "";
         document.getElementById(GENE_SUGGESTIONS).classList.remove('active');
     }
 }
