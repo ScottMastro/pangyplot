@@ -1,6 +1,82 @@
 const GENE_SEARCH_BAR = "gene-search-bar"
 const GENE_SUGGESTIONS = "gene-suggestions"
 
+const geneTemplate = `
+<div class="gene-item-line">
+    <div class="gene-item-chrom">{{chrom}}</div>
+    <div class="gene-item-name">{{name}}</div>
+</div>
+<div class="gene-item-line">
+    <div class="gene-item-geneid">{{id}}</div>
+    <div class="gene-item-type">{{type}}</div>
+</div>`
+
+const suggestionTemplate = `
+<div class="suggestion-item" tabindex="{{index}}">
+    ${geneTemplate}
+</div>`;
+
+const selectedTemplate = `
+<div class="gene-selection-item">
+    ${geneTemplate}
+</div>`;
+
+
+function processTemplate(template, data) {
+    return template.replace(/{{\s*(\w+)\s*}}/g, (match, key) => {
+        return data[key] || '';
+    });
+}
+
+function transferAttributes(source, target) {
+    if (source && target) {
+
+        target.innerHTML = source.innerHTML;
+        
+        var attributesToCopy = Array.from(source.attributes).filter(attr => attr.name !== 'id');
+        attributesToCopy.forEach(attr => {
+            target.setAttribute(attr.name, attr.value);
+        });
+    }
+}
+
+function updateSelectedGenePlaceholders(searchItem){
+
+    var gene1 = document.getElementById('gene-selected-1');
+    var gene2 = document.getElementById('gene-selected-2');
+    var gene3 = document.getElementById('gene-selected-3');
+
+    transferAttributes(gene2, gene3)
+    transferAttributes(gene1, gene2)
+    
+    function getTextContent(className){
+        const subElement = searchItem.querySelector(className);
+        return subElement.textContent;
+    }
+
+    let geneData = {
+        chrom: getTextContent(".gene-item-chrom"),
+        name: getTextContent(".gene-item-name"),
+        id: getTextContent(".gene-item-geneid"),
+        type: getTextContent(".gene-item-type")
+    };
+    
+    gene1.innerHTML = processTemplate(selectedTemplate, geneData);
+
+    gene1.classList.remove('placeholder-blank');
+    gene1.classList.add('option-button-selected');
+    gene1.classList.remove('option-button-unselected');
+
+    gene2.classList.remove('option-button-selected');
+    gene2.classList.add('option-button-unselected');
+
+    gene3.classList.remove('option-button-selected');
+    gene3.classList.add('option-button-unselected');
+
+    
+}
+
+
 function debounce(func, delay) {
     let debounceTimer;
     return function() {
@@ -12,20 +88,18 @@ function debounce(func, delay) {
 }
 
 function geneToSearchItem(gene, index){
-    let chrom = gene.chrom.split("#");
-    chrom = chrom[chrom.length - 1];
+    let chrom = gene.chrom.split("#").pop();
     let type = gene.gene_type.split("_").join(" ");
-    div = `<div class="suggestion-item" tabindex="${index}">
-            <div class="suggestion-item-line">
-                <div class="suggestion-item-chrom">${chrom}</div>
-                <div class="suggestion-item-name">${gene.name}</div>
-            </div>
-                <div class="suggestion-item-line">
-                    <div class="suggestion-item-geneid">${gene.id}</div>
-                    <div class="suggestion-item-type">${type}</div>
-                </div>
-            </div>`;
-    return(div);
+
+    let geneData = {
+        index: index,
+        chrom: chrom,
+        name: gene.name,
+        id: gene.id,
+        type: type
+    };
+
+    return processTemplate(suggestionTemplate, geneData);
 }
 
 function fetchSuggestions(input) {
@@ -33,15 +107,28 @@ function fetchSuggestions(input) {
         .then(response => response.json())
         .then(data => {
             const suggestionsElement = document.getElementById(GENE_SUGGESTIONS);
+            suggestionsElement.setAttribute('tabindex', '-1');
             suggestionsElement.innerHTML = data.map((gene, index) => geneToSearchItem(gene,index)).join('');
             suggestionsElement.classList.add('active');
         })
         .catch(error => console.error('Error:', error));
 }
 
+const searchBar = document.getElementById(GENE_SEARCH_BAR);
+searchBar.addEventListener('input', debounce(function() {
+    const input = this.value;
+    if (input.length > 0) {
+        fetchSuggestions(input);
+    } else {
+        document.getElementById(GENE_SUGGESTIONS).classList.remove('active');
+    }
+}, 250));
+
 function onSuggestionClick(event) {
     selectSuggestionItem(event.target);
 }
+
+
 
 function selectSuggestionItem(item) {
     let currentItem = item;
@@ -50,8 +137,9 @@ function selectSuggestionItem(item) {
     }
     
     if (currentItem) {
+        updateSelectedGenePlaceholders(currentItem);
         const searchBar = document.getElementById(GENE_SEARCH_BAR);
-        const itemName = currentItem.querySelector('.suggestion-item-name');
+        const itemName = currentItem.querySelector('.gene-item-name');
         console.log(itemName)
         searchBar.value = itemName.textContent;
         document.getElementById(GENE_SUGGESTIONS).classList.remove('active');
@@ -69,7 +157,16 @@ function navigateSuggestions(key) {
             SWITCH_FOCUS=false;
         } else {
             const firstItem = document.querySelector('.suggestion-item');
-            if (firstItem) firstItem.focus();
+            if (firstItem) {
+                firstItem.setAttribute('tabindex', '-1')
+                firstItem.focus();
+            }
+
+            if (document.activeElement === firstItem) {
+                console.log("firstItem is focused");
+            } else {
+                console.log("firstItem is not focused");
+            }
         }
     } else if (key === 'ArrowUp') {
         if (active.classList.contains('suggestion-item')) {
@@ -81,15 +178,16 @@ function navigateSuggestions(key) {
     }
 }
 
-const searchBar = document.getElementById(GENE_SEARCH_BAR);
-searchBar.addEventListener('input', debounce(function() {
-    const input = this.value;
-    if (input.length > 0) {
-        fetchSuggestions(input);
-    } else {
-        document.getElementById(GENE_SUGGESTIONS).classList.remove('active');
+document.addEventListener('keydown', function(event) {
+    if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
+        navigateSuggestions(event.key);
+        event.preventDefault();
     }
-}, 250));
+    if (event.key === 'Enter' && document.activeElement.classList.contains('suggestion-item')) {
+        selectSuggestionItem(document.activeElement);
+        event.preventDefault(); 
+    }
+});
 
 const suggestionsElement = document.getElementById(GENE_SUGGESTIONS);
 suggestionsElement.addEventListener('click', onSuggestionClick);
@@ -115,11 +213,6 @@ suggestionsElement.addEventListener('blur', function(event) {
     }
 }, true);
 
-const updateSuggestionItemsFocusable = () => {
-    document.querySelectorAll('.suggestion-item').forEach(item => {
-        item.setAttribute('tabindex', '-1');
-    });
-};
 
 suggestionsElement.addEventListener('keydown', function(event) {
     key = event.key;
@@ -144,16 +237,4 @@ suggestionsElement.addEventListener('wheel', function(event) {
         event.preventDefault(); // Prevent scrolling the page
     }
 });
-
-document.addEventListener('keydown', function(event) {
-    if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
-        navigateSuggestions(event.key);
-        event.preventDefault();
-    }
-    if (event.key === 'Enter' && document.activeElement.classList.contains('suggestion-item')) {
-        selectSuggestionItem(document.activeElement);
-        event.preventDefault(); 
-    }
-});
-
 

@@ -3,10 +3,37 @@
     align-items: center;
     column-gap: 10px;
 }
+
+#selected-gene-container{
+    flex:4;
+    display: flex;
+    height: 100%;
+    column-gap: 10px;
+}
+
+.gene-selected-placeholder{
+    height: 100%;
+    flex: 1;
+    border-radius: 5px;
+}
+.gene-selected-placeholder.placeholder-blank{
+    border: 1px dashed var(--font-color) !important;
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background: var(--lighter-green) !important;
+    mix-blend-mode:normal !important;
+    filter: none !important;
+    opacity: 1 !important;
+}
+.gene-selected-placeholder.placeholder-filled{
+    border: none;
+    box-shadow: none;
+}
+
+
 .suggestions-dropdown {
     display: none;
     position: absolute;
-    border: 1px solid #ccc;
+    border: 1px solid var(--font-color);
     border-top: none;
     z-index: 99;
     max-height: 20em;
@@ -14,7 +41,7 @@
     top: auto;
     left: 0;
     overflow-y: auto;
-    background-color: #fff;
+    background-color: var(--site-background);
 }
 
 .suggestions-dropdown.active {
@@ -34,12 +61,13 @@
     background-color: var(--highlight);
 }
 
-.suggestion-item-line{
+.gene-item-line{
+    pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: left;
     column-gap: 3px;
-} .suggestion-item-chrom{
+} .gene-item-chrom{
     background-color: var(--lighter-green);
     display: flex;
     align-items: center;
@@ -47,14 +75,14 @@
     border-radius: 5px;
     font-size: small;
     padding: 3px;
-} .suggestion-item-name{
+} .gene-item-name{
     font-weight: bold;
 }
 
-.suggestion-item-geneid{
+.gene-item-geneid{
     font-style: italic;
     font-size: small;
-} .suggestion-item-type{
+} .gene-item-type{
     font-size: xx-small;
     display: flex;
     align-items: center;
