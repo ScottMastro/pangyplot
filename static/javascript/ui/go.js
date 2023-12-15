@@ -10,28 +10,24 @@ document.getElementById('go-button').addEventListener('click', function() {
 function updateGoValues(chromValue = null, startValue = null, endValue = null) {
     if (chromValue !== null) {
         document.getElementById('go-chrom').textContent = chromValue;
+    } else{
+        document.getElementById('go-chrom').textContent = "⬜";
     }
     if (startValue !== null) {
         document.getElementById('go-start').textContent = startValue;
+    } else{
+        document.getElementById('go-start').textContent = "⬜";
     }
     if (endValue !== null) {
         document.getElementById('go-end').textContent = endValue;
+    } else{
+        document.getElementById('go-end').textContent = "⬜";
     }
 }
 
-function parseGenomicCoordinates() {
-    const input = document.getElementById('position-select-bar').value;
-    const pattern = /^chr[a-zA-Z0-9]+:\d+-\d+$/; // Pattern to match "chr:start-end"
-
-    if (pattern.test(input)) {
-        // If input is valid, dispatch a custom event with the input value
-        const event = new CustomEvent('genomicCoordinatesChanged', { detail: input });
-        document.dispatchEvent(event);
-    } else {
-        alert('Invalid genomic coordinates. Please use the format "chr:start-end".');
-    }
-}
-
+document.addEventListener('selectedCoordinatesChanged', function(event) {
+    updateGoValues(event.detail.chr, event.detail.start, event.detail.end);
+});
 
 function copyToClipboard(text) {
     const textarea = document.createElement('textarea');
@@ -59,7 +55,7 @@ function showCopySuccess() {
         const div = document.getElementById('go-chrom-start-end');
         div.style.backgroundColor = 'var(--highlight)';
         
-        showCopyPopup();
+        showCopyPopup('go-chrom-start-end');
 
         showGoCopyEffect = false;
         setTimeout(() => {
@@ -79,7 +75,7 @@ function showCopyPopup(elementId) {
     popup.id = 'copyPopup';
     document.body.appendChild(popup);
 
-    const area = document.getElementById('elementId');
+    const area = document.getElementById(elementId);
     const areaRect = area.getBoundingClientRect();
     popup.style.position = 'absolute';
     popup.style.left = `${areaRect.left}px`;

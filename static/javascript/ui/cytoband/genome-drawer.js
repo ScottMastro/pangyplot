@@ -22,7 +22,10 @@ function drawGenome(data, chrOrder, initialChr) {
     });
 
     addAnnotations(svg, annotations);
-    highlightGenomeChr(initialChr);
+
+    if (initialChr != null){
+        highlightGenomeChr(initialChr);
+    }
 }
 
 function calculateTotalDimensions(data, chrDimensions, border, spacing, annotation) {
@@ -58,6 +61,13 @@ function calculateXBorder(index, border, spacing) {
 }
 
 function drawGenomeChromosomeBorder(svg, x, border, chrName) {
+
+    const data = {
+        chr: chrName,
+        start: null,
+        end: null
+    };
+    
     svg.append("rect")
         .attr("x", x)
         .attr("y", 0)
@@ -67,9 +77,8 @@ function drawGenomeChromosomeBorder(svg, x, border, chrName) {
         .attr("height", border.height)
         .attr("class", "chromosome-selection-genome")
         .on('click', function() {
-            updateGoValues(chrName, null, null);
-            highlightGenomeChr(chrName);
-            fetchAndDrawChromosomeData(chrName);
+            const selectedEvent = new CustomEvent('selectedCoordinatesChanged', { detail: data });
+            document.dispatchEvent(selectedEvent);
         });
 }
 
@@ -131,7 +140,6 @@ function clearAllChrHighlightsMain(){
 
 function highlightGenomeChr(chrName) {
     clearAllChrHighlightsMain();
-    clearAllChrHighlightsOther();
 
     let rectangles = document.getElementsByClassName("chromosome-selection-genome");
     let annotations = document.getElementsByClassName("genome-annotation-chr")[0].firstElementChild.childNodes;
@@ -147,3 +155,8 @@ function highlightGenomeChr(chrName) {
     }
 }
 
+document.addEventListener('selectedCoordinatesChanged', function(event) {
+    
+    highlightGenomeChr(event.detail.chr);
+
+});

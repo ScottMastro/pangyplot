@@ -6,18 +6,26 @@ var DRAG_STARTX = null;
 var DRAG_ENDX = null;
 var CHROM_DRAG_RECT;
 var CHROM_DRAG_RECTX;
+var SELECTED_CHR = null;
 
+function drawChromosome(chrName, chromosomeData) {
+    SELECTED_CHR = chrName;
 
-function drawChromosome(chromosomeData) {
-    resetChromosomeContainer(CHR_CANVAS_CONTAINER_ID);
-    CURRENT_CHROMOSOME_SIZE = getChromosomeSize(chromosomeData);
-    const dimensions = calculateChromosomeDimensions();
-    const svg = createChromosomeSvg(CHR_CANVAS_CONTAINER_ID, dimensions, CHR_CANVAS_ID);
-    addDragSelect(svg);
-    drawChromosomeBorder(svg, dimensions);
-    drawChromosomeBands(svg, chromosomeData, dimensions);
-    const annotations = createChromosomeAnnotations(chromosomeData, dimensions);
-    addChromosomeAnnotations(svg, annotations);
+    if (chromosomeData == null){
+        SELECTED_CHR = null;
+        let element = document.getElementById(CHR_CANVAS_CONTAINER_ID);
+        element.innerHTML = '<div class="no-chromosome-data-info"><i class="fas fa-question-circle"></i> No known chromosome data.</div>';                
+    } else{
+        resetChromosomeContainer(CHR_CANVAS_CONTAINER_ID);
+        CURRENT_CHROMOSOME_SIZE = getChromosomeSize(chromosomeData);
+        const dimensions = calculateChromosomeDimensions();
+        const svg = createChromosomeSvg(CHR_CANVAS_CONTAINER_ID, dimensions, CHR_CANVAS_ID);
+        addDragSelect(svg);
+        drawChromosomeBorder(svg, dimensions);
+        drawChromosomeBands(svg, chromosomeData, dimensions);
+        const annotations = createChromosomeAnnotations(chromosomeData, dimensions);
+        addChromosomeAnnotations(svg, annotations);
+    }
 }
 
 
@@ -229,6 +237,56 @@ function updateStartEndCoordinates(start, end){
         startPos = Math.max(1, startPos);
         let endPos = Math.round(end*CURRENT_CHROMOSOME_SIZE);
 
-        updateGoValues(null, startPos, endPos);
+        const data = {
+            chr: SELECTED_CHR,
+            start: startPos,
+            end: endPos
+        };
+        
+        const selectedEvent = new CustomEvent('selectedCoordinatesChanged', { detail: data });
+        document.dispatchEvent(selectedEvent);
+
     }
 }
+
+function drawChromosomeSelectionBox(start, end){
+    if (start != null && end != null && start != end){
+        const svg = d3.select('#' + CHR_CANVAS_ID);
+        const svgElement = svg.node();
+        const svgRect = svgElement.getBoundingClientRect();
+        const dimensions = calculateChromosomeDimensions();
+        const scaleX = svgRect.width / dimensions.width;
+        let w = dimensions.widthPad
+
+        let startPos = start/CURRENT_CHROMOSOME_SIZE;
+        let endPos = end/CURRENT_CHROMOSOME_SIZE;
+        let x1 = startPos*(svgElement.clientWidth-w*2*scaleX)/scaleX + w;
+        let x2 = endPos*(svgElement.clientWidth-w*2*scaleX)/scaleX + w;
+
+        if (CHROM_DRAG_RECT != null){
+            CHROM_DRAG_RECT.remove();
+        }
+        CHROM_DRAG_RECT = svg.append('rect')
+                    .attr('x', x1)
+                    .attr('y', dimensions.heightBuffer+dimensions.annotationHeight*3/4)
+                    .attr('width', x2-x1)
+                    .attr('height', dimensions.chrHeight+dimensions.annotationHeight*1/2)
+                    .attr('fill', 'none')
+                    .attr("class", "chromosome-selection-box");       
+
+    }
+}
+
+document.addEventListener('selectedCoordinatesChanged', function(event) {
+    if (SELECTED_CHR && SELECTED_CHR == event.detail.chr){
+        drawChromosomeSelectionBox(event.detail.start, event.detail.end);
+    } else{
+
+        fetchAndDrawChromosomeData(event.detail.chr)
+        .then(() => {
+            if (SELECTED_CHR) {
+                drawChromosomeSelectionBox(event.detail.start, event.detail.end);
+            }       
+        });
+    }
+});

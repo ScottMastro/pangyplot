@@ -49,8 +49,11 @@
 
 #chromosome-container-content{
     display: flex;
-    flex-direction: column;
-} .chromosome-annotation-band{
+    justify-content: center;
+    align-items: center;
+} #chromosome-cytoband-container{
+    flex: 1;
+}.chromosome-annotation-band{
     font-size: 0.6em;
 } .chromosome-background{
     fill: var(--light-green);
@@ -62,5 +65,11 @@
     fill: var(--highlight) !important;
     fill-opacity: 0.2;
     stroke-dasharray: 5 2;
+}
+
+.no-chromosome-data-info{
+    font-size: large;
+    text-align: center;
+    color: var(--dark-green);
 }
 

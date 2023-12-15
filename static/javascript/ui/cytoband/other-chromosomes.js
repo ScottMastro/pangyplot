@@ -18,19 +18,38 @@ function populateDropdown(chromosomes) {
     });
 }
 
-function clearAllChrHighlightsOther(){
-    let label = document.getElementById("other-chr-label");
-    label.classList.remove('text-highlight');
-}
-
 document.getElementById('other-chr-selector').addEventListener('change', function(event) {
-    clearAllChrHighlightsMain();
-    clearAllChrHighlightsOther();
+    let chr = event.target.value;
 
-    var chrName = event.target.value;
-    updateGoValues(chrName, null, null);
+    const data = {
+        chr: chr,
+        start: null,
+        end: null
+    };
     
-    let label = document.getElementById("other-chr-label");
-    label.classList.add('text-highlight');
+    const selectedEvent = new CustomEvent('selectedCoordinatesChanged', { detail: data });
+    document.dispatchEvent(selectedEvent);
 });
 
+document.addEventListener('selectedCoordinatesChanged', function(event) {
+    const chrValue = event.detail.chr;
+    const selector = document.getElementById('other-chr-selector');
+    let optionExists = false;
+
+    // Check if the option exists in the dropdown
+    for (let option of selector.options) {
+        if (option.value === chrValue) {
+            optionExists = true;
+            break;
+        }
+    }
+
+    const label = document.getElementById("other-chr-label");
+
+    if (optionExists) {
+        selector.value = chrValue;
+        label.classList.add('text-highlight');
+    } else {
+        label.classList.remove('text-highlight');
+    }
+});

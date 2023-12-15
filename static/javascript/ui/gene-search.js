@@ -2,12 +2,16 @@ const GENE_SEARCH_BAR = "gene-search-bar"
 const GENE_SUGGESTIONS = "gene-suggestions"
 
 const geneTemplate = `
-<div class="gene-item-line">
-    <div class="gene-item-chrom">{{chrom}}</div>
-    <div class="gene-item-name">{{name}}</div>
+<div class="gene-item-line gene-item-line1">
+    <div class="gene-item-chrom">{{chrom}}</div>:
+    <div class="gene-item-start">{{start}}</div> -
+    <div class="gene-item-end">{{end}}</div>
 </div>
-<div class="gene-item-line">
+<div class="gene-item-line gene-item-line2">
+    <div class="gene-item-name">{{name}}</div>
     <div class="gene-item-geneid">{{id}}</div>
+</div>
+<div class="gene-item-line gene-item-line3">
     <div class="gene-item-type">{{type}}</div>
 </div>`
 
@@ -45,7 +49,9 @@ function updateSelectedGenePlaceholders(searchItem){
     var gene1 = document.getElementById('gene-selected-1');
     var gene2 = document.getElementById('gene-selected-2');
     var gene3 = document.getElementById('gene-selected-3');
+    var gene4 = document.getElementById('gene-selected-4');
 
+    transferAttributes(gene3, gene4)
     transferAttributes(gene2, gene3)
     transferAttributes(gene1, gene2)
     
@@ -56,6 +62,8 @@ function updateSelectedGenePlaceholders(searchItem){
 
     let geneData = {
         chrom: getTextContent(".gene-item-chrom"),
+        start: getTextContent(".gene-item-start"),
+        end: getTextContent(".gene-item-end"),
         name: getTextContent(".gene-item-name"),
         id: getTextContent(".gene-item-geneid"),
         type: getTextContent(".gene-item-type")
@@ -72,6 +80,9 @@ function updateSelectedGenePlaceholders(searchItem){
 
     gene3.classList.remove('option-button-selected');
     gene3.classList.add('option-button-unselected');
+    
+    gene4.classList.remove('option-button-selected');
+    gene4.classList.add('option-button-unselected');
 
     
 }
@@ -93,6 +104,8 @@ function geneToSearchItem(gene, index){
     let geneData = {
         index: index,
         chrom: chrom,
+        start: gene.start,
+        end: gene.end,
         name: gene.name,
         id: gene.id,
         type: type
