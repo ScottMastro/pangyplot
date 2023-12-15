@@ -80,5 +80,5 @@ button {
 }
 
 .error-input {
-    border-color: var(--error);
+    border-color: var(--error) !important;
 }
