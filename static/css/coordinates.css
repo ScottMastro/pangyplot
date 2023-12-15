@@ -4,11 +4,38 @@
 
 #gene-search-container{
     flex: 4;
-} #position-select-container{
-    flex: 1;
-} #go-container{
+} 
+
+#go-container{
     flex: 2;
 } 
+
+#coordinate-container{
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+}
+#go-button{
+    flex: 1;
+}
+
+#coordinate-select-container{
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+}
+
+#coordinate-text-box-container{
+    flex: 9;
+} #coordinate-text-box{
+    width: 95%;
+} 
+
+#coordinate-button{
+    flex: 1;
+    height: 100%;
+}
 
 #go-container-content{
     display: flex;
@@ -26,9 +53,6 @@
     align-items: center;
 }
 
-#go-button{
-    flex: 1;
-}
 
 .important-text{
     color: var(--font-color);

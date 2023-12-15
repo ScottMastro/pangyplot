@@ -14,14 +14,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/citation-modal.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/gene-search.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/position-go.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/coordinates.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/color-picker.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/graph.css') }}">
 
 </head>
 
 <body>
-
 
 <div id="navbar" class="container fixed-height-1">
 
@@ -37,7 +36,7 @@
 
 </div>
 
-<div id="position-div" style="display:flex;width:100%;" class="fixed-height-1">
+<div id="position-div" class="fixed-height-1">
 
     <div id="gene-search-container" class="container">
         <div class="container-title">Select by Gene</div>
@@ -54,17 +53,8 @@
                 <div id="gene-selected-1" class="gene-selected-placeholder placeholder-blank option-button option-button-unselected"></div>
                 <div id="gene-selected-2" class="gene-selected-placeholder placeholder-blank option-button option-button-unselected"></div>
                 <div id="gene-selected-3" class="gene-selected-placeholder placeholder-blank option-button option-button-unselected"></div>
+                <div id="gene-selected-4" class="gene-selected-placeholder placeholder-blank option-button option-button-unselected"></div>
             </div>
-        </div>
-    </div>
-
-    <div id="position-select-container" class="container">
-        <div class="container-title">Select by Position</div>
-
-        <div id="position-select-container-content" class="container-content">
-            <i class="fa-solid fa-location-crosshairs"></i>           
-
-            <input type="text" id="gene-search-bar" placeholder="chr:start-end">
         </div>
     </div>
 
@@ -72,12 +62,26 @@
         <div class="container-title">Go</i></div>
 
         <div id="go-container-content" class="container-content">
-            <div id="go-chrom-start-end">
-                <span id="go-chrom" class="important-text"><i class="fa-regular fa-square"></i></span>
-                <span class="less-important-text">:</span>
-                <span id="go-start" class="important-text"><i class="fa-regular fa-square"></i></span>
-                <span class="less-important-text">-</span>
-                <span id="go-end" class="important-text"><i class="fa-regular fa-square"></i></span>
+
+            <div id="coordinate-container">
+
+                <div id="coordinate-select-container">
+                    <i class="fa-solid fa-location-crosshairs"></i>           
+        
+                    <div id="coordinate-text-box-container">
+                        <input type="text" id="coordinate-text-box" placeholder="chrom:start-end">
+                    </div>
+        
+                    <button id="coordinate-button"><i class="fa-solid fa-arrow-turn-down"></i></button>
+                </div>
+
+                <div id="go-chrom-start-end">
+                    <span id="go-chrom" class="important-text">⬜</span>
+                    <span class="less-important-text">:</span>
+                    <span id="go-start" class="important-text">⬜</span>
+                    <span class="less-important-text">-</span>
+                    <span id="go-end" class="important-text">⬜</span>
+                </div>
             </div>
             <button id="go-button">Go <i class="fa-solid fa-bolt-lightning"></i></button>
         </div>
@@ -139,6 +143,7 @@
 <script src="{{url_for('static', filename='javascript/force-graph.min.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/d3.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/d3-annotation.min.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/ui/navbar.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/cytoband/other-chromosomes.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/cytoband/cytoband.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/cytoband/genome-drawer.js')}}"></script>
@@ -156,7 +161,8 @@
 <script src="{{url_for('static', filename='javascript/ui/citation-modal.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/color-picker.js')}}"></script>
 <script src="{{url_for('static', filename='javascript/ui/gene-search.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/position-go.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/ui/coordinates.js')}}"></script>
+<script src="{{url_for('static', filename='javascript/ui/go.js')}}"></script>
 
 </body>
 </html>

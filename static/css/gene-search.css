@@ -9,14 +9,15 @@
 }
 
 #selected-gene-container{
-    height: 100%;
     flex: 5;
+    height: 100%;
     display: flex;
     column-gap: 10px;
 }
 
 #gene-search-bar{
-    width: 8em;
+    min-width: 8em;
+    width: 95%;
 }
 .gene-selected-placeholder{
     flex: 1;
@@ -84,15 +85,18 @@
 
 .gene-item-geneid{
     font-style: italic;
-    font-size: small;
+    font-size: xx-small;
 } .gene-item-type{
     font-size: xx-small;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 5px;
-    padding: 3px;
 }
 
-.gene-selection-item .gene-item-line{
+.gene-item-line1{
+    font-size: small;
+}.gene-item-line2{
+    align-items: baseline !important;
+    flex-wrap: wrap-reverse;
 }

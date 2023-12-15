@@ -2,31 +2,50 @@ const DEFAULT_CHR="chr1"
 
 function fetchAndDrawGenome(initialChr) {
     let url = "/cytoband?include_order=true";
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
-            var data = JSON.parse(xmlHttp.responseText);
+
+    return fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok for genome cytoband fetch: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
             let order = data.order;
+            if (initialChr == null && data.order.length > 0){
+                initialChr = data.order[0];
+            }
             delete data.order;
+
             drawGenome(data, order, initialChr);
-        }
-    }
-    xmlHttp.open("GET", url, true);
-    xmlHttp.send();
+
+            if (initialChr != null){
+                fetchAndDrawChromosomeData(initialChr);
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+        });
 }
 
-function fetchAndDrawChromosomeData(chromosome) {
-    let url = "/cytoband?chromosome=" + chromosome;
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState === 4 && xmlHttp.status === 200) {
-            var data = JSON.parse(xmlHttp.responseText);
-            drawChromosome(data[chromosome]);
-        }
-    }
-    xmlHttp.open("GET", url, true);
-    xmlHttp.send();
+
+function fetchAndDrawChromosomeData(chrName) {
+    let url = `/cytoband?chromosome=${chrName}`;
+    
+    return fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok for chr fetch: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(data => {
+            drawChromosome(chrName, data[chrName]);
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+        });
 }
 
-fetchAndDrawGenome(DEFAULT_CHR);
-fetchAndDrawChromosomeData(DEFAULT_CHR);
+
+fetchAndDrawGenome(null);
