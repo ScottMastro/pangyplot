@@ -1,19 +1,19 @@
-function errorAnimationBadCoordinates(element) {
-    element.classList.add('shake', 'error-input');
-    element.addEventListener('animationend', function() {
-        element.classList.remove('shake');
-        element.classList.remove('error-input');
-    }, {once: true});
-}
-
 function parseGenomicCoordinates() {
     const textBox = document.getElementById('coordinate-text-box');
     let input = textBox.value.replace(/\s+/g, '');
     
     const pattern = /^(chr)?[^:]+:\d+-\d+$/;
     
+    function errorAnimationBadCoordinates() {
+        textBox.classList.add('shake', 'error-input');
+        textBox.addEventListener('animationend', function() {
+            textBox.classList.remove('shake');
+            textBox.classList.remove('error-input');
+        }, {once: true});
+    }
+
     if (!pattern.test(input)) {
-        errorAnimationBadCoordinates(textBox);
+        errorAnimationBadCoordinates();
         return;
     }
     
@@ -21,12 +21,12 @@ function parseGenomicCoordinates() {
     let [start, end] = range.split('-').map(s => parseInt(s, 10));
 
     if (end < 0 || start < 0) {
-        errorAnimationBadCoordinates(textBox);
+        errorAnimationBadCoordinates();
         return;
     }
 
     if (end < start) {
-        errorAnimationBadCoordinates(textBox);
+        errorAnimationBadCoordinates();
         return;
     }
 

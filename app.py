@@ -24,7 +24,8 @@ def create_app():
 
 @app.route('/select', methods=["GET"])
 def select():
-    chrom = request.args.get("chromosome")
+    genome = request.args.get("genome")
+    chrom = genome + "#" + request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
     print(f"Making graph for {chrom}:{start}-{end}...")
@@ -38,7 +39,8 @@ def select():
 
 @app.route('/genes', methods=["GET"])
 def genes():
-    chrom = request.args.get("chromosome")
+    genome = request.args.get("genome")
+    chrom = genome + "#" + request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
     print(f"Getting genes in {chrom}:{start}-{end}...")
@@ -55,7 +57,8 @@ def genes():
 @app.route('/subgraph', methods=["GET"])
 def subgraph():
     nodeid = request.args.get("nodeid")
-    chrom = request.args.get("chromosome")
+    genome = request.args.get("genome")
+    chrom = genome + "#" + request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
 

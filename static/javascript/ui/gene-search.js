@@ -44,6 +44,20 @@ function transferAttributes(source, target) {
     }
 }
 
+function getCoordinateData(element){
+    function getTextContent(className){
+        const subElement = element.querySelector(className);
+        if (subElement == null){ return null; }
+        return subElement.textContent;
+    }
+
+    return data = {
+        chr: getTextContent(".gene-item-chrom"),
+        start: parseInt(getTextContent(".gene-item-start"), 10),
+        end: parseInt(getTextContent(".gene-item-end"), 10)
+    };
+}
+
 function updateSelectedGenePlaceholders(searchItem){
 
     var gene1 = document.getElementById('gene-selected-1');
@@ -72,20 +86,42 @@ function updateSelectedGenePlaceholders(searchItem){
     gene1.innerHTML = processTemplate(selectedTemplate, geneData);
 
     gene1.classList.remove('placeholder-blank');
-    gene1.classList.add('option-button-selected');
-    gene1.classList.remove('option-button-unselected');
 
-    gene2.classList.remove('option-button-selected');
-    gene2.classList.add('option-button-unselected');
-
-    gene3.classList.remove('option-button-selected');
-    gene3.classList.add('option-button-unselected');
-    
-    gene4.classList.remove('option-button-selected');
-    gene4.classList.add('option-button-unselected');
-
-    
+    const data = getCoordinateData(gene1);
+    const selectedEvent = new CustomEvent('selectedCoordinatesChanged', { detail: data });
+    document.dispatchEvent(selectedEvent);
 }
+
+
+
+function selectedGeneClicked() {
+    const data = getCoordinateData(this);
+    const selectedEvent = new CustomEvent('selectedCoordinatesChanged', { detail: data });
+    document.dispatchEvent(selectedEvent);
+}
+
+for (let geneSelectedId = 1; geneSelectedId <= 4; geneSelectedId++) {
+    document.getElementById('gene-selected-' + geneSelectedId).addEventListener('click', selectedGeneClicked);
+}
+document.addEventListener('selectedCoordinatesChanged', function(event) {
+    let flag = false;
+    for (let i = 1; i <= 4; i++) {
+        let element = document.getElementById('gene-selected-' + i);
+        element.classList.remove('option-button-selected');
+        element.classList.add('option-button-unselected');
+
+        let data = getCoordinateData(element);
+    
+        if( !flag && data.chr == event.detail.chr &&
+            data.start == event.detail.start &&
+            data.end == event.detail.end){
+                flag = true;
+                element.classList.add('option-button-selected');
+                element.classList.remove('option-button-unselected');
+            }
+    }
+
+});
 
 function debounce(func, delay) {
     let debounceTimer;

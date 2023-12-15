@@ -70,23 +70,3 @@ function process_gene_data(data){
 
 }
 
-function fetch_genes(chromosome, start, end) {
-
-    let url = `/genes?chromosome=${chromosome}&start=${start}&end=${end}`;
-
-    fetch(url)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log("genes", data);
-        process_gene_data(data);
-    })
-    .catch(error => {
-        console.error('There was a problem fetching genes:', error);
-    });
-    
-}

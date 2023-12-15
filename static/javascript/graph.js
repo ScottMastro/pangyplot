@@ -38,7 +38,6 @@ function get_graph_height(){return window.innerHeight*0.8}
 function get_graph_width(){return window.innerWidth*0.8}
 
 
-
 function force(alpha) {
     for (let i = 0, n = nodes.length, node, k = alpha * 0.1; i < n; ++i) {
       node = nodes[i];
@@ -392,92 +391,6 @@ function shift_coord(graph) {
     return graph
 }
 
-function fetch_graph(chromosome, start, end) {
-
-    let url = `/select?chromosome=${chromosome}&start=${start}&end=${end}`;
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("graph", data);
-            // TODO
-            // update_path_selector(data.paths)
-    
-            graph = process_graph_data(data);
-            graph = update_genes(graph);
-
-            // graph = collapse_nodes(graph);
-            draw_graph(graph);
-        })
-        .catch(error => {
-            console.error('There was a problem fetching the graph data:', error);
-        });
-    
-}
-
-
-function fetch_haps(chromosome, start, end) {
-
-    let url = `/haplotypes?chromosome=${chromosome}&start=${start}&end=${end}`;
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log(data);
-        })
-        .catch(error => {
-            console.error('There was a problem fetching haplotypes:', error);
-        });
-    
-}
-
-function fetch_subgraph(originNode){
-    //showLoader()
-    GETTING_SUBGRAPH.add(originNode.nodeid)
-
-    let chromosome = "CHM13"+encodeURIComponent('#')+"chr18";
-    let start = "47506000";
-    let end = "47600000";
-
-    let url = `/subgraph?nodeid=${originNode.nodeid}&chromosome=${chromosome}&start=${start}&end=${end}`;
-
-    fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(subgraph => {
-            graph = FORCE_GRAPH.graphData();
-            graph = process_subgraph(subgraph, originNode, graph);
-            updateGraphData(graph);
-            graph = update_genes(graph);
-
-            GETTING_SUBGRAPH.delete(originNode.nodeid);
-            if (GETTING_SUBGRAPH.size === 0) {
-                hideLoader();
-            }
-            HIGHLIGHT_NODE = null;
-        })
-        .catch(error => {
-            GETTING_SUBGRAPH.delete(originNode.nodeid);
-            console.error('There was a problem fetching the subgraph:', error);
-        });
-    
-
-}
-
 function explode_node(node, update=true) {
     if (node["type"] == "segment"){ return }
     if (node["type"] == "null"){ return }
@@ -522,11 +435,3 @@ function hideLoader() {
     document.querySelector('.loader-filter').style.display = 'none';
 }
 hideLoader()
-fetch_genes("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
-fetch_graph("CHM13"+encodeURIComponent('#')+"chr18", 47506000, 47600000);
-
-//fetch_graph("chr7", 144084904, 144140209); //PRSS region
-
-//fetch_graph("chr7", 0, 1440859040);
-
-//fetch_graph("chrM", 0, 142775343);

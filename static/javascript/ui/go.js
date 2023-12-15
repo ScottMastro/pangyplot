@@ -1,27 +1,50 @@
-document.getElementById('go-button').addEventListener('click', function() {
-    let chrom = document.getElementById('go-chrom').textContent = chromValue;
-    let start = document.getElementById('go-start').textContent = startValue;
-    let end = document.getElementById('go-end').textContent = endValue;
+const EMPTY="⬜"
 
-    //todo
-    console.log('Button was clicked!');
+document.getElementById('go-button').addEventListener('click', function() {
+    const goBox = document.getElementById('go-chrom-start-end');
+    let chrom = document.getElementById('go-chrom').textContent;
+    let start = document.getElementById('go-start').textContent;
+    let end = document.getElementById('go-end').textContent;
+    
+    function errorAnimationBadCoordinates() {
+    }
+    if (chrom == null || chrom == EMPTY || 
+        start == null || start == EMPTY ||
+        end == null || end == EMPTY){
+
+        goBox.classList.add('shake', 'error-input');
+        goBox.addEventListener('animationend', function() {
+            goBox.classList.remove('shake');
+            goBox.classList.remove('error-input');
+        }, {once: true});
+
+    } else{
+
+        const data = {
+            chr: chrom,
+            start: start,
+            end: end
+        };
+        const selectedEvent = new CustomEvent('constructGraph', { detail: data });
+        document.dispatchEvent(selectedEvent);
+    }
 });
 
 function updateGoValues(chromValue = null, startValue = null, endValue = null) {
     if (chromValue !== null) {
         document.getElementById('go-chrom').textContent = chromValue;
     } else{
-        document.getElementById('go-chrom').textContent = "⬜";
+        document.getElementById('go-chrom').textContent = EMPTY;
     }
     if (startValue !== null) {
         document.getElementById('go-start').textContent = startValue;
     } else{
-        document.getElementById('go-start').textContent = "⬜";
+        document.getElementById('go-start').textContent = EMPTY;
     }
     if (endValue !== null) {
         document.getElementById('go-end').textContent = endValue;
     } else{
-        document.getElementById('go-end').textContent = "⬜";
+        document.getElementById('go-end').textContent = EMPTY;
     }
 }
 
