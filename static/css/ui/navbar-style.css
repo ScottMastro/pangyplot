@@ -1,0 +1,14 @@
+#navbar-logo {
+    padding: 10px;
+    border-radius: 5px;
+    background-color: var(--font-color);
+}
+.navbar-button {
+    padding: 15px;
+    font-size: large;
+    white-space: nowrap
+} 
+
+.navbar-button i{
+    font-size: xx-large;
+}

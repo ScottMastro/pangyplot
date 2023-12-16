@@ -1,0 +1,72 @@
+.cytoband-band{
+    pointer-events: none;
+} 
+
+.cytoband-genome-highlighted{
+    fill: var(--highlight) !important;
+    fill-opacity: 1;
+} 
+
+.cytoband-genome-chromosome{
+    fill: var(--light-green);
+    cursor: pointer;
+} .cytoband-genome-chromosome:hover{
+    fill: var(--highlight);
+} 
+
+.cytoband-genome-text {
+    fill: var(--font-color);
+}
+
+#cytoband-genome-other-selector{
+    width: 15em;
+}
+
+.cytoband-chromosome-annotation{
+    font-size: x-small;
+} .cytoband-chromosome-text{
+    fill: var(--font-color);
+    user-select:none;
+}
+
+.cytoband-chromosome-background{
+    fill: var(--light-green);
+} 
+
+.cytoband-chromosome-selection-box{
+    stroke: var(--font-color);
+    fill: var(--highlight) !important;
+    fill-opacity: 0.2;
+    stroke-dasharray: 5 2;
+}
+
+#cytoband-chromosome-no-info{
+    font-size: large;
+    text-align: center;
+    color: var(--dark-green);
+}
+
+.cytoband-gneg {
+    fill: #F6FFF9; /* #FFFFFF */
+}
+.cytoband-gpos25 {
+    fill: #8AD4AB; /* #CCCCCC */
+}
+.cytoband-gpos50 {
+    fill: #539971; /* #7F7F7F */
+}
+.cytoband-gpos75 {
+    fill: #2A7D4F; /* #333333 */
+}
+.cytoband-gpos100 {
+    fill: #09341B; /* #000000 */
+}
+.cytoband-acen {
+    fill: #DEA938; /*  #CC0000 */
+}
+.cytoband-gvar {
+    fill: #FFE268; /* #0DCC00 */
+}
+.cytoband-stalk {
+    fill: #E7CA56; /* #00CC83 */
+}

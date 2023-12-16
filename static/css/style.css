@@ -1,18 +1,82 @@
+:root {
+    --site-background: #eee;
+    --highlight: #FFE268;
+    --error: #6c261d;
+    --darker-green: #384034;
+    --dark-green: #5D6C53;
+    --light-green: #93AC9D;
+    --lighter-green: #BCCCC2;
+    --font-color: #384034;
+    --detail-box: rgba(225, 225, 225, 0.8);
+
+    --title-height: 20px;
+    --fixed-height-1: 120px;
+    --fixed-height-2: 300px;
+}
+
 body {
     background-color: var(--site-background);
 }
 
 .fixed-height-1{
     height: var(--fixed-height-1);
-}
-.fixed-height-2{
+} .fixed-height-2{
     height: var(--fixed-height-2);
+} .navbar-height{
+    height: 120px;
+} .cytoband-height{
+    height: 275px;
 }
+
+
+#gene-search-container{
+    flex: 4;
+} #coordinate-container{
+    flex: 2;
+}
+
+.flex-row{
+    display: flex;
+    column-gap: 10px;
+    justify-content: center;
+    align-content: stretch
+}
+.flex-row-left{
+    display: flex;
+    column-gap: 10px;
+    justify-content: left;
+    align-content: stretch
+}
+.flex-row-right{
+    display: flex;
+    column-gap: 10px;
+    justify-content: flex-end;
+    align-content: stretch
+}
+
+
+.flex-col{
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+    justify-content: center;
+    align-content: stretch
+}
+
+.flex-1{ flex: 0; }
+.flex-1{ flex: 1; }
+.flex-2{ flex: 2; }
+.flex-3{ flex: 3; }
+.flex-4{ flex: 4; }
+.flex-5{ flex: 5; }
+.flex-6{ flex: 6; }
+.flex-7{ flex: 7; }
+.flex-8{ flex: 8; }
+.flex-9{ flex: 9; }
 
 .container {
     background-color: var(--lighter-green);
     border-radius: 5px;
-    margin: 5px;
     -ms-overflow-style: none; /* for Internet Explorer, Edge */
     scrollbar-width: none; /* for Firefox */
     overflow-y: scroll; 
@@ -30,16 +94,22 @@ body {
     text-align: center;
     color: var(--font-color);
     background: var(--light-green);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .container-content {
-    display: flex;
-    column-gap: 10px;
     margin: 10px;
     height: calc(100% - var(--title-height) - 20px);
 }
 
-button {
+.container-content-no-title {
+    margin: 10px;
+    height: calc(100% - 20px);
+}
+
+.button-style {
     background-color: var(--light-green);
     border: none;
     color: var(--font-color);
@@ -48,14 +118,27 @@ button {
     border-radius: 5px;
     transition: all 0.2s ease;
     font-size: large;
-} button:hover {
+    text-decoration: none;
+} .button-style:hover {
     background-color: var(--highlight);
-} button:active {
+} .button-style:active {
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
     transform: scale(0.95);
     background-color: var(--darker-green);
     color: var(--light-green);
 }
+
+hr {
+    border: none;
+    height: 2px;
+    background-color: var(--dark-green);
+    opacity: 0.5;
+}
+
+.highlighted{
+    background-color: var(--highlight);
+}
+
 
 #copyPopup {
     position: absolute;
