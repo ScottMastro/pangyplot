@@ -73,6 +73,8 @@ def subgraph():
 
 @app.route('/chromosomes', methods=["GET"])
 def chromosomes():
+    genome = request.args.get("genome")
+
     canonical = [f"chr{n}" for n in range(1, 23)] + ["chrX", "chrY"]
     noncanonicalOnly = request.args.get('noncanonical', 'false').lower() == 'true'
     
@@ -80,11 +82,11 @@ def chromosomes():
     if noncanonicalOnly:
         chromosomes = [chrom for chrom in chromosomes if chrom.split("#")[-1] not in canonical]
     
-    # TODO: remove
-    chromosomes.append("chrM")
-    chromosomes.append("altcontig1")
-    chromosomes.append("altcontig2")
-
+    # TODO: make real
+    with open("./static/annotations/noncanonical.txt") as file:
+        for line in file.readlines():
+            chromosomes.append(line)
+    
     return chromosomes, 200
 
 

@@ -5,38 +5,33 @@
     <meta charset="UTF-8">
     <title>PangyPlot</title>
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.svg') }}">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cytoband.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">   
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/option-button.css') }}">   
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">   
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/citation-modal.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/gene-search.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/coordinates.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/color-picker.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/graph.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/navbar-style.css') }}">   
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/modal-style.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cytoband/cytoband-style.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/option-button.css') }}">   
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/gene-search.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/coordinates.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/color-picker.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/graph.css') }}">
 
 </head>
 
-<body>
+<body class="flex-col">
 
-<div id="navbar" class="container fixed-height-1">
+{% include 'navbar-template.html' %}
 
-    {% include 'navbar.html' %}
-    {% include 'citation-modal.html' %}
-
-</div>
+{% include 'cytoband-template.html' %}
 
 
-<div id="cytoband-div" class="fixed-height-2-5">
-
-    {% include 'cytoband.html' %}
-
-</div>
-
-<div id="position-div" class="fixed-height-1">
+<div class="flex-row fixed-height-1">
 
     <div id="gene-search-container" class="container">
         <div class="container-title">Select by Gene</div>
@@ -58,32 +53,37 @@
         </div>
     </div>
 
-    <div id="go-container" class="container">
-        <div class="container-title">Go</i></div>
+    <div id="coordinate-container" class="container">
+        <div class="container-title">Choose Coordinates and Go </i></div>
 
-        <div id="go-container-content" class="container-content">
+        <div id="coordinate-container-content" class="container-content flex-row">
 
-            <div id="coordinate-container">
+            <div class="flex-col flex-4">
+                <div class="flex-row flex-1">
 
-                <div id="coordinate-select-container">
-                    <i class="fa-solid fa-location-crosshairs"></i>           
-        
-                    <div id="coordinate-text-box-container">
-                        <input type="text" id="coordinate-text-box" placeholder="chrom:start-end">
+                    <div class="flex-col flex-0">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                    </div>           
+
+                    <div id="go-chrom-start-end" class="flex-3">
+                        <span id="go-chrom" class="important-text">⬜</span>
+                        <span class="less-important-text">:</span>
+                        <span id="go-start" class="important-text">⬜</span>
+                        <span class="less-important-text">-</span>
+                        <span id="go-end" class="important-text">⬜</span>
                     </div>
-        
-                    <button id="coordinate-button"><i class="fa-solid fa-arrow-turn-down"></i></button>
+                    <button id="coordinate-copy-button" class="flex-1"><i class="fa-solid fa-copy"></i></button>
+                    
                 </div>
 
-                <div id="go-chrom-start-end">
-                    <span id="go-chrom" class="important-text">⬜</span>
-                    <span class="less-important-text">:</span>
-                    <span id="go-start" class="important-text">⬜</span>
-                    <span class="less-important-text">-</span>
-                    <span id="go-end" class="important-text">⬜</span>
+                <div class="flex-row flex-1">
+                    <i class="fa-solid fa-plus-minus"></i>
+
                 </div>
             </div>
-            <button id="go-button">Go <i class="fa-solid fa-bolt-lightning"></i></button>
+
+            <button id="go-button">Go <i class="fa-solid fa-bolt-lightning flex-1"></i></button>
+
         </div>
     </div>
 
@@ -140,30 +140,33 @@
     });
 </script>
 
-<script src="{{url_for('static', filename='javascript/force-graph.min.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/d3.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/d3-annotation.min.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/navbar.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/cytoband/other-chromosomes.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/cytoband/cytoband.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/cytoband/genome-drawer.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/cytoband/chromosome-drawer.js')}}"></script>
+<script src="{{url_for('static', filename='js/d3/d3.js')}}"></script>
+<script src="{{url_for('static', filename='js/d3/d3-annotation.min.js')}}"></script>
+<script src="{{url_for('static', filename='js/d3/force-graph.min.js')}}"></script>
 
-<script src="{{url_for('static', filename='javascript/graph-construct.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/graph-collapse.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/graph-annotations.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/graph.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/graph-fetch.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/navbar.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/modal.js')}}"></script>
 
-<script src="{{url_for('static', filename='javascript/draw-helper.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/graph-select.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/path-manager.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/option-button.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/citation-modal.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/color-picker.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/gene-search.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/coordinates.js')}}"></script>
-<script src="{{url_for('static', filename='javascript/ui/go.js')}}"></script>
+<script src="{{url_for('static', filename='js/cytoband/other-chromosomes.js')}}"></script>
+<script src="{{url_for('static', filename='js/cytoband/cytoband.js')}}"></script>
+<script src="{{url_for('static', filename='js/cytoband/cytoband-genome.js')}}"></script>
+<script src="{{url_for('static', filename='js/cytoband/cytoband-genome-drawer.js')}}"></script>
+<script src="{{url_for('static', filename='js/cytoband/cytoband-chromosome.js')}}"></script>
+<script src="{{url_for('static', filename='js/cytoband/cytoband-chromosome-drawer.js')}}"></script>
+
+<script src="{{url_for('static', filename='js/graph/graph-construct.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/graph-collapse.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/graph-annotations.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/graph.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/graph-fetch.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/draw-helper.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/graph-select.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/path-manager.js')}}"></script>
+
+<script src="{{url_for('static', filename='js/ui/option-button.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/color-picker.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/gene-search.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/coordinates.js')}}"></script>
 
 </body>
 </html>

@@ -1,0 +1,64 @@
+{% macro reference(title, github_link, description, image_src, paper_author, paper_title, journal, journal_info, doi) %}
+    <h2>
+        {{ title }}
+        <a href="{{ github_link }}" target="_blank"><i class="fa-brands fa-github"></i></a>
+    </h2>
+    <p>{{ description }}</p>
+    <div class="flex-row-left">
+        <div class="flex-col">
+            <img alt="{{ title }} logo" style="width:90px" src="{{ url_for('static', filename=image_src) }}">
+        </div>
+        <p>
+            {{ paper_author }}. <b>{{ paper_title }}</b>. <i>{{ journal }}</i>. {{ journal_info }}.
+            doi: <a href="https://doi.org/{{ doi }}" target="_blank">{{ doi }}</a>.
+        </p>
+    </div>
+    <br><hr>
+{% endmacro %}
+
+<div id="citation-modal" class="modal">
+    <div class="modal-content">
+        <span id="citation-modal-close-button" class="modal-close">&times;</span>
+               
+            {{ reference(
+                'PangyPlot',
+                'https://github.com/ScottMastro/pangyplot',
+                'Pangenome graph visualization software.',
+                'images/pangyplot_logo.svg',
+                'Mastromatteo, Scott',
+                'PangyPlot: a paper title',
+                'Journal',
+                '2024 XXX;Y(ZZZ):N-M',
+                'DOI',
+            ) }}
+                
+        <details>
+            <summary>Supporting work</summary>
+
+            {{ reference(
+                'Human Pangenome Reference Consortium',
+                'https://github.com/human-pangenomics/hpp_pangenome_resources',
+                'Pangenome reference data source.',
+                'images/hprc_logo.png',
+                'Human Pangenome Reference Consortium',
+                'A draft human pangenome reference',
+                'Nature',
+                '2023 May;617(7960):312-324',
+                '10.1038/s41586-023-05896-x',
+            ) }}
+
+            {{ reference(
+                'BubbleGun',
+                'https://github.com/fawaz-dabbaghieh/bubble_gun',
+                'Used for calculating graph hierarchical structure.',
+                'images/bubble_gun_logo.png',
+                'Dabbaghie F, Ebler J, Marschall T',
+                'BubbleGun: enumerating bubbles and superbubbles in genome graphs',
+                'Bioinformatics',
+                '2022 Sep 2;38(17):4217-4219',
+                '10.1093/bioinformatics/btac448',
+            ) }}
+
+        </details>
+    </div>
+</div>

@@ -51,10 +51,11 @@ function getCoordinateData(element){
         return subElement.textContent;
     }
 
-    return data = {
-        chr: getTextContent(".gene-item-chrom"),
+    return {
+        chrom: getTextContent(".gene-item-chrom"),
         start: parseInt(getTextContent(".gene-item-start"), 10),
-        end: parseInt(getTextContent(".gene-item-end"), 10)
+        end: parseInt(getTextContent(".gene-item-end"), 10),
+        source: "gene-search"
     };
 }
 
@@ -88,16 +89,12 @@ function updateSelectedGenePlaceholders(searchItem){
     gene1.classList.remove('placeholder-blank');
 
     const data = getCoordinateData(gene1);
-    const selectedEvent = new CustomEvent('selectedCoordinatesChanged', { detail: data });
-    document.dispatchEvent(selectedEvent);
+    document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
 }
-
-
 
 function selectedGeneClicked() {
     const data = getCoordinateData(this);
-    const selectedEvent = new CustomEvent('selectedCoordinatesChanged', { detail: data });
-    document.dispatchEvent(selectedEvent);
+    document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
 }
 
 for (let geneSelectedId = 1; geneSelectedId <= 4; geneSelectedId++) {
@@ -112,7 +109,7 @@ document.addEventListener('selectedCoordinatesChanged', function(event) {
 
         let data = getCoordinateData(element);
     
-        if( !flag && data.chr == event.detail.chr &&
+        if( !flag && data.chr == event.detail.chrom &&
             data.start == event.detail.start &&
             data.end == event.detail.end){
                 flag = true;

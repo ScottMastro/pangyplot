@@ -1,6 +1,4 @@
-const DEFAULT_CHR="chr1"
-
-function fetchAndDrawGenome(initialChr) {
+function fetchAndDrawGenome(initialChrom) {
     let url = "/cytoband?include_order=true";
 
     return fetch(url)
@@ -11,16 +9,16 @@ function fetchAndDrawGenome(initialChr) {
             return response.json();
         })
         .then(data => {
-            let order = data.order;
-            if (initialChr == null && data.order.length > 0){
-                initialChr = data.order[0];
+            const chromOrder = data.order;
+            if (initialChrom == null && data.order.length > 0){
+                initialChrom = data.order[0];
             }
             delete data.order;
 
-            drawGenome(data, order, initialChr);
+            updateGenomeCytoband(data, chromOrder, initialChrom);
 
-            if (initialChr != null){
-                fetchAndDrawChromosomeData(initialChr);
+            if (initialChrom != null){
+                fetchAndDrawChromosomeData(initialChrom);
             }
         })
         .catch(error => {
@@ -28,9 +26,15 @@ function fetchAndDrawGenome(initialChr) {
         });
 }
 
+let CACHED_CHROMOSOME_DATA={}
 
-function fetchAndDrawChromosomeData(chrName) {
-    let url = `/cytoband?chromosome=${chrName}`;
+function fetchAndDrawChromosomeData(chromName, chromStart, chromEnd) {
+    if (chromName in CACHED_CHROMOSOME_DATA){
+        updateChromosomeCytoband(CACHED_CHROMOSOME_DATA[chromName], chromName, chromStart, chromEnd);
+        return;
+    }
+
+    let url = `/cytoband?chromosome=${chromName}`;
     
     return fetch(url)
         .then(response => {
@@ -40,7 +44,8 @@ function fetchAndDrawChromosomeData(chrName) {
             return response.json();
         })
         .then(data => {
-            drawChromosome(chrName, data[chrName]);
+            CACHED_CHROMOSOME_DATA[chromName] = data[chromName];
+            updateChromosomeCytoband(data[chromName], chromName, chromStart, chromEnd);
         })
         .catch(error => {
             console.error('Fetch error:', error);

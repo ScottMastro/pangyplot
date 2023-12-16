@@ -99,18 +99,22 @@ function fetch_subgraph(originNode){
 }
 
 
-function construct_graph_from_coordinates(chrom,start,end){
+function construct_graph_from_coordinates(genome, chrom, start, end){
+
+    if (genome == GRAPH_GENOME && chrom == GRAPH_CHROM && start == GRAPH_START_POS && end == GRAPH_END_POS){
+        return;
+    }
 
     //todo: accomodate other genomes
-    GRAPH_GENOME = "CHM13"
+    GRAPH_GENOME = genome;
     GRAPH_CHROM = chrom;
     GRAPH_START_POS = start;
     GRAPH_END_POS = end;
 
-    console.log("CONSTRUCTING:", GRAPH_GENOME,chrom,start,end);
+    console.log("CONSTRUCTING:", genome,chrom,start,end);
     
-    let genePromise = fetch_genes(GRAPH_GENOME, chrom, start, end);
-    let graphPromise = fetch_graph(GRAPH_GENOME, chrom, start, end);
+    let genePromise = fetch_genes(genome, chrom, start, end);
+    let graphPromise = fetch_graph(genome, chrom, start, end);
 
 
     genePromise.then(() => {
@@ -124,7 +128,8 @@ function construct_graph_from_coordinates(chrom,start,end){
 }
 
 document.addEventListener('constructGraph', function(event) {
-    construct_graph_from_coordinates(event.detail.chr, event.detail.start, event.detail.end);
+    //todo: accomodate other genomes
+    construct_graph_from_coordinates("CHM13", event.detail.chrom, event.detail.start, event.detail.end);
 });
 
 //construct_graph_from_coordinates("chr18", 47506000, 47600000);
