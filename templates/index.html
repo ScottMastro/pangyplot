@@ -12,12 +12,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/navbar-style.css') }}">   
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/modal-style.css') }}">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/cytoband/cytoband-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/gene-search-style.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/coordinates-style.css') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/option-button.css') }}">   
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/gene-search.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/coordinates.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/color-picker.css') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/graph.css') }}">
@@ -33,56 +33,43 @@
 
 <div class="flex-row fixed-height-1">
 
-    <div id="gene-search-container" class="container">
-        <div class="container-title">Select by Gene</div>
+    {% include 'gene-search-template.html' %}
 
-        <div id="gene-search-container-content" class="container-content">
-            <i class="fa fa-search"></i>
+    <div id="coordinate-go" class="container flex-2">
+        <div class="container-title">Finalize Coordinates</i></div>
 
-            <div id="gene-search-bar-container">
-                <input type="text" id="gene-search-bar" placeholder="Search genes...">
-                <div id="gene-suggestions" class="suggestions-dropdown"></div>
-            </div>
-
-            <div id="selected-gene-container">
-                <div id="gene-selected-1" class="gene-selected-placeholder placeholder-blank option-button option-button-unselected"></div>
-                <div id="gene-selected-2" class="gene-selected-placeholder placeholder-blank option-button option-button-unselected"></div>
-                <div id="gene-selected-3" class="gene-selected-placeholder placeholder-blank option-button option-button-unselected"></div>
-                <div id="gene-selected-4" class="gene-selected-placeholder placeholder-blank option-button option-button-unselected"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="coordinate-container" class="container">
-        <div class="container-title">Choose Coordinates and Go </i></div>
-
-        <div id="coordinate-container-content" class="container-content flex-row">
+        <div class="container-content flex-row">
 
             <div class="flex-col flex-4">
                 <div class="flex-row flex-1">
 
-                    <div class="flex-col flex-0">
-                        <i class="fa-solid fa-location-crosshairs"></i>
-                    </div>           
+                    <i class="fa-solid fa-location-crosshairs fa-min-width"></i>
 
-                    <div id="go-chrom-start-end" class="flex-3">
+                    <div id="go-chrom-start-end" class="border-emphasis flex-row flex-4">
                         <span id="go-chrom" class="important-text">⬜</span>
                         <span class="less-important-text">:</span>
                         <span id="go-start" class="important-text">⬜</span>
                         <span class="less-important-text">-</span>
                         <span id="go-end" class="important-text">⬜</span>
                     </div>
-                    <button id="coordinate-copy-button" class="flex-1"><i class="fa-solid fa-copy"></i></button>
+                    <button id="coordinate-copy-button" class="button-style flex-1"><i class="fa-solid fa-copy"></i></button>
                     
                 </div>
 
                 <div class="flex-row flex-1">
-                    <i class="fa-solid fa-plus-minus"></i>
 
+                    <i class="fa-solid fa-plus-minus fa-min-width"></i>
+                    <div id="go-flanking" class="border-emphasis important-text flex-row flex-4">
+                        flanking region
+                    </div>
+                    <div class="flex-row flex-1">
+                        <button id="go-flanking-plus-button" class="button-style flex-1" ><i class="fa-solid fa-plus"></i></button>
+                        <button id="go-flanking-minus-button" class="button-style flex-1"><i class="fa-solid fa-minus"></i></button>
+                    </div>
                 </div>
             </div>
 
-            <button id="go-button">Go <i class="fa-solid fa-bolt-lightning flex-1"></i></button>
+            <button id="go-button" class="button-style">Go <i class="fa-solid fa-bolt-lightning flex-1"></i></button>
 
         </div>
     </div>

@@ -1,40 +1,21 @@
-#gene-search-container-content{
-    display: flex;
-    align-items: center;
-    column-gap: 10px;
-}
 #gene-search-bar-container{
-    flex:1;
-    display: block;
-}
-
-#selected-gene-container{
-    flex: 5;
-    height: 100%;
-    display: flex;
-    column-gap: 10px;
-}
-
-#gene-search-bar{
+    align-self: center
+} #gene-search-bar{
     min-width: 8em;
     width: 95%;
 }
-.gene-selected-placeholder{
-    flex: 1;
-    min-height: 50px;
-    border-radius: 5px;
+.gene-search-result{
     display: flex;
     justify-content: center;
     align-items: center;
-
 }
-.gene-selected-placeholder.placeholder-blank{
+.gene-search-result.placeholder-blank{
     border: 1px dashed var(--font-color) !important;
     box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important;
     pointer-events: none !important;
 }
 
-.suggestions-dropdown {
+#gene-search-suggestions {
     display: none;
     position: absolute;
     border: 1px solid var(--font-color);
@@ -46,32 +27,30 @@
     left: 0;
     overflow-y: auto;
     background-color: var(--site-background);
-}
-
-.suggestions-dropdown.active {
+} #gene-search-suggestions.active {
     display: block;
 }
 
-.suggestion-item {
+.gene-search-suggestion-item {
     color: var(--font-color);
     padding: 5px;
     outline: none;
     border-bottom: 2px dotted var(--lighter-green);
 }
 
-.suggestion-item:hover,
-.suggestion-item:focus {
+.gene-search-suggestion-item:hover,
+.gene-search-suggestion-item:focus {
     cursor: pointer;
     background-color: var(--highlight);
 }
 
-.gene-item-line{
+.gene-search-item-line{
     pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: left;
     column-gap: 3px;
-} .gene-item-chrom{
+} .gene-search-item-chrom{
     background-color: var(--lighter-green);
     display: flex;
     align-items: center;
@@ -79,14 +58,14 @@
     border-radius: 5px;
     font-size: small;
     padding: 3px;
-} .gene-item-name{
+} .gene-search-item-name{
     font-weight: bold;
 }
 
-.gene-item-geneid{
+.gene-search-item-geneid{
     font-style: italic;
     font-size: xx-small;
-} .gene-item-type{
+} .gene-search-item-type{
     font-size: xx-small;
     display: flex;
     align-items: center;
@@ -94,9 +73,9 @@
     border-radius: 5px;
 }
 
-.gene-item-line1{
+.gene-search-item-line1{
     font-size: small;
-}.gene-item-line2{
+}.gene-search-item-line2{
     align-items: baseline !important;
     flex-wrap: wrap-reverse;
 }
