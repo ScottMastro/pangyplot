@@ -24,8 +24,6 @@ body {
     height: var(--fixed-height-2);
 } .navbar-height{
     height: 120px;
-} .cytoband-height{
-    height: 275px;
 }
 
 
@@ -119,6 +117,7 @@ body {
     transition: all 0.2s ease;
     font-size: large;
     text-decoration: none;
+    padding: 0px;
 } .button-style:hover {
     background-color: var(--highlight);
 } .button-style:active {
@@ -139,6 +138,19 @@ hr {
     background-color: var(--highlight);
 }
 
+.border-emphasis{
+    border-radius: 5px;
+    border-style: solid;
+    border-color: var(--dark-green);
+    padding: 5px;
+}
+
+.important-text{
+    color: var(--font-color);
+    text-shadow:  2px 2px rgba(0, 0, 0, 0.1);
+} .less-important-text{
+    color: var(--font-color);
+}
 
 #copyPopup {
     position: absolute;

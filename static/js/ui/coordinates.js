@@ -98,8 +98,8 @@ function updateGenomicCoordinates(rawText) {
   document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
 }
 
-function transformToTextbox() {
-  const container = document.getElementById("go-chrom-start-end");
+function transformToTextbox(elementId) {
+  const container = document.getElementById(elementId);
 
   let input = container.querySelector("input");
   if (!input) {
@@ -122,7 +122,7 @@ function transformToTextbox() {
     input.select();
 
     function revertToText() {
-      const container = document.getElementById("go-chrom-start-end");
+      const container = document.getElementById(elementId);
       const userInput = input.value;
       container.innerHTML = currentInside;
       console.log;
@@ -140,8 +140,11 @@ function transformToTextbox() {
   }
 }
 
-document.getElementById("go-chrom-start-end").addEventListener("click", transformToTextbox);
-
+document.getElementById("go-chrom-start-end").addEventListener("click", function () {
+  transformToTextbox("go-chrom-start-end")});
+document.getElementById("go-flanking").addEventListener("click", function () {
+  transformToTextbox("go-flanking")});
+  
 function copyToClipboard(text) {
   const textarea = document.createElement("textarea");
   textarea.value = text;
