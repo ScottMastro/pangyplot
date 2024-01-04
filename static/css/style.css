@@ -52,7 +52,6 @@ body {
     align-content: stretch
 }
 
-
 .flex-col{
     display: flex;
     flex-direction: column;
