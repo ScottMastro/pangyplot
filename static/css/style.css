@@ -125,6 +125,10 @@ body {
     transform: scale(0.95);
     background-color: var(--darker-green);
     color: var(--light-green);
+} .button-selected{
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    background-color: var(--highlight);
+
 }
 
 hr {
