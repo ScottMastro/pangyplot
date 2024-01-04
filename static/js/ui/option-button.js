@@ -19,6 +19,6 @@ function setupButtonSelectionLogic(containerId) {
   });
 }
 
-setupButtonSelectionLogic('color-style-container-content');
-setupButtonSelectionLogic('color-preset-container-content');
+setupButtonSelectionLogic('color-style');
+setupButtonSelectionLogic('color-preset');
 setupButtonSelectionLogic('gene-search-result-container');

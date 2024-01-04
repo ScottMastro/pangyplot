@@ -1,4 +1,5 @@
 const EMPTY = "⬜";
+const EMPTY_FLANKING = "flankingregion";
 
 document.getElementById("go-button").addEventListener("click", function () {
   const goBox = document.getElementById("go-chrom-start-end");
@@ -11,24 +12,34 @@ document.getElementById("go-button").addEventListener("click", function () {
     start == null || start == EMPTY ||
     end == null || end == EMPTY
   ) {
-    goBox.classList.add("shake", "error-input");
-    goBox.addEventListener(
-      "animationend",
-      function () {
-        goBox.classList.remove("shake");
-        goBox.classList.remove("error-input");
-      },
-      { once: true },
-    );
+    errorAnimationBadInput(goBox);
   } else {
+    console.log(chrom, start, end)
+
+    const flanking = getFlankingInput();
+    const minusFlanking = document.getElementById('go-flanking-minus-button');
+    const plusFlanking = document.getElementById('go-flanking-plus-button');
+        
+    if(minusFlanking.classList.contains("button-selected")){
+      const startInt = parseInt(start);
+      start = String(Math.max(0, startInt-flanking));
+    } if(plusFlanking.classList.contains("button-selected")){
+      const endInt = parseInt(end);
+      console.log(endInt, flanking, endInt+flanking)
+      end = String(endInt+flanking);
+    }
+
     const data = {
       chrom: chrom,
       start: start,
       end: end,
     };
+    console.log(chrom, start, end)
+
     const selectedEvent = new CustomEvent("constructGraph", { detail: data });
     document.dispatchEvent(selectedEvent);
   }
+
 });
 
 function updateGoValues(chromValue = null, startValue = null, endValue = null) {
@@ -49,6 +60,18 @@ function updateGoValues(chromValue = null, startValue = null, endValue = null) {
   }
 }
 
+function errorAnimationBadInput(textBox) {
+  textBox.classList.add("shake", "error-input");
+  textBox.addEventListener(
+    "animationend",
+    function () {
+      textBox.classList.remove("shake");
+      textBox.classList.remove("error-input");
+    },
+    { once: true },
+  );
+}
+
 document.addEventListener("selectedCoordinatesChanged", function (event) {
   updateGoValues(event.detail.chrom, event.detail.start, event.detail.end);
 });
@@ -62,20 +85,8 @@ function updateGenomicCoordinates(rawText) {
 
   const pattern = /^(chr)?[^:]+:\d+-\d+$/;
 
-  function errorAnimationBadCoordinates() {
-    textBox.classList.add("shake", "error-input");
-    textBox.addEventListener(
-      "animationend",
-      function () {
-        textBox.classList.remove("shake");
-        textBox.classList.remove("error-input");
-      },
-      { once: true },
-    );
-  }
-
   if (!pattern.test(input)) {
-    errorAnimationBadCoordinates();
+    errorAnimationBadInput(textBox);
     return;
   }
 
@@ -83,12 +94,12 @@ function updateGenomicCoordinates(rawText) {
   let [start, end] = range.split("-").map((s) => parseInt(s, 10));
 
   if (end < 0 || start < 0) {
-    errorAnimationBadCoordinates();
+    errorAnimationBadInput(textBox);
     return;
   }
 
   if (end < start) {
-    errorAnimationBadCoordinates();
+    errorAnimationBadInput(textBox);
     return;
   }
 
@@ -97,6 +108,53 @@ function updateGenomicCoordinates(rawText) {
   const data = {chrom: chrom, start: start, end: end, source: "coordinate-text"};
   document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
 }
+
+function getFlankingInput() {
+  const textBox = document.getElementById("go-flanking");
+  const rawText = textBox.innerHTML; 
+  let input = rawText.replace(/\s+/g, "").toLowerCase();
+
+  const pattern = /^(\d+)(kb|mb)?$/;
+
+  if (!pattern.test(input)) {
+    return 0;
+  }
+
+  const match = input.match(pattern);
+
+  const numberPart = parseInt(match[1]);
+  let suffix = match[2] ? match[2] : "1";
+  if (suffix === "mb"){
+    suffix = "1000000";
+  } if (suffix === "kb"){
+    suffix = "1000";
+  }
+
+  suffix = parseInt(suffix);
+  return numberPart * suffix;
+}
+
+function updateFlanking(rawText) {
+  if (rawText == null || rawText == "") {
+    return;
+  }
+  const textBox = document.getElementById("go-flanking");
+  let input = rawText.replace(/\s+/g, "").toLowerCase();
+
+  const pattern = /^(\d+)(kb|mb)?$/;
+
+  if (!pattern.test(input)) {
+    errorAnimationBadInput(textBox);
+    return;
+  }
+
+  const match = input.match(pattern);
+  const numberPart = match[1];
+  const suffix = match[2] ? " " + match[2] : "";
+
+  textBox.innerHTML = numberPart + suffix;
+}
+
 
 function transformToTextbox(elementId) {
   const container = document.getElementById(elementId);
@@ -110,6 +168,8 @@ function transformToTextbox(elementId) {
     input.type = "text";
     input.classList.add("editable-textbox");
     if (currentText == `${EMPTY}:${EMPTY}-${EMPTY}`) {
+      input.value = "";
+    } else if (currentText == EMPTY_FLANKING) {
       input.value = "";
     } else {
       input.value = currentText;
@@ -125,8 +185,11 @@ function transformToTextbox(elementId) {
       const container = document.getElementById(elementId);
       const userInput = input.value;
       container.innerHTML = currentInside;
-      console.log;
-      updateGenomicCoordinates(userInput);
+      if (elementId === "go-chrom-start-end"){
+        updateGenomicCoordinates(userInput);
+      } else if(elementId === "go-flanking"){
+        updateFlanking(userInput);
+      }
     }
 
     // Modify the transformToTextbox function to include this:
@@ -202,3 +265,19 @@ function showCopyPopup(elementId) {
     setTimeout(() => document.body.removeChild(popup), 500);
   }, 800);
 }
+
+
+  document.addEventListener('DOMContentLoaded', function () {
+      var plusButton = document.getElementById('go-flanking-plus-button');
+      var minusButton = document.getElementById('go-flanking-minus-button');
+
+      plusButton.addEventListener('click', function() {
+          this.classList.toggle('highlighted');
+          this.classList.toggle('button-selected');
+      });
+
+      minusButton.addEventListener('click', function() {
+          this.classList.toggle('highlighted');
+          this.classList.toggle('button-selected');
+      });
+  });

@@ -9,25 +9,25 @@ function applyGradient(color1, color2, color3) {
     } else {
         gradient = `linear-gradient(to right, ${color1}, ${color3})`;
     }
-    document.getElementById('gradient-display').style.background = gradient;
+    document.getElementById('color-picker-gradient-display').style.background = gradient;
 }
 
-document.querySelectorAll('.node-color-picker').forEach(picker => {
+document.querySelectorAll('.color-picker-node').forEach(picker => {
     picker.addEventListener('change', () => {
-        const color1 = document.getElementById('color1').value;
-        const color2 = document.getElementById('color2').value;
-        const color3 = document.getElementById('color3').value;
-        unselectAllButtons("color-preset-container-content")
+        const color1 = document.getElementById('color-picker-node-1').value;
+        const color2 = document.getElementById('color-picker-node-2').value;
+        const color3 = document.getElementById('color-picker-node-3').value;
+        unselectAllButtons("color-preset")
         applyGradient(color1, color2, color3);
     });
 });
 
 function updateColorPickers(color1, color2, color3) {
-    document.getElementById('color1').value = color1;
-    document.getElementById('color2').value = color2;
-    document.getElementById('color3').value = color3;
+    document.getElementById('color-picker-node-1').value = color1;
+    document.getElementById('color-picker-node-2').value = color2;
+    document.getElementById('color-picker-node-3').value = color3;
 }
-document.querySelectorAll('.preset-color').forEach(elem => {
+document.querySelectorAll('.color-preset-option').forEach(elem => {
     elem.addEventListener('click', () => {
         const color1 = elem.getAttribute('data-color1');
         const color2 = elem.getAttribute('data-color2');
@@ -37,7 +37,7 @@ document.querySelectorAll('.preset-color').forEach(elem => {
     });
 });
 
-let defaultChoice = document.getElementsByClassName('preset-color option-button-selected')[0];
+let defaultChoice = document.getElementsByClassName('color-preset-option option-button-selected')[0];
 if (defaultChoice) {
     let color1 = defaultChoice.getAttribute('data-color1');
     let color2 = defaultChoice.getAttribute('data-color2');
@@ -47,5 +47,5 @@ if (defaultChoice) {
     updateColorPickers(color1, color2, color3);
 }
 
-document.getElementById('link-color').value = "#969696";
-document.getElementById('bg-color').value = "#101020";
+document.getElementById('color-picker-link').value = "#969696";
+document.getElementById('color-picker-bg').value = "#101020";
