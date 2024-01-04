@@ -20,7 +20,7 @@
 }
 .option-button-selected {
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    background-color: #FFE268;
+    background-color: var(--highlight);
 }
 
 /* Hide the default radio button */
