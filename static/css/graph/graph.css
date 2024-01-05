@@ -3,13 +3,9 @@
     position: relative;
 }
 #graph-info {
-    position: absolute;
-    top: 10px;
-    left: 10px;
     padding: 10px;
     background-color: var(--detail-box);
     border-radius: 5px;
-    z-index: 10;
   }
 
 #graph-info div {
@@ -31,6 +27,11 @@
     pointer-events: none;
 }
 
+.graph-container-empty{
+    height: 500px;
+    background-color: var(--lighter-green);
+    border: 5px dashed var(--light-green);
+}
 
 .loader {
     border: 5px solid #f3f3f3;

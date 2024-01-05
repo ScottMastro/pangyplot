@@ -14,7 +14,6 @@ document.getElementById("go-button").addEventListener("click", function () {
   ) {
     errorAnimationBadInput(goBox);
   } else {
-    console.log(chrom, start, end)
 
     const flanking = getFlankingInput();
     const minusFlanking = document.getElementById('go-flanking-minus-button');
@@ -34,10 +33,8 @@ document.getElementById("go-button").addEventListener("click", function () {
       start: start,
       end: end,
     };
-    console.log(chrom, start, end)
 
-    const selectedEvent = new CustomEvent("constructGraph", { detail: data });
-    document.dispatchEvent(selectedEvent);
+    document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
   }
 
 });

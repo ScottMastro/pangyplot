@@ -37,59 +37,45 @@
 </div>
 
 
-<div class="flex-row fixed-height-1">
-    
-    {% include 'color-picker.html' %}
-
-</div>
-
-
-<div id="graph-container">
+<div id="graph-container" class="graph-container-empty">
 
     {% include 'graph.html' %}
 
 </div>
 
 
-
-<button id="download-image-button">Download Image</button>
-
-<select id="path-selector" name="path-selector">
-    <!-- The options will be appended here by JavaScript -->
-</select>
-<input type="submit" value="Submit">
-
-
-<script>
-
-    function getFormattedDateTime() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
-    }
-
-    document.getElementById('download-image-button').addEventListener('click', function() {
-        const canvas = document.querySelector('.force-graph-container canvas');
-        if (!canvas) {
-            console.error('Canvas element not found');
-            return;
-        }
+<div class="flex-row fixed-height-1">
     
-        const dateTimeStr = getFormattedDateTime();
-        const dataUrl = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = `pangyplot_${dateTimeStr}.png`;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);    
-    });
-</script>
+    {% include 'color-picker.html' %}
+
+</div>
+
+<div class="flex-row fixed-height-1">
+
+    <div id="graph-options" class="container flex-1">
+        <div class="container-title">Graph Options</div>
+
+        <div class="container-content flex-row">
+            <div id="download-image-button" class="button-style flex-col">
+                <i class="fa-solid fa-download font-2em"></i><br>
+                Download Image
+            </div>
+
+            
+        </div>
+    </div>
+
+    <div id="path-selection" class="container flex-1">
+        <div class="container-title">Path Selection</div>
+
+        <select id="path-selector" name="path-selector">
+            <!-- The options will be appended here by JavaScript -->
+        </select>
+        <input type="submit" value="Submit">
+    
+    </div>
+</div>
+
 
 <script src="{{url_for('static', filename='js/d3/d3.js')}}"></script>
 <script src="{{url_for('static', filename='js/d3/d3-annotation.min.js')}}"></script>
@@ -97,6 +83,11 @@
 
 <script src="{{url_for('static', filename='js/ui/navbar.js')}}"></script>
 <script src="{{url_for('static', filename='js/ui/modal.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/option-button.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/color-picker.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/gene-search.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/coordinates.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/download-image.js')}}"></script>
 
 <script src="{{url_for('static', filename='js/cytoband/other-chromosomes.js')}}"></script>
 <script src="{{url_for('static', filename='js/cytoband/cytoband.js')}}"></script>
@@ -114,10 +105,6 @@
 <script src="{{url_for('static', filename='js/graph/graph-select.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/path-manager.js')}}"></script>
 
-<script src="{{url_for('static', filename='js/ui/option-button.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/color-picker.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/gene-search.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/coordinates.js')}}"></script>
 
 </body>
 </html>
