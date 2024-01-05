@@ -128,10 +128,23 @@ function construct_graph_from_coordinates(genome, chrom, start, end){
 }
 
 document.addEventListener('constructGraph', function(event) {
+    const graphElement = document.getElementById('graph-container')    
+    graphElement.classList.remove("graph-container-empty");
+    graphElement.scrollIntoView({ behavior: 'smooth' });
+
     //todo: accomodate other genomes
     construct_graph_from_coordinates("CHM13", event.detail.chrom, event.detail.start, event.detail.end);
 });
 
-//construct_graph_from_coordinates("chr18", 47506000, 47600000);
 
-//construct_graph_from_coordinates("chr7", 144084904, 144140209); //PRSS region
+document.addEventListener('DOMContentLoaded', function () {
+
+    //PRSS region
+    //const data = { chrom: "chr7", start: "144084904", end: "144140209", source: "testing"  };
+    // chr18 region
+    const data = { chrom: "chr18", start: "47506000", end: "47600000",  source: "testing" };
+
+    //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
+    document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
+
+});

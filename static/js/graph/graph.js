@@ -198,12 +198,12 @@ function pre_render(ctx, graphData){
     LAST_ZOOM = ctx.canvas.__zoom["k"];
     ctx.save();
 
-    NODE_COLOR1 = document.getElementById('color1').value;
-    NODE_COLOR2 = document.getElementById('color2').value;
-    NODE_COLOR3 = document.getElementById('color3').value;
+    NODE_COLOR1 = document.getElementById('color-picker-node-1').value;
+    NODE_COLOR2 = document.getElementById('color-picker-node-2').value;
+    NODE_COLOR3 = document.getElementById('color-picker-node-3').value;
 
-    BACKGROUND_COLOR = document.getElementById('bg-color').value;
-    LINK_COLOR = document.getElementById('link-color').value;
+    BACKGROUND_COLOR = document.getElementById('color-picker-bg').value;
+    LINK_COLOR = document.getElementById('color-picker-link').value;
 
     FORCE_GRAPH.backgroundColor(BACKGROUND_COLOR);
 
