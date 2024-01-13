@@ -1,3 +1,6 @@
+const GRAPH_ID="graph";
+const GRAPH_CONTAINER_ID="force-graph-container";
+
 var boxSelect = null;
 
 document.getElementById(GRAPH_ID).addEventListener('pointerdown', (e) => {

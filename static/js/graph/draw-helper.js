@@ -1,6 +1,3 @@
-
-
-
 function draw_circle(ctx, x, y, size, color){
     ctx.fillStyle = color;
     ctx.beginPath();
@@ -62,60 +59,4 @@ function add_text(text, ctx, x, y, size, color, align="center", baseline="middle
     ctx.fillStyle = color;
     ctx.font = size.toString() + 'px Sans-Serif';
     ctx.fillText(text, x, y);
-}
-
-
-const COLOR_CACHE = {}
-function int_to_color(seed, adjust=0) {
-    const originalSeed = seed;
-
-    if (!(seed in COLOR_CACHE)) {
-        var a = 1664525;
-        var c = 1013904223;
-        var m = Math.pow(2, 32);
-
-        // Generate three random numbers between 0 and 255
-        var red = (seed * a + c) % m;
-        seed = (red * a + c) % m;
-        var green = seed;
-        seed = (green * a + c) % m;
-        var blue = seed;
-
-        // Normalize to the range 0-255
-        red = Math.floor((red / m) * 256);
-        green = Math.floor((green / m) * 256);
-        blue = Math.floor((blue / m) * 256);
-
-        COLOR_CACHE[originalSeed] = [red,green,blue];
-    }
-    
-    rgb = COLOR_CACHE[originalSeed];
-    var l = Math.floor(adjust*255)
-    var r = Math.min(255, rgb[0]+l)
-    var g = Math.min(255, rgb[1]+l)
-    var b = Math.min(255, rgb[2]+l)
-
-    //console.log(r,g,b);
-    let color = "rgba(" + r.toString() + "," 
-                        + g.toString() + "," 
-                        + b.toString() + ")";
-    //console.log(color)
-    return color;
-}
-
-function str_to_color(string, adjust=0){
-    if (string in COLOR_CACHE) {
-        return COLOR_CACHE[string]
-    }
-    
-    var hash = 0;
-    for (var i = 0; i < string.length; i++) {
-        var char = string.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; 
-    }
-    
-    color = int_to_color(hash, adjust)
-    COLOR_CACHE[string] = color
-    return(color)
 }

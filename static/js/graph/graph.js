@@ -1,87 +1,28 @@
-const GRAPH_ID = "graph";
-const GRAPH_CONTAINER_ID="force-graph-container";
-const CANVAS = document.getElementById(GRAPH_ID);
 const LIGHTNESS_SCALE=0.0;
 
 var GETTING_SUBGRAPH = new Set();
-var FORCE_GRAPH = null;
 
 var X_COORD_SHIFT = 0;
 var Y_COORD_SHIFT = 0;
 var X_COORD_SCALE = 1;
 var Y_COORD_SCALE = 1;
 
-const VELOCITY_DECAY=0.1;
-//const VELOCITY_DECAY=1;
 const MIN_ZOOM=0.01;
 const MAX_ZOOM=1e10;
-var LAST_ZOOM = 1;
 var HIGHLIGHT_NODE = null;
 
-const NODE_MID_SIZE=15;
-const NODE_END_SIZE=30;
-const HIGHLIGHT_SIZE=60;
-
-var NODE_COLOR1="#F3DE8A";
-var NODE_COLOR2="#E05263";
-var NODE_COLOR3="#659157";
-var LINK_COLOR="#969696";
-var BACKGROUND_COLOR="#101020";
-
-const REF_COLOR="#3C5E81";
-const HIGHLIGHT_LINK_COLOR="#FF0000";
-
-const HOVER_PRECISION=10;
-
-function get_graph_height(){return window.innerHeight*0.8}
-function get_graph_width(){return window.innerWidth*0.8}
-
-
-function force(alpha) {
-    for (let i = 0, n = nodes.length, node, k = alpha * 0.1; i < n; ++i) {
-      node = nodes[i];
-      node.vx -= node.x * k;
-      node.vy -= node.y * k;
-    }
-  }
 
 
 
-function linkWidth(link) {
-    if (link.count != null){
-        return Math.min(Math.max(3, 3*LAST_ZOOM*link.count/2), 6);
-    }
-    return Math.max(3, 3*LAST_ZOOM*link.width);
-}
 
-function get_node_shape(node){
-    switch (node.type) {
-        case "null":
-            return 1;        
-        default:
-            return 0;
-    }    
-}
 
-function node_paint(node, ctx) {
 
-    let x = node.x; let y = node.y;
-    let shape = get_node_shape(node);
-    let size = get_node_size(node);
-    let color = get_node_color(node);
 
-    [
-        () => { draw_circle(ctx, x, y, size, color); },
-        () => { draw_circle_outline(ctx, x, y, size, color, lineWidth=5); },
-        () => { draw_square(ctx, x, y, size, color); },
-        () => { draw_cross(ctx, x, y, size, color); },
-        () => { draw_triangle(ctx, x, y, size, color); }
-    ][shape]();
-}
+
 
 function draw_gene_outline(ctx, graph){
     
-    var hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE*(1/LAST_ZOOM/10))
+    var hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE*(1/ZOOM_FACTOR/10))
     
     graph.nodes.forEach(node => {
 
@@ -91,7 +32,7 @@ function draw_gene_outline(ctx, graph){
         });
      });
 
-    hsize = Math.max(HIGHLIGHT_SIZE+40, (HIGHLIGHT_SIZE+40)*(1/LAST_ZOOM/10))
+    hsize = Math.max(HIGHLIGHT_SIZE+40, (HIGHLIGHT_SIZE+40)*(1/ZOOM_FACTOR/10))
     graph.links.forEach(link => {
         getLinkAnnotations(link).forEach(geneId => {
             color = str_to_color(geneId, lightness=LIGHTNESS_SCALE);
@@ -100,57 +41,7 @@ function draw_gene_outline(ctx, graph){
      });
 }
 
-function get_link_color(link){
 
-    if (link.class === "node"){        
-        switch (link.type) {
-            case "segment":
-                return NODE_COLOR1;
-            case "bubble":
-                return NODE_COLOR2;
-            case "chain":
-                return NODE_COLOR3;
-            default:
-                return REF_COLOR;
-        }
-    }
-   
-    if (link.class === "edge"){
-        if(should_highlight_link(link)){
-            return HIGHLIGHT_LINK_COLOR;
-        }
-        return LINK_COLOR;
-    }
-
-   return str_to_color(link.group)
-    
-}
-
-function get_node_color(node){
-    switch (node.type) {
-        case "segment":
-            return NODE_COLOR1;
-        case "bubble":
-            return NODE_COLOR2;
-        case "chain":
-            return NODE_COLOR3;
-        case "null":
-            return LINK_COLOR;        
-        default:
-            return REF_COLOR;
-    }    
-}
-
-function get_node_size(node){
-    switch (node.class) {
-        case "end":
-            return NODE_END_SIZE;
-        case "mid":
-            return NODE_MID_SIZE;
-        default:
-            return NODE_END_SIZE;
-    }    
-}
 
 function draw_gene_name(ctx, graphData){
 
@@ -188,76 +79,16 @@ function draw_gene_name(ctx, graphData){
         }, 0);
 
         let x = sumX/n; let y = sumY/n;
-        let size = Math.max(72, 72*(1/LAST_ZOOM/10));
+        let size = Math.max(72, 72*(1/ZOOM_FACTOR/10));
     
         add_text(annotationDict[k].gene, ctx, x, y, size, "lightgrey");
     }
 
 }
 
-function pre_render(ctx, graphData){
-    LAST_ZOOM = ctx.canvas.__zoom["k"];
-    ctx.save();
 
-    NODE_COLOR1 = document.getElementById('color-picker-node-1').value;
-    NODE_COLOR2 = document.getElementById('color-picker-node-2').value;
-    NODE_COLOR3 = document.getElementById('color-picker-node-3').value;
 
-    BACKGROUND_COLOR = document.getElementById('color-picker-bg').value;
-    LINK_COLOR = document.getElementById('color-picker-link').value;
 
-    FORCE_GRAPH.backgroundColor(BACKGROUND_COLOR);
-
-    draw_gene_outline(ctx, graphData);
-
-    ctx.restore();
-}
-
-var fullSequence ="";
-function updateGraphInfo(nodeid) {
-    node = NODE_INFO[nodeid];
-    document.getElementById('info-node-id').textContent = node.id || '';
-    document.getElementById('info-node-type').textContent = node.type || '';
-    document.getElementById('info-chromosome').textContent = node.chrom || '';
-    document.getElementById('info-start').textContent = node.start || '';
-    document.getElementById('info-end').textContent = node.end || '';
-    document.getElementById('info-length').textContent = node.length || '';
-
-    fullSequence = node.sequence || '';
-    const truncatedSequence = fullSequence.substr(0, 10);
-    let seq = truncatedSequence + (fullSequence.length > 10 ? '...' : '');
-    document.getElementById('info-sequence').textContent = seq;
-
-    if ('subtype' in node) {
-        document.getElementById('optional-subtype').style.display = 'block';
-        document.getElementById('info-subtype').textContent = node.subtype;
-      } else {
-        document.getElementById('optional-subtype').style.display = 'none';
-      }
-
-      if ('size' in node) {
-        document.getElementById('optional-size').style.display = 'block';
-        document.getElementById('info-size').textContent = node.size;
-      } else {
-        document.getElementById('optional-size').style.display = 'none';
-      }
-
-    
-      if ('n' in node) {
-        document.getElementById('optional-number-inside').style.display = 'block';
-        document.getElementById('info-number-inside').textContent = node.n;
-      } else {
-        document.getElementById('optional-number-inside').style.display = 'none';
-      }
-  }
-  
-document.getElementById('info-copy-sequence').addEventListener('click', function() {
-    navigator.clipboard.writeText(fullSequence).then(() => {
-        console.log('Sequence copied to clipboard');
-    }).catch(err => {
-        console.error('Error copying text: ', err);
-    });
-});
 
 function post_render(ctx, graphData){
 
@@ -283,7 +114,7 @@ function post_render(ctx, graphData){
                 if (HIGHLIGHT_NODE === node.__nodeid){
                     color="red";
                 }
-                draw_circle_outline(ctx, node.x, node.y, Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE/LAST_ZOOM/10), color, lineWidth=3/LAST_ZOOM, fill="rgba(0, 0, 0, 0)");
+                draw_circle_outline(ctx, node.x, node.y, Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE/ZOOM_FACTOR/10), color, lineWidth=3/ZOOM_FACTOR, fill="rgba(0, 0, 0, 0)");
             }
             
         }
@@ -294,9 +125,6 @@ function post_render(ctx, graphData){
 
 
 
-function updateGraphData(graph) {
-    FORCE_GRAPH.graphData({ nodes: graph.nodes, links: graph.links });
-};
 
 window.addEventListener('resize', () => {
     FORCE_GRAPH
@@ -307,68 +135,6 @@ window.addEventListener('resize', () => {
 document.addEventListener("updatedGraphData", function(event) {
     draw_graph(event.detail.graph);
 });
-
-function draw_graph(graph){
-
-    //graph = shift_coord(graph)
-
-    console.log("forceGraph:", graph);
-
-    // todo https://github.com/vasturiano/d3-force-registry
-    FORCE_GRAPH = ForceGraph()(CANVAS)
-        .height(get_graph_height())
-        .width(get_graph_width())
-        .graphData(graph)
-        .backgroundColor(BACKGROUND_COLOR)
-        .d3VelocityDecay(VELOCITY_DECAY)
-        .nodeId("__nodeid")
-        .nodeLabel("__nodeid")
-        .linkColor(link => get_link_color(link))
-        .nodeColor(node => get_node_color(node))
-        .onNodeHover(highlight_node)
-        .nodeRelSize(HOVER_PRECISION)
-        .linkWidth(linkWidth)
-        .nodeCanvasObject((node, ctx) => node_paint(node, ctx)) 
-        .onNodeClick(node => {node_click(node)})
-
-        .nodeVal(node => get_node_size(node))
-
-        //.linkDirectionalParticles(4)
-        //.onLinkHover(highlight_link)
-        //.linkHoverPrecision(HOVER_PRECISION)
-
-    //    .nodeCanvasObject(highlight_node)
-    //    .autoPauseRedraw(false) // keep redrawing after engine has stopped
-
-    //    .minZoom(MIN_ZOOM)
-    //    .maxZoom(MAX_ZOOM)
-
-    function highlight_node(node){
-        HIGHLIGHT_NODE = (node == null) ? null : node.__nodeid;
-    }
-
-    function highlight_link(link){
-        if (link == null){ HIGHLIGHT_NODE = [] }
-        else if (link.class === "node"){
-            HIGHLIGHT_NODE = [id_split(link.source.__nodeid)] ;
-        }
-    }
-
-    FORCE_GRAPH.onRenderFramePre((ctx) => { pre_render(ctx, FORCE_GRAPH.graphData()); })
-    FORCE_GRAPH.onRenderFramePost((ctx) => { post_render(ctx, FORCE_GRAPH.graphData()); })
-    // --- FORCES ---
-
-    function link_force_distance(link) {
-        return (link.type === "edge") ? 10 : link.length ;
-    }
-
-    FORCE_GRAPH.d3Force('link').distance(link_force_distance).strength(0.5).iterations(1)
-    FORCE_GRAPH.d3Force('collide', d3.forceCollide(50).radius(50))    
-    FORCE_GRAPH.d3Force('charge').strength(-500).distanceMax(1000)
-    
-    //FORCE_GRAPH.onEngineStop(() => FORCE_GRAPH.zoomToFit(0));
-
-}
 
 function shift_coord(graph) {
     let minX = Infinity;

@@ -1,3 +1,6 @@
+const bgColorPicker = document.getElementById('color-picker-bg');
+const linkColorPicker = document.getElementById('color-picker-link');
+
 function applyGradient(color1, color2, color3) {
     let gradient;
     let useMiddle = true;
@@ -26,7 +29,11 @@ function updateColorPickers(color1, color2, color3) {
     document.getElementById('color-picker-node-1').value = color1;
     document.getElementById('color-picker-node-2').value = color2;
     document.getElementById('color-picker-node-3').value = color3;
+
+    const colorData = { type: "node", color1: color1, color2: color2, color3: color3 };
+    document.dispatchEvent(new CustomEvent("updateColor", { detail: colorData }));
 }
+
 document.querySelectorAll('.color-preset-option').forEach(elem => {
     elem.addEventListener('click', () => {
         const color1 = elem.getAttribute('data-color1');
@@ -36,6 +43,18 @@ document.querySelectorAll('.color-preset-option').forEach(elem => {
         applyGradient(color1, color2, color3);
     });
 });
+
+bgColorPicker.addEventListener('change', function(event) {
+    const colorData = { type: "background", color: bgColorPicker.value };
+    document.dispatchEvent(new CustomEvent("updateColor", { detail: colorData }));
+});
+linkColorPicker.addEventListener('change', function(event) {
+    const colorData = { type: "link", color: bgColorPicker.value };
+    document.dispatchEvent(new CustomEvent("updateColor", { detail: colorData }));
+});
+
+
+// default colors below
 
 let defaultChoice = document.getElementsByClassName('color-preset-option option-button-selected')[0];
 if (defaultChoice) {
@@ -47,5 +66,6 @@ if (defaultChoice) {
     updateColorPickers(color1, color2, color3);
 }
 
-document.getElementById('color-picker-link').value = "#969696";
-document.getElementById('color-picker-bg').value = "#101020";
+bgColorPicker.value = "#101020";
+linkColorPicker.value = "#969696";
+

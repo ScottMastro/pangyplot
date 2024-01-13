@@ -53,6 +53,7 @@ function fetchSubgraph(originNode, ) {
     const url = buildUrl('/subgraph', {nodeid, genome, chromosome, start, end });
 
     fetchData(url, 'subgraph').then(fetchedData => {
+        //graph-manager
         processSubgraphData(fetchedData, originNode)    
     });
 

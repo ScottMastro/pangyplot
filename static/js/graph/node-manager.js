@@ -1,18 +1,22 @@
-var INIT_POSITIONS = {}
-var NODEIDS = {}
+var INIT_POSITIONS = {};
+var NODEIDS = {};
 var NODE_INFO = {};
 
-const KINK_SIZE = 100
-const MAX_KINKS = 20
+const KINK_SIZE = 100;
+const MAX_KINKS = 20;
 
-const NODE_SEGMENT_WIDTH = 21
-const SINGLE_NODE_THRESH = 6
+const NODE_SEGMENT_WIDTH = 21;
+const SINGLE_NODE_THRESH = 6;
 
 function nodeSourceId(nodeid){
-    return NODEIDS[nodeid][NODEIDS[nodeid].length-1]
+    return NODEIDS[nodeid][NODEIDS[nodeid].length-1];
 }
 function nodeTargetId(nodeid){
-    return NODEIDS[nodeid][0]
+    return NODEIDS[nodeid][0];
+}
+
+function getNodeInformation(nodeid){
+    return NODE_INFO[nodeid];
 }
 
 function nodeidSplit(__nodeid){
@@ -22,7 +26,6 @@ function nodeidSplit(__nodeid){
 function countNodeKinks(nodeid){
     return NODEIDS[nodeid].length;
 }
-
 
 function calculateEffectiveNodePosition(node){
     if (!node.hasOwnProperty("start")){
