@@ -3,69 +3,67 @@ GRAPH_CHROM=null;
 GRAPH_START_POS=null;
 GRAPH_END_POS=null;
 
-function fetch_genes(genome, chromosome, start, end) {
+function buildUrl(base, params) {
+    return `${base}?${Object.entries(params).map(([key, value]) => `${key}=${value}`).join('&')}`;
+}
 
-    let url = `/genes?genome=${genome}&chromosome=${chromosome}&start=${start}&end=${end}`;
-
+function fetchData(url, logLabel = '') {
     return fetch(url)
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log("genes", data);
-        process_gene_data(data);
-    })
-    .catch(error => {
-        console.error('There was a problem fetching genes:', error);
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: during ${logLabel}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(logLabel, data);
+            return data;
+        })
+        .catch(error => {
+            console.error(`There was a problem with ${logLabel}:`, error);
+        });
+}
+
+function fetchGraph(genome, chromosome, start, end) {
+    const url = buildUrl('/select', { genome, chromosome, start, end });
+
+    fetchData(url, 'graph').then(fetchedData => {
+        //graph-manager
+        processGraphData(fetchedData);
     });
 }
 
-function fetch_graph(genome, chromosome, start, end) {
+function fetchGenes(genome, chromosome, start, end) {
+    const url = buildUrl('/genes', { genome, chromosome, start, end });
 
-    let url = `/select?genome=${genome}&chromosome=${chromosome}&start=${start}&end=${end}`;
-
-    return fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok: during graph fetch');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log("graph", data);
-            // TODO
-            // update_path_selector(data.paths)
-    
-            return process_graph_data(data);
-        })
-        .catch(error => {
-            console.error('There was a problem fetching the graph data:', error);
-        });
+    fetchData(url, 'genes').then(fetchedData => {
+        //annotation-manager
+        processAnnotationData(fetchedData.genes);
+    });
 }
 
 
-function fetch_haps(genome, chromosome, start, end) {
+function fetchSubgraph(originNode, ) {
+    const nodeid = originNode.nodeid;
+    const genome = GRAPH_GENOME;
+    const chromosome = GRAPH_CHROM;
+    const start = GRAPH_START_POS;
+    const end = GRAPH_END_POS;
 
-    let url = `/haplotypes?genome=${genome}&chromosome=${chromosome}&start=${start}&end=${end}`;
+    const url = buildUrl('/subgraph', {nodeid, genome, chromosome, start, end });
 
-    return fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
-            console.log(data);
-        })
-        .catch(error => {
-            console.error('There was a problem fetching haplotypes:', error);
-        });
-    
+    fetchData(url, 'subgraph').then(fetchedData => {
+        processSubgraphData(fetchedData, originNode)    
+    });
+
 }
+
+
+function fetchHaps(genome, chromosome, start, end) {
+    const url = buildUrl('/haplotypes', { genome, chromosome, start, end });
+    return fetchData(url, data => console.log(data), 'haplotypes');
+}
+
 
 function fetch_subgraph(originNode){
     //showLoader()
@@ -81,16 +79,6 @@ function fetch_subgraph(originNode){
             return response.json();
         })
         .then(subgraph => {
-            graph = FORCE_GRAPH.graphData();
-            graph = process_subgraph(subgraph, originNode, graph);
-            updateGraphData(graph);
-            graph = update_genes(graph);
-
-            GETTING_SUBGRAPH.delete(originNode.nodeid);
-            if (GETTING_SUBGRAPH.size === 0) {
-                hideLoader();
-            }
-            HIGHLIGHT_NODE = null;
         })
         .catch(error => {
             GETTING_SUBGRAPH.delete(originNode.nodeid);
@@ -99,7 +87,7 @@ function fetch_subgraph(originNode){
 }
 
 
-function construct_graph_from_coordinates(genome, chrom, start, end){
+function fetchAndConstructGraph(genome, chrom, start, end){
 
     if (genome == GRAPH_GENOME && chrom == GRAPH_CHROM && start == GRAPH_START_POS && end == GRAPH_END_POS){
         return;
@@ -113,18 +101,9 @@ function construct_graph_from_coordinates(genome, chrom, start, end){
 
     console.log("CONSTRUCTING:", genome,chrom,start,end);
     
-    let genePromise = fetch_genes(genome, chrom, start, end);
-    let graphPromise = fetch_graph(genome, chrom, start, end);
+    fetchGenes(genome, chrom, start, end);
+    fetchGraph(genome, chrom, start, end);
 
-
-    genePromise.then(() => {
-        graphPromise.then(graph => {
-            console.log("Received graph data:", graph);
-            graph = update_genes(graph);
-            draw_graph(graph);
-
-        })
-    })
 }
 
 document.addEventListener('constructGraph', function(event) {
@@ -133,7 +112,7 @@ document.addEventListener('constructGraph', function(event) {
     graphElement.scrollIntoView({ behavior: 'smooth' });
 
     //todo: accomodate other genomes
-    construct_graph_from_coordinates("CHM13", event.detail.chrom, event.detail.start, event.detail.end);
+    fetchAndConstructGraph("CHM13", event.detail.chrom, event.detail.start, event.detail.end);
 });
 
 

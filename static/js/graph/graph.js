@@ -5,7 +5,6 @@ const LIGHTNESS_SCALE=0.0;
 
 var GETTING_SUBGRAPH = new Set();
 var FORCE_GRAPH = null;
-var nodeInfo = {};
 
 var X_COORD_SHIFT = 0;
 var Y_COORD_SHIFT = 0;
@@ -81,10 +80,12 @@ function node_paint(node, ctx) {
 }
 
 function draw_gene_outline(ctx, graph){
-
+    
     var hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE*(1/LAST_ZOOM/10))
+    
     graph.nodes.forEach(node => {
-        node.genes.forEach(geneId => {
+
+        getNodeAnnotations(node).forEach(geneId => {
             color = str_to_color(geneId, lightness=LIGHTNESS_SCALE);
             highlight_node(node, ctx, 0, hsize, color);
         });
@@ -92,7 +93,7 @@ function draw_gene_outline(ctx, graph){
 
     hsize = Math.max(HIGHLIGHT_SIZE+40, (HIGHLIGHT_SIZE+40)*(1/LAST_ZOOM/10))
     graph.links.forEach(link => {
-        link.genes.forEach(geneId => {
+        getLinkAnnotations(link).forEach(geneId => {
             color = str_to_color(geneId, lightness=LIGHTNESS_SCALE);
             highlight_link(link, ctx, 0, hsize, color);
         });
@@ -214,7 +215,7 @@ function pre_render(ctx, graphData){
 
 var fullSequence ="";
 function updateGraphInfo(nodeid) {
-    node = nodeInfo[nodeid];
+    node = NODE_INFO[nodeid];
     document.getElementById('info-node-id').textContent = node.id || '';
     document.getElementById('info-node-type').textContent = node.type || '';
     document.getElementById('info-chromosome').textContent = node.chrom || '';
@@ -270,7 +271,7 @@ function post_render(ctx, graphData){
     //draw_gene_name(ctx, graphData);
 
     if (HIGHLIGHT_NODE != null){
-        highlight = nodeid_split(HIGHLIGHT_NODE);
+        highlight = nodeidSplit(HIGHLIGHT_NODE);
         updateGraphInfo(highlight)
 
         let nodes = graphData.nodes;
@@ -301,6 +302,10 @@ window.addEventListener('resize', () => {
     FORCE_GRAPH
         .height(get_graph_height())
         .width(get_graph_width());
+});
+
+document.addEventListener("updatedGraphData", function(event) {
+    draw_graph(event.detail.graph);
 });
 
 function draw_graph(graph){
@@ -396,7 +401,7 @@ function explode_node(node, update=true) {
     if (node["type"] == "null"){ return }
 
     if (! GETTING_SUBGRAPH.has(node.nodeid)){
-        fetch_subgraph(node)
+        fetchSubgraph(node)
     }
 }
 
