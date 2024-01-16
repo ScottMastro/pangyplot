@@ -9,7 +9,6 @@ var Y_COORD_SCALE = 1;
 
 const MIN_ZOOM=0.01;
 const MAX_ZOOM=1e10;
-var HIGHLIGHT_NODE = null;
 
 
 
@@ -20,26 +19,6 @@ var HIGHLIGHT_NODE = null;
 
 
 
-function draw_gene_outline(ctx, graph){
-    
-    var hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE*(1/ZOOM_FACTOR/10))
-    
-    graph.nodes.forEach(node => {
-
-        getNodeAnnotations(node).forEach(geneId => {
-            color = str_to_color(geneId, lightness=LIGHTNESS_SCALE);
-            highlight_node(node, ctx, 0, hsize, color);
-        });
-     });
-
-    hsize = Math.max(HIGHLIGHT_SIZE+40, (HIGHLIGHT_SIZE+40)*(1/ZOOM_FACTOR/10))
-    graph.links.forEach(link => {
-        getLinkAnnotations(link).forEach(geneId => {
-            color = str_to_color(geneId, lightness=LIGHTNESS_SCALE);
-            highlight_link(link, ctx, 0, hsize, color);
-        });
-     });
-}
 
 
 
@@ -90,51 +69,10 @@ function draw_gene_name(ctx, graphData){
 
 
 
-function post_render(ctx, graphData){
-
-    ctx.save();
-
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)'; 
-    ctx.shadowBlur = 4; 
-    ctx.shadowOffsetX = 5; ctx.shadowOffsetY = 5;
-
-    // TODO
-    //draw_gene_name(ctx, graphData);
-
-    if (HIGHLIGHT_NODE != null){
-        highlight = nodeidSplit(HIGHLIGHT_NODE);
-        updateGraphInfo(highlight)
-
-        let nodes = graphData.nodes;
-        var node;
-        for (let i = 0, n = nodes.length; i < n; ++i) {
-            node = nodes[i];
-            if (highlight === node.nodeid){
-                var color = "grey";
-                if (HIGHLIGHT_NODE === node.__nodeid){
-                    color="red";
-                }
-                draw_circle_outline(ctx, node.x, node.y, Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE/ZOOM_FACTOR/10), color, lineWidth=3/ZOOM_FACTOR, fill="rgba(0, 0, 0, 0)");
-            }
-            
-        }
-    }
-
-    ctx.restore();
-}
 
 
 
 
-window.addEventListener('resize', () => {
-    FORCE_GRAPH
-        .height(get_graph_height())
-        .width(get_graph_width());
-});
-
-document.addEventListener("updatedGraphData", function(event) {
-    draw_graph(event.detail.graph);
-});
 
 function shift_coord(graph) {
     let minX = Infinity;

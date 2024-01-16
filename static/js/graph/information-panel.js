@@ -44,3 +44,24 @@ document.getElementById('info-copy-sequence').addEventListener('click', function
         console.error('Error copying text: ', err);
     });
 });
+
+let frameTimes = [];
+//average across last [maxFrames] frames
+const maxFrames = 100;
+const elementFPS = document.getElementById('frames-per-second');
+
+function calculateFPS(){
+    const now = Date.now();
+    frameTimes.push(now);
+
+    if (frameTimes.length > maxFrames) {
+        frameTimes.shift();
+    }
+
+    if (frameTimes.length > 1) {
+        const timeDiff = frameTimes[frameTimes.length - 1] - frameTimes[0];
+        const frameRate = 1000 * frameTimes.length / timeDiff;
+
+        elementFPS.textContent = `${frameRate.toFixed(2)}`;
+    }
+}

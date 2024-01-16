@@ -37,14 +37,14 @@ function draw_cross(ctx, x, y, size, color){
     ctx.stroke();
 }
 
-function highlight_node(node, ctx, shift, size, color) {
+function outlineNode(node, ctx, shift, size, color) {
     ctx.beginPath();
     ctx.arc(node.x+shift, node.y+shift, size, 0, 2 * Math.PI, false);
     ctx.fillStyle = color;
     ctx.fill();
 }
 
-function highlight_link(link, ctx, shift, width, color) {
+function outlineLink(link, ctx, shift, width, color) {
     ctx.beginPath();
     ctx.moveTo(link.source.x+shift, link.source.y+shift);
     ctx.lineTo(link.target.x+shift, link.target.y+shift);
