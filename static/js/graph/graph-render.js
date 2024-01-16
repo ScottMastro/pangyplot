@@ -1,4 +1,3 @@
-
 var FORCE_GRAPH = null;
 var ZOOM_FACTOR = 1;
 
@@ -7,10 +6,7 @@ const VELOCITY_DECAY=0.1;
 const HOVER_PRECISION=10;
 const NODE_MID_SIZE=15;
 const NODE_END_SIZE=30;
-const HIGHLIGHT_SIZE=60;
 
-function getGraphHeight(){return window.innerHeight*0.8}
-function getGraphWidth(){return window.innerWidth*0.8}
 
 function getLinkWidth(link) {
     if (link.count != null){
@@ -50,7 +46,7 @@ function pre_render(ctx, graphData){
     ZOOM_FACTOR = ctx.canvas.__zoom["k"];
     ctx.save();
 
-    FORCE_GRAPH.backgroundColor(getBackgroundColor());
+    FORCE_GRAPH.backgroundColor(_getBackgroundColor());
 
     draw_gene_outline(ctx, graphData);
 
@@ -58,11 +54,47 @@ function pre_render(ctx, graphData){
 }
 
 
+function post_render(ctx, graphData){
+    ctx.save();
+
+    // TODO
+    //draw_gene_name(ctx, graphData);
+
+    higlightSelectedNode(ctx, graphData);
+
+    ctx.restore();
+}
+
+
+
 function updateGraphData(graph) {
     FORCE_GRAPH.graphData({ nodes: graph.nodes, links: graph.links });
 };
 
-function draw_graph(graph){
+
+function _getGraphHeight(){return window.innerHeight*0.8}
+function _getGraphWidth(){return window.innerWidth*0.8}
+
+
+window.addEventListener('resize', () => {
+    FORCE_GRAPH
+        .height(_getGraphHeight())
+        .width(_getGraphWidth());
+});
+
+
+function _getBackgroundColor(){
+    return getBackgroundColor();
+}
+function _getLinkColor(link){
+    return getLinkColor(link);
+}
+function _getNodeColor(node){
+    return getNodeColor(node);
+
+}
+
+function renderGraph(graph){
 
     //graph = shift_coord(graph)
 
@@ -75,13 +107,14 @@ function draw_graph(graph){
     FORCE_GRAPH = ForceGraph()(canvasElement)
         .graphData(graph)
         .nodeId("__nodeid")
-        .height(getGraphHeight())
-        .width(getGraphWidth())
-        .backgroundColor(getBackgroundColor())
-        .linkColor(link => getLinkColor(link))
-        .nodeColor(node => getNodeColor(node))
+        .height(_getGraphHeight())
+        .width(_getGraphWidth())
+        .backgroundColor(_getBackgroundColor())
+        .linkColor(link => _getLinkColor(link))
+        .nodeColor(node => _getNodeColor(node))
         .linkWidth(getLinkWidth)
         .nodeVal(node => getNodeSize(node))
+        .autoPauseRedraw(false) // keep drawing after engine has stopped
 
         .d3VelocityDecay(VELOCITY_DECAY)
 
@@ -98,7 +131,6 @@ function draw_graph(graph){
         //.linkHoverPrecision(HOVER_PRECISION)
 
     //    .nodeCanvasObject(highlight_node)
-    //    .autoPauseRedraw(false) // keep redrawing after engine has stopped
 
     //    .minZoom(MIN_ZOOM)
     //    .maxZoom(MAX_ZOOM)
@@ -114,19 +146,52 @@ function draw_graph(graph){
         }
     }
 
+    //FORCE_GRAPH.onRenderFramePre((ctx) => { calculateFPS(); })
+
+    FORCE_GRAPH.onEngineTick(() => { calculateFPS(); })
+
     FORCE_GRAPH.onRenderFramePre((ctx) => { pre_render(ctx, FORCE_GRAPH.graphData()); })
     FORCE_GRAPH.onRenderFramePost((ctx) => { post_render(ctx, FORCE_GRAPH.graphData()); })
+    
+    
     // --- FORCES ---
 
     function link_force_distance(link) {
         return (link.type === "edge") ? 10 : link.length ;
     }
+    
 
     FORCE_GRAPH.d3Force('link').distance(link_force_distance).strength(0.5).iterations(1)
-    FORCE_GRAPH.d3Force('collide', d3.forceCollide(50).radius(50))    
-    FORCE_GRAPH.d3Force('charge').strength(-500).distanceMax(1000)
-    
+    FORCE_GRAPH.d3Force('collide', d3.forceCollide(50).radius(50));
+    FORCE_GRAPH.d3Force('charge').strength(-500).distanceMax(1000);
+
+
+
+
     //FORCE_GRAPH.onEngineStop(() => FORCE_GRAPH.zoomToFit(0));
 
 }
 
+document.addEventListener("updatedGraphData", function(event) {
+    renderGraph(event.detail.graph);
+});
+
+
+
+
+// ==================================================
+
+/*
+function link_force_distance(link) {
+    return (link.type === "edge") ? 10 : link.length ;
+}
+
+    FORCE_GRAPH.d3Force('link', null);   // Disable link force
+    FORCE_GRAPH.d3Force('charge', null); // Disable charge force
+    FORCE_GRAPH.d3Force('center', null); // Disable center force
+
+
+FORCE_GRAPH.d3Force('link').distance(link_force_distance).strength(0.5).iterations(1)
+FORCE_GRAPH.d3Force('collide', d3.forceCollide(50).radius(50))    
+FORCE_GRAPH.d3Force('charge').strength(-500).distanceMax(1000)
+*/
