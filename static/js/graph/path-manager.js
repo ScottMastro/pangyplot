@@ -40,16 +40,16 @@ function should_highlight_link(link){
         }
     }
 
-
-
-    return false;
-    
-    
+    return false;    
 }
-
 
 document.getElementById(PATH_SELECTER).addEventListener('change', function() {
     var selectedOption = this.value;
     console.log("Path selected: ", selectedOption, pathData);
     selectedPath = pathData[selectedOption];
 });
+
+function fetchHaps(genome, chromosome, start, end) {
+    const url = buildUrl('/haplotypes', { genome, chromosome, start, end });
+    return fetchData(url, data => console.log(data), 'haplotypes');
+}

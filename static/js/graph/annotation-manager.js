@@ -52,3 +52,12 @@ function getLinkAnnotations(link) {
     }
     return [];
 }
+
+
+function fetchGenes(genome, chromosome, start, end) {
+    const url = buildUrl('/genes', { genome, chromosome, start, end });
+
+    fetchData(url, 'genes').then(fetchedData => {
+        processAnnotationData(fetchedData.genes);
+    });
+}

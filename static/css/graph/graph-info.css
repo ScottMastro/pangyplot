@@ -4,9 +4,20 @@
     border-radius: 5px;
 }
 
-#graph-info div {
-    margin-bottom: 5px;
+#info-debug-container{
+    padding-left: 1em;
+    background-color: lightcoral;
 }
-#graph-info span {
+
+.info-label {
+    margin-bottom: 5px;
+    margin-right: 1em;
+}
+.info-value {
     font-weight: bold;
+    margin-left: 3px;
+}
+
+.info-optional{
+    display: none;
 }
