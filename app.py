@@ -21,7 +21,6 @@ app = Flask(__name__)
 def create_app():
     db_init()
 
-
 @app.route('/select', methods=["GET"])
 def select():
     genome = request.args.get("genome")

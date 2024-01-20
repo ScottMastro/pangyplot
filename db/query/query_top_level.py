@@ -10,7 +10,7 @@ def get_top_level_aggregates(session, type, chrom, start, end):
             MATCH (n:"""+type+""")
             WHERE n.start <= $end AND n.end >= $start AND n.chrom = $chrom AND NOT EXISTS {
                 MATCH (n)-[:INSIDE|PARENT]->(m)
-                WHERE m.start <= $end AND m.end >= $start AND m.chrom = $chrom
+                WHERE m.start >= $start AND m.end <= $end AND m.chrom = $chrom
             }
             OPTIONAL MATCH (n)-[r1:END]-(s1:Segment)
             OPTIONAL MATCH (n)-[r2:LINKS_TO]-(s2:Segment)
@@ -24,9 +24,6 @@ def get_top_level_aggregates(session, type, chrom, start, end):
         nodes.append( record.node_record(result["n"], result["type"][0]) )
         links.extend( [record.link_record_simple(r) for r in result["ends"]] )
         links.extend( [record.link_record_simple(r) for r in result["links"]] )
-
-    links = remove_invalid_links(nodes, links)
-    links = deduplicate_links(links)
 
     return nodes, links
 
@@ -76,11 +73,16 @@ def get_top_level(chrom, start, end):
         bubbles,bubbleLinks = get_top_level_bubbles(session, chrom, start, end)
         segments,segmentLinks = get_top_level_segments(session, chrom, start, end)
 
+    nodes = chains + bubbles + segments
+    links = chainLinks + bubbleLinks + segmentLinks
+
+    links = remove_invalid_links(nodes, links)
+    links = deduplicate_links(links)
+
     print(f"TOP LEVEL QUERY: {chrom}:{start}-{end}")
     print(f"   Nodes: C={len(chains)}, B={len(bubbles)}, S={len(segments)}")
     print(f"   Links: C={len(chainLinks)}, B={len(bubbleLinks)}, S={len(segmentLinks)}")
     
-    graph = {"nodes": chains + bubbles + segments, 
-            "links": chainLinks + bubbleLinks + segmentLinks}
+    graph = {"nodes": nodes, "links": links}
 
     return graph

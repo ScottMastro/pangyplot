@@ -25,14 +25,12 @@ function getNodeSize(node){
     }    
 }
 
-
 function paintNode(node, ctx) {
 
     let x = node.x; let y = node.y;
     let shape = node.type === "null" ? 1 : 0
     let size = getNodeSize(node);
     let color = getNodeColor(node);
-
     [
         () => { draw_circle(ctx, x, y, size, color); },
         () => { draw_circle_outline(ctx, x, y, size, color, lineWidth=5); },
@@ -139,8 +137,8 @@ function renderGraph(graph){
 
     //FORCE_GRAPH.onRenderFramePre((ctx) => { calculateFPS(); })
 
-    FORCE_GRAPH.onEngineTick(() => { 
-        calculateFPS();
+    FORCE_GRAPH.onEngineTick(() => {
+        debugInformationUpdate(FORCE_GRAPH.graphData());
     })
 
     FORCE_GRAPH.onRenderFramePre((ctx) => { pre_render(ctx, FORCE_GRAPH.graphData()); })

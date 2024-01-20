@@ -65,7 +65,7 @@ function getNodeColor(node){
     }    
 }
 
-function int_to_color(seed, adjust=0) {
+function intToColor(seed, adjust=0) {
     const originalSeed = seed;
 
     if (!(seed in COLOR_CACHE)) {
@@ -102,7 +102,7 @@ function int_to_color(seed, adjust=0) {
     return color;
 }
 
-function str_to_color(string, adjust=0){
+function stringToColor(string, adjust=0){
     if (string in COLOR_CACHE) {
         return COLOR_CACHE[string]
     }
@@ -114,7 +114,7 @@ function str_to_color(string, adjust=0){
         hash = hash & hash; 
     }
     
-    color = int_to_color(hash, adjust)
+    color = intToColor(hash, adjust)
     COLOR_CACHE[string] = color
     return(color)
 }

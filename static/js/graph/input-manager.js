@@ -1,6 +1,5 @@
 const CAN_CLICK_RANGE = 0.02; //cursor distance in screen coordinates
 
-
 function addMouseListener(forceGraph, canvasElement){
 
     function getCoordinates(canvasElement, event) {
@@ -40,7 +39,6 @@ function addMouseListener(forceGraph, canvasElement){
     });
 }
 
-
 function checkNodeClick(nodes, coordinates, canvas) {
     const nearestNode = findNearestNode(nodes, coordinates);
     
@@ -49,7 +47,7 @@ function checkNodeClick(nodes, coordinates, canvas) {
     const normDist = findNormalizedDistance(nearestNode, coordinates, canvas);
 
     if (normDist < CAN_CLICK_RANGE){
-        //todo: send node clicked alert
-        explode_node(nearestNode);
+        const data = { nodes: [nearestNode], source: "clicked" };
+        document.dispatchEvent(new CustomEvent("nodesSelected", { detail: data }));
     }
 }

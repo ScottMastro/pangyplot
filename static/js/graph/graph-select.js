@@ -50,7 +50,9 @@ const runBoxSelect = (left, bottom, top, right) => {
             hitNodes.push(node);
         };
     });
-    explode_nodes(hitNodes);
+
+    const data = { nodes: hitNodes, source: "drag-selected" };
+    document.dispatchEvent(new CustomEvent("nodesSelected", { detail: data }));
 }
 
 document.getElementById(GRAPH_ID).addEventListener('pointerup', (e) => {

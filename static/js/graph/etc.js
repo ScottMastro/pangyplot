@@ -1,4 +1,3 @@
-const LIGHTNESS_SCALE=0.0;
 
 
 var X_COORD_SHIFT = 0;
@@ -8,18 +7,6 @@ var Y_COORD_SCALE = 1;
 
 const MIN_ZOOM=0.01;
 const MAX_ZOOM=1e10;
-
-
-
-
-
-
-
-
-
-
-
-
 
 function draw_gene_name(ctx, graphData){
 
@@ -64,15 +51,6 @@ function draw_gene_name(ctx, graphData){
 
 }
 
-
-
-
-
-
-
-
-
-
 function shift_coord(graph) {
     let minX = Infinity;
     let maxX = -1;
@@ -98,24 +76,3 @@ function shift_coord(graph) {
 
     return graph
 }
-
-function explode_node(node, update=true) {
-    if (node["type"] == "segment"){ return }
-    if (node["type"] == "null"){ return }
-    fetchSubgraph(node)
-}
-
-function explode_nodes(nodes){
-    nodes.forEach(node => {
-        explode_node(node, update=false);
-    });
-}
-
-function explode_complex_nodes(nodes){
-    nodes.forEach(node => {
-        explode_node(node, update=false);
-    });
-}
-
-
-
