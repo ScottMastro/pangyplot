@@ -1,6 +1,6 @@
 
 .color-style-option {
-    color: var(--font-color);
+    color: var(--text-color);
 } .color-style-option i{
     pointer-events:none;
 }
@@ -15,7 +15,7 @@
 }
 
 .color-picker-label{
-    color: var(--font-color);
+    color: var(--text-color);
     text-align: right;
 }
 

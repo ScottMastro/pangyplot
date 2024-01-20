@@ -48,7 +48,7 @@ function pre_render(ctx, graphData){
 
     FORCE_GRAPH.backgroundColor(_getBackgroundColor());
 
-    draw_gene_outline(ctx, graphData);
+    drawGeneOutline(ctx, graphData);
 
     ctx.restore();
 }
@@ -81,6 +81,8 @@ window.addEventListener('resize', () => {
         .height(_getGraphHeight())
         .width(_getGraphWidth());
 });
+
+
 
 
 function _getBackgroundColor(){
@@ -118,16 +120,12 @@ function renderGraph(graph){
 
         .d3VelocityDecay(VELOCITY_DECAY)
 
-        
-        .onNodeHover(highlight_node)
         .nodeRelSize(HOVER_PRECISION)
         .nodeCanvasObject((node, ctx) => paintNode(node, ctx)) 
-        .onNodeClick(node => {node_click(node)})
         .nodeLabel("__nodeid")
 
 
         //.linkDirectionalParticles(4)
-        //.onLinkHover(highlight_link)
         //.linkHoverPrecision(HOVER_PRECISION)
 
     //    .nodeCanvasObject(highlight_node)
@@ -135,20 +133,15 @@ function renderGraph(graph){
     //    .minZoom(MIN_ZOOM)
     //    .maxZoom(MAX_ZOOM)
 
-    function highlight_node(node){
-        HIGHLIGHT_NODE = (node == null) ? null : node.__nodeid;
-    }
+    console.log(FORCE_GRAPH);
+    addMouseListener(FORCE_GRAPH, canvasElement);
 
-    function highlight_link(link){
-        if (link == null){ HIGHLIGHT_NODE = [] }
-        else if (link.class === "node"){
-            HIGHLIGHT_NODE = [id_split(link.source.__nodeid)] ;
-        }
-    }
 
     //FORCE_GRAPH.onRenderFramePre((ctx) => { calculateFPS(); })
 
-    FORCE_GRAPH.onEngineTick(() => { calculateFPS(); })
+    FORCE_GRAPH.onEngineTick(() => { 
+        calculateFPS();
+    })
 
     FORCE_GRAPH.onRenderFramePre((ctx) => { pre_render(ctx, FORCE_GRAPH.graphData()); })
     FORCE_GRAPH.onRenderFramePost((ctx) => { post_render(ctx, FORCE_GRAPH.graphData()); })

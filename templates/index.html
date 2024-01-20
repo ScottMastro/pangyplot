@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/color-picker.css') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/graph.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/keyboard-shortcuts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/graph-info.css') }}">
 
 </head>
 
@@ -39,8 +41,18 @@
 
 <div id="graph-container" class="graph-container-empty">
 
-    {% include 'graph.html' %}
+    <div class="loader-filter"></div>
+    <div class="loader"></div>
+    
+    <div class="flex-row">
+    
+        <div id="graph" class="flex-1"></div>
+        <div class="flex-col flex-1">
+            {% include 'graph-info.html' %}
+            {% include 'keyboard-shortcuts.html' %}
+        </div>
 
+    </div>
 </div>
 
 
@@ -105,6 +117,9 @@
 
 
 <script src="{{url_for('static', filename='js/graph/graph.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/graph-utils.js')}}"></script>
+
+<script src="{{url_for('static', filename='js/graph/input-manager.js')}}"></script>
 
 
 <script src="{{url_for('static', filename='js/graph/graph-render.js')}}"></script>

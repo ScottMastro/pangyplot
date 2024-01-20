@@ -1,7 +1,8 @@
-GRAPH_GENOME=null;
-GRAPH_CHROM=null;
-GRAPH_START_POS=null;
-GRAPH_END_POS=null;
+var GRAPH_GENOME=null;
+var GRAPH_CHROM=null;
+var GRAPH_START_POS=null;
+var GRAPH_END_POS=null;
+var GETTING_SUBGRAPH = new Set();
 
 function buildUrl(base, params) {
     return `${base}?${Object.entries(params).map(([key, value]) => `${key}=${value}`).join('&')}`;
@@ -31,6 +32,30 @@ function fetchGraph(genome, chromosome, start, end) {
         //graph-manager
         processGraphData(fetchedData);
     });
+
+}
+
+function fetchSubgraph(originNode) {
+    const nodeid = originNode.nodeid;
+
+    if (! queueSubgraph(nodeid)){
+        return;
+    }
+
+    const genome = GRAPH_GENOME;
+    const chromosome = GRAPH_CHROM;
+    const start = GRAPH_START_POS;
+    const end = GRAPH_END_POS;
+
+    const url = buildUrl('/subgraph', {nodeid, genome, chromosome, start, end });
+
+    fetchData(url, 'subgraph').then(fetchedData => {
+        dequeueSubgraph(nodeid);
+
+        //graph-manager
+        processSubgraphData(fetchedData, originNode)    
+    });
+
 }
 
 function fetchGenes(genome, chromosome, start, end) {
@@ -42,50 +67,12 @@ function fetchGenes(genome, chromosome, start, end) {
     });
 }
 
-
-function fetchSubgraph(originNode, ) {
-    const nodeid = originNode.nodeid;
-    const genome = GRAPH_GENOME;
-    const chromosome = GRAPH_CHROM;
-    const start = GRAPH_START_POS;
-    const end = GRAPH_END_POS;
-
-    const url = buildUrl('/subgraph', {nodeid, genome, chromosome, start, end });
-
-    fetchData(url, 'subgraph').then(fetchedData => {
-        //graph-manager
-        processSubgraphData(fetchedData, originNode)    
-    });
-
-}
-
-
 function fetchHaps(genome, chromosome, start, end) {
     const url = buildUrl('/haplotypes', { genome, chromosome, start, end });
     return fetchData(url, data => console.log(data), 'haplotypes');
 }
 
 
-function fetch_subgraph(originNode){
-    //showLoader()
-    GETTING_SUBGRAPH.add(originNode.nodeid)
-
-    let url = `/subgraph?nodeid=${originNode.nodeid}&genome=${GRAPH_GENOME}&chromosome=${GRAPH_CHROM}&start=${GRAPH_START_POS}&end=${GRAPH_END_POS}`;
-    console.log(url)
-    return fetch(url)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(subgraph => {
-        })
-        .catch(error => {
-            GETTING_SUBGRAPH.delete(originNode.nodeid);
-            console.error('There was a problem fetching the subgraph:', error);
-        });
-}
 
 
 function fetchAndConstructGraph(genome, chrom, start, end){
@@ -128,3 +115,30 @@ document.addEventListener('DOMContentLoaded', function () {
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
 
 });
+
+function queueSubgraph(nodeid) {
+    if (GETTING_SUBGRAPH.has(nodeid)){
+        return false;
+    }
+    GETTING_SUBGRAPH.add(nodeid);
+    showLoader();
+    return true;
+}
+function dequeueSubgraph(nodeid) {
+    GETTING_SUBGRAPH.delete(nodeid);
+    if (GETTING_SUBGRAPH.size === 0) {
+        hideLoader();
+    }
+}
+
+function showLoader() {
+    document.querySelector('.loader').style.display = 'block';
+    //document.querySelector('.loader-filter').style.display = 'block';
+}
+
+function hideLoader() {
+    document.querySelector('.loader').style.display = 'none';
+    document.querySelector('.loader-filter').style.display = 'none';
+}
+hideLoader()
+

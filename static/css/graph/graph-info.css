@@ -1,0 +1,12 @@
+#graph-info {
+    padding: 10px;
+    background-color: var(--detail-box);
+    border-radius: 5px;
+}
+
+#graph-info div {
+    margin-bottom: 5px;
+}
+#graph-info span {
+    font-weight: bold;
+}

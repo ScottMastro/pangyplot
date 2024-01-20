@@ -65,3 +65,20 @@ function calculateFPS(){
         elementFPS.textContent = `${frameRate.toFixed(2)}`;
     }
 }
+
+const elementGraphCoord = document.getElementById('graph-coordinates');
+const elementMouseCoord = document.getElementById('mouse-coordinates');
+
+function showCoordinates(coordinates){
+  const x = Math.round(coordinates.x*100)/100
+  const y = Math.round(coordinates.y*100)/100
+
+  elementGraphCoord.textContent = `(${x}, ${y})`;
+
+  const mx = Math.round(coordinates.screen.x*100)/100
+  const my = Math.round(coordinates.screen.y*100)/100
+
+  elementMouseCoord.textContent = `(${mx}, ${my})`;
+
+  
+}

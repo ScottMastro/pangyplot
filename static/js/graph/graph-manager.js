@@ -29,11 +29,6 @@ function processSubgraphData(subgraph, originNode, graph){
 
     updateGraphData(graph);
 
-
-    GETTING_SUBGRAPH.delete(originNode.nodeid);
-    if (GETTING_SUBGRAPH.size === 0) {
-        hideLoader();
-    }
     HIGHLIGHT_NODE = null;
 
     const data = { graph: graph };

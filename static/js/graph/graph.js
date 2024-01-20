@@ -1,6 +1,5 @@
 const LIGHTNESS_SCALE=0.0;
 
-var GETTING_SUBGRAPH = new Set();
 
 var X_COORD_SHIFT = 0;
 var Y_COORD_SHIFT = 0;
@@ -103,10 +102,7 @@ function shift_coord(graph) {
 function explode_node(node, update=true) {
     if (node["type"] == "segment"){ return }
     if (node["type"] == "null"){ return }
-
-    if (! GETTING_SUBGRAPH.has(node.nodeid)){
-        fetchSubgraph(node)
-    }
+    fetchSubgraph(node)
 }
 
 function explode_nodes(nodes){
@@ -122,25 +118,4 @@ function explode_complex_nodes(nodes){
 }
 
 
-function node_click(node) {
-    if (node["type"] == "null"){ return }
-    if (node["type"] == "segment"){ 
-        let query = "MATCH (n:Segment) WHERE ID(n) = " + node.nodeid + " RETURN n"
-        navigator.clipboard.writeText(query);
-        
-    }
-    else{
-        explode_node(node)
-    }
-}
 
-function showLoader() {
-    document.querySelector('.loader').style.display = 'block';
-    document.querySelector('.loader-filter').style.display = 'block';
-}
-
-function hideLoader() {
-    document.querySelector('.loader').style.display = 'none';
-    document.querySelector('.loader-filter').style.display = 'none';
-}
-hideLoader()

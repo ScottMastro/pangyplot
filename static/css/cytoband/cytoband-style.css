@@ -15,7 +15,7 @@
 } 
 
 .cytoband-genome-text {
-    fill: var(--font-color);
+    fill: var(--text-color);
 }
 
 #cytoband-genome-other-selector{
@@ -25,7 +25,7 @@
 .cytoband-chromosome-annotation{
     font-size: x-small;
 } .cytoband-chromosome-text{
-    fill: var(--font-color);
+    fill: var(--text-color);
     user-select:none;
 }
 
@@ -34,7 +34,7 @@
 } 
 
 .cytoband-chromosome-selection-box{
-    stroke: var(--font-color);
+    stroke: var(--text-color);
     fill: var(--highlight) !important;
     fill-opacity: 0.2;
     stroke-dasharray: 5 2;
