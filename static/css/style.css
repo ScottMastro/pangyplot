@@ -6,7 +6,7 @@
     --dark-green: #5D6C53;
     --light-green: #93AC9D;
     --lighter-green: #BCCCC2;
-    --font-color: #384034;
+    --text-color: #384034;
     --detail-box: rgba(225, 225, 225, 0.8);
 
     --title-height: 20px;
@@ -89,7 +89,7 @@ body {
     justify-content: center;
     font-weight: bold;
     text-align: center;
-    color: var(--font-color);
+    color: var(--text-color);
     background: var(--light-green);
     white-space: nowrap;
     overflow: hidden;
@@ -109,7 +109,7 @@ body {
 .button-style {
     background-color: var(--light-green);
     border: none;
-    color: var(--font-color);
+    color: var(--text-color);
     text-align: center;
     cursor: pointer;
     border-radius: 5px;
@@ -149,10 +149,10 @@ hr {
 }
 
 .important-text{
-    color: var(--font-color);
+    color: var(--text-color);
     text-shadow:  2px 2px rgba(0, 0, 0, 0.1);
 } .less-important-text{
-    color: var(--font-color);
+    color: var(--text-color);
 }
 
 #copyPopup {

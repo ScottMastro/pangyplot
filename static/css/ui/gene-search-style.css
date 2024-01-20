@@ -10,7 +10,7 @@
     align-items: center;
 }
 .gene-search-result.placeholder-blank{
-    border: 1px dashed var(--font-color) !important;
+    border: 1px dashed var(--text-color) !important;
     box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.3) !important;
     pointer-events: none !important;
 }
@@ -18,7 +18,7 @@
 #gene-search-suggestions {
     display: none;
     position: absolute;
-    border: 1px solid var(--font-color);
+    border: 1px solid var(--text-color);
     border-top: none;
     z-index: 99;
     max-height: 20em;
@@ -32,7 +32,7 @@
 }
 
 .gene-search-suggestion-item {
-    color: var(--font-color);
+    color: var(--text-color);
     padding: 5px;
     outline: none;
     border-bottom: 2px dotted var(--lighter-green);
