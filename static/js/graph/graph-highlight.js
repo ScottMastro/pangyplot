@@ -35,7 +35,7 @@ function higlightSelectedNode(ctx, graphData){
 
         graphData.nodes.forEach(node => {
 
-            if (highlightNodeid === node.nodeid){
+            if (highlightNodeid === node.nodeid && node.isSingleton){
                 outlineNode(node, ctx, 0, hsize, "red");
                 
                 //todo remove

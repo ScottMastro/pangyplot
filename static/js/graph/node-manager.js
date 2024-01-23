@@ -115,6 +115,7 @@ function createNewNode(node, nodeid, idx, totalKinks) {
 }
 
 function createNewNodeLink(node, nodeid, idx, totalKinks, nodeLength) {
+    //console.log(`${nodeid}#${idx - 1}`, `${nodeid}#${idx}`)
     return {
         source: `${nodeid}#${idx - 1}`,
         target: `${nodeid}#${idx}`,

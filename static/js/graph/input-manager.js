@@ -39,6 +39,30 @@ function addMouseListener(forceGraph, canvasElement){
     });
 }
 
+function addCtrlListener(forceGraph){
+
+    function toggleZoomPan(isEnabled) {
+        forceGraph.enableZoomInteraction(isEnabled);
+        forceGraph.enablePanInteraction(isEnabled);
+    }
+
+    window.addEventListener('keydown', (event) => {
+        console.log("down")
+        if (event.ctrlKey) {
+            toggleZoomPan(true);
+        }
+    });
+
+    window.addEventListener('keyup', (event) => {
+        console.log("down")
+
+        if (!event.ctrlKey) {
+            toggleZoomPan(false);
+        }
+    });
+}
+
+
 function checkNodeClick(nodes, coordinates, canvas) {
     const nearestNode = findNearestNode(nodes, coordinates);
     
