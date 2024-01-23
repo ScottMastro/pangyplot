@@ -1,35 +1,37 @@
 var FORCE_GRAPH = null;
 var ZOOM_FACTOR = 1;
 
+DEBUG=true
+
 const VELOCITY_DECAY=0.1;
 //const VELOCITY_DECAY=1;
-const HOVER_PRECISION=10;
-const NODE_MID_SIZE=15;
-const NODE_END_SIZE=30;
-
+const NODE_SIZE=50;
+const LINK_SIZE=10;
+const HOVER_PRECISION=2;
 
 function getLinkWidth(link) {
-    if (link.count != null){
-        return Math.min(Math.max(3, 3*ZOOM_FACTOR*link.count/2), 6);
+    if (link.class === "node"){
+        return NODE_SIZE;
     }
-    return Math.max(3, 3*ZOOM_FACTOR*link.width);
+    return LINK_SIZE;
 }
-function getNodeSize(node){
-    switch (node.class) {
-        case "end":
-            return NODE_END_SIZE;
-        case "mid":
-            return NODE_MID_SIZE;
-        default:
-            return NODE_END_SIZE;
-    }    
+
+function nodeEffectiveRange(){
+    return Math.max(10, (HOVER_PRECISION/ZOOM_FACTOR));
 }
 
 function paintNode(node, ctx) {
-
     let x = node.x; let y = node.y;
     let shape = node.type === "null" ? 1 : 0
-    let size = getNodeSize(node);
+    let size = NODE_SIZE;
+
+    if(DEBUG){
+        draw_circle_outline2(ctx, x, y, nodeEffectiveRange()*NODE_SIZE/8 , "orange", 1, null)
+    }
+    if (!node.isSingleton){
+        return;
+    }
+
     let color = getNodeColor(node);
     [
         () => { draw_circle(ctx, x, y, size, color); },
@@ -40,13 +42,29 @@ function paintNode(node, ctx) {
     ][shape]();
 }
 
+
+function paintLink(link, ctx){
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(link.source.x, link.source.y);
+    ctx.lineWidth = getLinkWidth(link); 
+    ctx.lineTo(link.target.x, link.target.y);
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = getLinkColor(link);
+    ctx.stroke();
+    ctx.restore();
+}
+
+
 function pre_render(ctx, graphData){
     ZOOM_FACTOR = ctx.canvas.__zoom["k"];
     ctx.save();
 
-    FORCE_GRAPH.backgroundColor(_getBackgroundColor());
+    FORCE_GRAPH.backgroundColor(getBackgroundColor());
+    FORCE_GRAPH.nodeRelSize(nodeEffectiveRange())
 
     drawGeneOutline(ctx, graphData);
+    higlightSelectedNode(ctx, graphData);
 
     ctx.restore();
 }
@@ -58,7 +76,6 @@ function post_render(ctx, graphData){
     // TODO
     //draw_gene_name(ctx, graphData);
 
-    higlightSelectedNode(ctx, graphData);
 
     ctx.restore();
 }
@@ -83,16 +100,7 @@ window.addEventListener('resize', () => {
 
 
 
-function _getBackgroundColor(){
-    return getBackgroundColor();
-}
-function _getLinkColor(link){
-    return getLinkColor(link);
-}
-function _getNodeColor(node){
-    return getNodeColor(node);
 
-}
 
 function renderGraph(graph){
 
@@ -109,31 +117,31 @@ function renderGraph(graph){
         .nodeId("__nodeid")
         .height(_getGraphHeight())
         .width(_getGraphWidth())
-        .backgroundColor(_getBackgroundColor())
-        .linkColor(link => _getLinkColor(link))
-        .nodeColor(node => _getNodeColor(node))
-        .linkWidth(getLinkWidth)
-        .nodeVal(node => getNodeSize(node))
+        .backgroundColor(getBackgroundColor())
+        .linkColor(link => getLinkColor(link))
+        .nodeColor(node => getNodeColor(node))
+        .nodeVal(NODE_SIZE)
+        .nodeRelSize(HOVER_PRECISION)
         .autoPauseRedraw(false) // keep drawing after engine has stopped
 
         .d3VelocityDecay(VELOCITY_DECAY)
 
-        .nodeRelSize(HOVER_PRECISION)
         .nodeCanvasObject((node, ctx) => paintNode(node, ctx)) 
+        .linkCanvasObject((link, ctx) => paintLink(link, ctx)) 
+
         .nodeLabel("__nodeid")
 
-
         //.linkDirectionalParticles(4)
-        //.linkHoverPrecision(HOVER_PRECISION)
 
-    //    .nodeCanvasObject(highlight_node)
 
     //    .minZoom(MIN_ZOOM)
     //    .maxZoom(MAX_ZOOM)
 
     console.log(FORCE_GRAPH);
     addMouseListener(FORCE_GRAPH, canvasElement);
-
+    addCtrlListener(FORCE_GRAPH);
+    FORCE_GRAPH.enableZoomInteraction(false);
+    FORCE_GRAPH.enablePanInteraction(false);
 
     //FORCE_GRAPH.onRenderFramePre((ctx) => { calculateFPS(); })
 

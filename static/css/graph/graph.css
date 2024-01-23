@@ -1,6 +1,10 @@
-
+#graph{
+    min-width: 80vw;
+}
 #graph-container {
     position: relative;
+    
+
 }
 #info-copy-sequence {
     margin-left: 5px;

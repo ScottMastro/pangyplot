@@ -2,6 +2,8 @@
     padding: 10px;
     background-color: var(--detail-box);
     border-radius: 5px;
+    max-width: 20vw;
+    
 }
 
 kbd {
