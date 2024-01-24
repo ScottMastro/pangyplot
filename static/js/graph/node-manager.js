@@ -99,6 +99,8 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         x: getCoordinates(node, totalKinks, idx).x,
         y: getCoordinates(node, totalKinks, idx).y,
         type: node["type"],
+        isHighlight: false,
+        isSelected: false,
         isSingleton: totalKinks === 1,
         isRef: node.hasOwnProperty("chrom"),
         annotations: []
