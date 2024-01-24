@@ -69,13 +69,15 @@ function paintLink(link, ctx){
 
 function pre_render(ctx, graphData){
     ZOOM_FACTOR = ctx.canvas.__zoom["k"];
+
     ctx.save();
+    drawGeneOutline(ctx, graphData);
+
+    highlightSelectedNodes(ctx, graphData);
 
     FORCE_GRAPH.backgroundColor(getBackgroundColor());
     FORCE_GRAPH.nodeRelSize(nodeEffectiveRange())
 
-    drawGeneOutline(ctx, graphData);
-    higlightSelectedNode(ctx, graphData);
 
     ctx.restore();
 }
@@ -103,6 +105,9 @@ window.addEventListener('resize', () => {
 });
 
 
+function onNodeDragHandler(node){
+    nodeDraggedInput(node);
+}
 
 function renderGraph(graph){
 
@@ -130,8 +135,8 @@ function renderGraph(graph){
 
         .nodeCanvasObject((node, ctx) => paintNode(node, ctx)) 
         .linkCanvasObject((link, ctx) => paintLink(link, ctx)) 
-
         .nodeLabel("__nodeid")
+        .onNodeDrag(onNodeDragHandler)
 
         //.linkDirectionalParticles(4)
 

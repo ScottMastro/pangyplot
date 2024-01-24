@@ -3,14 +3,13 @@
 }
 #graph-container {
     position: relative;
-    
-
 }
+
 #info-copy-sequence {
     margin-left: 5px;
     cursor: pointer;
 }
-#boxSelect {
+#box-selection {
     position: absolute;
     z-index: 100;
     border-style: dotted;
