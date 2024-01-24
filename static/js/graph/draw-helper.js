@@ -2,7 +2,7 @@ function draw_circle(ctx, x, y, size, color){
     ctx.save();
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+    ctx.arc(x, y, size/2, 0, 2 * Math.PI, false);
     ctx.fill();
     ctx.restore();
 }

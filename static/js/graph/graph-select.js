@@ -4,7 +4,7 @@ const GRAPH_CONTAINER_ID="force-graph-container";
 var boxSelect = null;
 
 document.getElementById(GRAPH_ID).addEventListener('pointerdown', (e) => {
-    if (e.shiftKey) {
+    if (!e.shiftKey) {
         e.preventDefault();
         boxSelect = document.createElement('div');
         boxSelect.id = 'boxSelect';
@@ -19,7 +19,7 @@ document.getElementById(GRAPH_ID).addEventListener('pointerdown', (e) => {
 });
 
 document.getElementById(GRAPH_ID).addEventListener('pointermove', (e) => {
-    if (e.shiftKey && boxSelect) {
+    if (!e.shiftKey && boxSelect) {
         e.preventDefault();
         if (e.offsetX < boxSelectStart.x) {
             boxSelect.style.left = e.offsetX.toString() + 'px';
@@ -52,11 +52,11 @@ const runBoxSelect = (left, bottom, top, right) => {
     });
 
     const data = { nodes: hitNodes, source: "drag-selected" };
-    document.dispatchEvent(new CustomEvent("nodesSelected", { detail: data }));
+    //document.dispatchEvent(new CustomEvent("nodesSelected", { detail: data }));
 }
 
 document.getElementById(GRAPH_ID).addEventListener('pointerup', (e) => {
-    if (e.shiftKey && boxSelect) {
+    if (!e.shiftKey && boxSelect) {
         e.preventDefault();
         let left, bottom, top, right;
         if (e.offsetX < boxSelectStart.x) {
