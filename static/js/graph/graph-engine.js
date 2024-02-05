@@ -67,7 +67,7 @@ function paintLink(link, ctx){
     ctx.restore();
 }
 
-function pre_render(ctx, graphData){
+function enginePreRender(ctx, graphData){
     ZOOM_FACTOR = ctx.canvas.__zoom["k"];
 
     ctx.save();
@@ -78,11 +78,10 @@ function pre_render(ctx, graphData){
     FORCE_GRAPH.backgroundColor(getBackgroundColor());
     FORCE_GRAPH.nodeRelSize(nodeEffectiveRange())
 
-
     ctx.restore();
 }
 
-function post_render(ctx, graphData){
+function enginePostRender(ctx, graphData){
     ctx.save();
 
     // TODO
@@ -144,7 +143,7 @@ function renderGraph(graph){
     //    .maxZoom(MAX_ZOOM)
 
     console.log(FORCE_GRAPH);
-    addInputListeners(FORCE_GRAPH, canvasElement);
+    setupEngineInputListeners(FORCE_GRAPH, canvasElement);
 
     //FORCE_GRAPH.onRenderFramePre((ctx) => { calculateFPS(); })
 
@@ -152,8 +151,8 @@ function renderGraph(graph){
         debugInformationUpdate(FORCE_GRAPH.graphData());
     })
 
-    FORCE_GRAPH.onRenderFramePre((ctx) => { pre_render(ctx, FORCE_GRAPH.graphData()); })
-    FORCE_GRAPH.onRenderFramePost((ctx) => { post_render(ctx, FORCE_GRAPH.graphData()); })
+    FORCE_GRAPH.onRenderFramePre((ctx) => { enginePreRender(ctx, FORCE_GRAPH.graphData()); })
+    FORCE_GRAPH.onRenderFramePost((ctx) => { enginePostRender(ctx, FORCE_GRAPH.graphData()); })
     
     
     // --- FORCES ---
