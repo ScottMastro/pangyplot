@@ -1,90 +1,42 @@
+// clicking variables
 const HIGHTLIGHT_RANGE = 0.1; //cursor distance in screen coordinates
 const CAN_CLICK_RANGE = 0.05;
 
-var PAN_ZOOM_MODE = false;
-
+// multiselect variables
 const BOX_SELECT_ID = "box-selection"
 var BOX_SELECT = null;
 var BOX_SELECT_START = null;
 var BLOCK_SINGLE_SELECTION = false;
 
+// drawing variables
+var DRAW_HIGHLIGHT_ON_TOP = false;
+const HIGHLIGHT_COLOR = "#fab3ae";
+const SELECTED_COLOR = "#f44336";
 
-function functionKey(forceGraph, canvasElement, event){
-    
-    PAN_ZOOM_MODE = event.shiftKey;
-
-    forceGraph.enablePanInteraction(PAN_ZOOM_MODE);
-    forceGraph.enableZoomInteraction(PAN_ZOOM_MODE);
-    
-    if (PAN_ZOOM_MODE){
-        destroySelectionBox();
-    } else{
-        canvasElement.style.cursor = "default";
+function selectionEnginePointerDown(event, forceGraph, canvasElement, canvas, coordinates, inputState){
+    if (inputState!=PAN_ZOOM_MODE) {
+        BOX_SELECT_START = { x: event.offsetX, y: event.offsetY };
     }
 }
 
-function destroySelectionBox(){
-    BOX_SELECT = null;
-    BOX_SELECT_START = null;
-
-    const boxSelect = document.getElementById(BOX_SELECT_ID);
-    if(boxSelect){
-        boxSelect.remove();
-    }
-}
-
-function selectionEngineKeyDown(event, forceGraph, canvasElement){
-
-    functionKey(forceGraph, canvasElement, event);
-    
-}
-
-function selectionEngineMouseMove(event, forceGraph, canvasElement, canvas, coordinates){
-
-    functionKey(forceGraph, canvasElement, event);
-
-    if (PAN_ZOOM_MODE){
-        canvasElement.style.cursor = "grabbing";
+function selectionEnginePointerUp(event, forceGraph, canvasElement, canvas, coordinates, inputState){
+    if (BOX_SELECT && inputState!=PAN_ZOOM_MODE) {
+        hitNodes = nodesInSelectionBox(event, forceGraph);
+        forceGraph.graphData().nodes.forEach(node => node.isSelected = false);
+        hitNodes.forEach(node => node.isSelected = true);
+        BLOCK_SINGLE_SELECTION = true;
+        DRAW_HIGHLIGHT_ON_TOP = false;
     }
 
-    if (!BOX_SELECT && forceGraph){
-        showCoordinates(coordinates);
-        
-        forceGraph.graphData().nodes.forEach(node => node.isHighlighted = false);
-        const nearestNode = findNearestNode(forceGraph.graphData().nodes, coordinates);
-        if(nearestNode){
-            normDist = findNormalizedDistance(nearestNode, coordinates, canvas);
-            
-            if (normDist < HIGHTLIGHT_RANGE){
-                nearestNode.isHighlighted = true;
-            }
-        }
-    }
+    destroySelectionBox();
 }
 
-function selectionEngineMouseClick(event, forceGraph, canvasElement, canvas, coordinates){
-    if (forceGraph && ! PAN_ZOOM_MODE && ! BLOCK_SINGLE_SELECTION){
-        checkNodeClick(forceGraph.graphData().nodes, coordinates, canvas);
-    }
-}
-
-function selectionEnginePointerDown(event, forceGraph, canvasElement, canvas, coordinates){
-    if (!PAN_ZOOM_MODE) {
-        //e.preventDefault();
-        BOX_SELECT_START = {
-            x: event.offsetX,
-            y: event.offsetY
-        };
-    }
-}
-
-function selectionEnginePointerMove(event, forceGraph, canvasElement, canvas, coordinates){
+function selectionEnginePointerMove(event, forceGraph, canvasElement, canvas, coordinates, inputState){
     BLOCK_SINGLE_SELECTION = false;
     DRAW_HIGHLIGHT_ON_TOP = false;
 
-    if (BOX_SELECT_START && !PAN_ZOOM_MODE) {
-        //event.preventDefault();
-
+    if (BOX_SELECT_START && inputState!=PAN_ZOOM_MODE) {
+        DRAW_HIGHLIGHT_ON_TOP = true;         
         const offsetX = event.offsetX;
         const offsetY = event.offsetY;
 
@@ -95,8 +47,6 @@ function selectionEnginePointerMove(event, forceGraph, canvasElement, canvas, co
             BOX_SELECT.style.top = offsetY.toString() + 'px';
             canvasElement.appendChild(BOX_SELECT);
         }
-
-        DRAW_HIGHLIGHT_ON_TOP = true;         
 
         if (offsetX < BOX_SELECT_START.x) {
             BOX_SELECT.style.left = offsetX.toString() + 'px';
@@ -112,47 +62,55 @@ function selectionEnginePointerMove(event, forceGraph, canvasElement, canvas, co
             BOX_SELECT.style.top = BOX_SELECT_START.y.toString() + 'px';
             BOX_SELECT.style.height = (offsetY - BOX_SELECT_START.y).toString() + 'px';
         }
-
+        
         forceGraph.graphData().nodes.forEach(node => node.isHighlighted = false);
         nodesInSelectionBox(event, forceGraph).forEach(node => node.isHighlighted = true);
 
     } else if (BOX_SELECT) {
         destroySelectionBox();
+    } else { // highlight nearest node when not rectangle selecting
+        forceGraph.graphData().nodes.forEach(node => node.isHighlighted = false);
+        const nearestNode = findNearestNode(forceGraph.graphData().nodes, coordinates);
+        if(nearestNode){
+            normDist = findNormalizedDistance(nearestNode, coordinates, canvas);
+            if (normDist < HIGHTLIGHT_RANGE){
+                nearestNode.isHighlighted = true;
+            }
+        }
     }
 }
 
-function selectionEnginePointerUp(event, forceGraph, canvasElement, canvas, coordinates){
-        if (BOX_SELECT && !PAN_ZOOM_MODE) {
-            event.preventDefault();
-            hitNodes = nodesInSelectionBox(event, forceGraph);
-            const data = { nodes: hitNodes, source: "drag-selected" };
-            //document.dispatchEvent(new CustomEvent("nodesSelected", { detail: data }));
+function selectionEngineMouseClick(event, forceGraph, canvasElement, canvas, coordinates, inputState){
+    if (!BOX_SELECT && inputState==SELECTION_MODE && ! BLOCK_SINGLE_SELECTION){
 
-            forceGraph.graphData().nodes.forEach(node => node.isSelected = false);
-            hitNodes.forEach(node => node.isSelected = true);
-            BLOCK_SINGLE_SELECTION = true;
-            DRAW_HIGHLIGHT_ON_TOP = false;
-        } 
-        destroySelectionBox();
-        
-}
-
-
-function checkNodeClick(nodes, coordinates, canvas) {
-
-    if (BOX_SELECT){ return }
-
-    const nearestNode = findNearestNode(nodes, coordinates);
+        const nearestNode = findNearestNode(forceGraph.graphData().nodes, coordinates);
+        if (nearestNode["type"] == "null"){ return }
+        const normDist = findNormalizedDistance(nearestNode, coordinates, canvas);
     
-    if (nearestNode["type"] == "null"){ return }
-
-    const normDist = findNormalizedDistance(nearestNode, coordinates, canvas);
-
-    nodes.forEach(node => node.isSelected = false);
-    if (normDist < CAN_CLICK_RANGE){
-        destroySelectionBox();
-        nearestNode.isSelected = true;
+        forceGraph.graphData().nodes.forEach(node => node.isSelected = false);
+        if (normDist < CAN_CLICK_RANGE){
+            destroySelectionBox();
+            nearestNode.isSelected = true;
+        }
     }
+}
+
+function destroySelectionBox(){
+    BOX_SELECT = null;
+    BOX_SELECT_START = null;
+
+    const boxSelect = document.getElementById(BOX_SELECT_ID);
+    if(boxSelect){ boxSelect.remove(); }
+}
+
+document.addEventListener('inputModeChange', function(event) {
+    if (event.detail.state == PAN_ZOOM_MODE){
+        destroySelectionBox();
+    }
+});
+
+function selectionEngineNodeDragged(node){
+    destroySelectionBox();
 }
 
 function nodesInSelectionBox(event, forceGraph){
@@ -181,4 +139,58 @@ function nodesInSelectionBox(event, forceGraph){
         }
     });
     return hitNodes;
+}
+
+
+function selectionEngineDraw(ctx, graphData) {
+
+    let highlightNodeIds = new Set();
+    let selectedNodeIds = new Set();
+
+    count=0;
+    graphData.nodes.forEach(node => {
+
+        if(node.isSelected){
+            count+=1;
+            const selectedNodeId = nodeidSplit(node.__nodeid);
+            selectedNodeIds.add(selectedNodeId);
+
+            // todo: summarize all highlighted nodes
+            updateGraphInfo(selectedNodeId);
+        }
+        
+        if (node.isHighlighted) {
+            count+=1;
+            const highlightNodeId = nodeidSplit(node.__nodeid);
+            highlightNodeIds.add(highlightNodeId);
+
+            // todo: summarize all highlighted nodes
+            updateGraphInfo(highlightNodeId);
+        }
+
+    });
+
+    const zoomFactor = ctx.canvas.__zoom["k"];
+    const hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE * (1 / zoomFactor / 10));
+    graphData.nodes.forEach(node => {
+        if (node.isSingleton) {
+            if (highlightNodeIds.has(node.nodeid) && (!selectedNodeIds.has(node.nodeid) || DRAW_HIGHLIGHT_ON_TOP)){
+                outlineNode(node, ctx, 0, hsize, HIGHLIGHT_COLOR);
+            } else if (selectedNodeIds.has(node.nodeid)){
+                outlineNode(node, ctx, 0, hsize, SELECTED_COLOR);
+            }
+        } 
+    });
+
+    const hsizeLink = Math.max(HIGHLIGHT_SIZE + 40, (HIGHLIGHT_SIZE + 40) * (1 / zoomFactor / 10));
+
+    graphData.links.forEach(link => {
+        if (link.class === "node"){
+            if (highlightNodeIds.has(link.nodeid) && (!selectedNodeIds.has(link.nodeid) || DRAW_HIGHLIGHT_ON_TOP)){
+                outlineLink(link, ctx, 0, hsizeLink, HIGHLIGHT_COLOR); 
+            } else if (selectedNodeIds.has(link.nodeid)){
+                outlineLink(link, ctx, 0, hsizeLink, SELECTED_COLOR); 
+            }
+        }
+    });
 }

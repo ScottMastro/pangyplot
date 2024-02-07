@@ -9,6 +9,7 @@ const MIN_ZOOM=0.01;
 const MAX_ZOOM=1e10;
 
 function draw_gene_name(ctx, graphData){
+    const zoomFactor = ctx.canvas.__zoom["k"];
 
     annotationNodesX = {};
     annotationNodesY = {};
@@ -44,7 +45,7 @@ function draw_gene_name(ctx, graphData){
         }, 0);
 
         let x = sumX/n; let y = sumY/n;
-        let size = Math.max(72, 72*(1/ZOOM_FACTOR/10));
+        let size = Math.max(72, 72*(1/zoomFactor/10));
     
         add_text(annotationDict[k].gene, ctx, x, y, size, "lightgrey");
     }
