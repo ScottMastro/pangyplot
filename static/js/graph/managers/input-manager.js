@@ -1,4 +1,5 @@
-function setupEngineInputListeners(forceGraph, canvasElement){
+
+function inputManagerSetupInputListeners(forceGraph, canvasElement){
 
     function getCoordinates(canvasElement, event) {
         const rect = canvasElement.getBoundingClientRect();
@@ -23,66 +24,79 @@ function setupEngineInputListeners(forceGraph, canvasElement){
     // keyboard
 
     document.addEventListener('keydown', (event) => {
+        if (!forceGraph){ return; }
+        event.preventDefault();
 
         if (event.code === 'Space' || event.key === ' ') {
             forceGraph.centerAt(0,0,1000);
         }
-
-
-    });
-
-    canvasElement.addEventListener("keydown", (event) => {
-        event.preventDefault();
-
+        const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
 
     });
 
 
     // mouse
 
-    canvasElement.addEventListener('wheel', (event) => { 
+    canvasElement.addEventListener('wheel', (event) => {
+        if (!forceGraph){ return; }
         event.preventDefault();
 
     });
 
     // pointer
 
-    canvasElement.addEventListener('mousemove', (event) => {
-        const canvas = getCanvasBox(canvasElement);
-        const coordinates = getCoordinates(canvasElement, event);
-
-        selectionEngineMouseMove(event, forceGraph, canvasElement, canvas, coordinates);
-    });
-
     canvasElement.addEventListener('pointermove', (event) => {
+        if (!forceGraph){ return; }
+        const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
         const canvas = getCanvasBox(canvasElement);
         const coordinates = getCoordinates(canvasElement, event);
 
-        selectionEnginePointerMove(event, forceGraph, canvasElement, canvas, coordinates);
+        if (INPUT_STATE === PAN_ZOOM_MODE){
+            canvasElement.style.cursor = "grabbing";
+        }
+        showCoordinates(coordinates);
+
+        selectionEnginePointerMove(event, forceGraph, canvasElement, canvas, coordinates, inputState);
 
     });
 
     canvasElement.addEventListener('pointerdown', (event) => {
+        if (!forceGraph){ return; }
+        const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
         const canvas = getCanvasBox(canvasElement);
         const coordinates = getCoordinates(canvasElement, event);
 
-        selectionEnginePointerDown(event, forceGraph, canvasElement, canvas, coordinates);
+        selectionEnginePointerDown(event, forceGraph, canvasElement, canvas, coordinates, inputState);
     });
 
     
     document.addEventListener('pointerup', (event) => {
+        if (!forceGraph){ return; }
+        const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
         const canvas = getCanvasBox(canvasElement);
         const coordinates = getCoordinates(canvasElement, event);
         
-        selectionEnginePointerUp(event, forceGraph, canvasElement, canvas, coordinates);        
+        selectionEnginePointerUp(event, forceGraph, canvasElement, canvas, coordinates, inputState);        
     });
 
 
     canvasElement.addEventListener('click', (event) => {
+        if (!forceGraph){ return; }
+        const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
         const canvas = getCanvasBox(canvasElement);
         const coordinates = getCoordinates(canvasElement, event);
 
-        selectionEngineMouseClick(event, forceGraph, canvasElement, canvas, coordinates);
+        selectionEngineMouseClick(event, forceGraph, canvasElement, canvas, coordinates, inputState);
+        popNodeEngineMouseClick(event, forceGraph, canvasElement, canvas, coordinates, inputState);
+
     });
+
+}
+
+function inputManagerNodeDragged(node, translate, forceGraph){
+    selectionEngineNodeDragged(node);
+}
+
+function inputManagerNodeClicked(node, event, forceGraph){
 
 }
