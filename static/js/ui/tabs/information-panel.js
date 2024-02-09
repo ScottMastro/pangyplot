@@ -46,7 +46,7 @@ document.getElementById('info-copy-sequence').addEventListener('click', function
 
 let frameTimes = [];
 //average across last [maxFrames] frames
-const maxFrames = 100;
+const maxFrames = 10;
 
 function calculateFPS(){
   const elementFPS = document.getElementById('info-fps');

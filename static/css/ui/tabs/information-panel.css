@@ -1,10 +1,3 @@
-#graph-info {
-    padding: 10px;
-    background-color: var(--detail-box);
-    border-radius: 5px;
-    max-width: 20vw;
-}
-
 #info-debug-container{
     padding-left: 1em;
     background-color: lightcoral;

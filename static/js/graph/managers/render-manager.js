@@ -15,6 +15,8 @@ function nodeEffectiveRange(zoomFactor){
 }
 
 function renderManagerPaintNode(ctx, node) {
+    if (!node.isVisible){ return; }
+
     const zoomFactor = ctx.canvas.__zoom["k"]
 
     let x = node.x; let y = node.y;
@@ -38,7 +40,7 @@ function renderManagerPaintNode(ctx, node) {
 }
 
 function renderManagerPaintLink(ctx, link){
-    const zoomFactor = ctx.canvas.__zoom["k"]
+    if (!link.isVisible){ return; }
 
     ctx.save();
     ctx.beginPath();
@@ -52,12 +54,60 @@ function renderManagerPaintLink(ctx, link){
 }
 
 
-function renderManagerPreRender(ctx, forceGraph){
+function getViewport(ctx, forceGraph, canvasWidth, canvasHeight, buffer){
+    // Zoom and pan positions
+    const zoomX = ctx.canvas.__zoom["x"];
+    const zoomY = ctx.canvas.__zoom["y"];
+    const zoomK = ctx.canvas.__zoom["k"];
+
+    const topLeftGraph = forceGraph.screen2GraphCoords(0, 0);
+    const bottomRightGraph = forceGraph.screen2GraphCoords(canvasWidth, canvasHeight);
+
+    const viewportWidth = (bottomRightGraph.x - topLeftGraph.x) * buffer;
+    const viewportHeight = (bottomRightGraph.y - topLeftGraph.y) * buffer;
+
+    const viewport = {
+        x1: topLeftGraph.x - (viewportWidth - (bottomRightGraph.x - topLeftGraph.x)) / 2,
+        x2: bottomRightGraph.x + (viewportWidth - (bottomRightGraph.x - topLeftGraph.x)) / 2,
+        y1: topLeftGraph.y - (viewportHeight - (bottomRightGraph.y - topLeftGraph.y)) / 2,
+        y2: bottomRightGraph.y + (viewportHeight - (bottomRightGraph.y - topLeftGraph.y)) / 2,
+    };
+
+    if (DEBUG){
+        draw_square(ctx, viewport.x1, viewport.y1, 15/zoomK, "red");
+        draw_square(ctx, viewport.x1, viewport.y2, 15/zoomK, "red");
+        draw_square(ctx, viewport.x2, viewport.y1, 15/zoomK, "red");
+        draw_square(ctx, viewport.x2, viewport.y2, 15/zoomK, "red");
+    }
+
+    return viewport;
+}
+
+function renderManagerPreRender(ctx, forceGraph, canvasWidth, canvasHeight){
     if (!forceGraph) { return; }
-    const zoomFactor = ctx.canvas.__zoom["k"]
+    const zoomFactor = ctx.canvas.__zoom["k"];
+
+    const viewport = getViewport(ctx, forceGraph, canvasWidth, canvasHeight, buffer=0.85)
+
+    function insideViewport(node){
+        return node.x > viewport.x1 &&
+               node.x < viewport.x2 &&
+               node.y > viewport.y1 &&
+               node.y < viewport.y2 ;
+    }
+
+    forceGraph.graphData().nodes.forEach(node => {
+        node.isVisible = insideViewport(node);
+    });
+
+    forceGraph.graphData().links.forEach(link => {
+        link.isVisible = link.source.isVisible || link.target.isVisible;
+    });
+
+    forceGraph.nodeVisibility(node => node.isVisible);
 
     ctx.save();
-    geneHighlightEngineDraw(ctx, forceGraph.graphData());
+    //geneHighlightEngineDraw(ctx, forceGraph.graphData());
     selectionEngineDraw(ctx, forceGraph.graphData());
 
     forceGraph.backgroundColor(getBackgroundColor());

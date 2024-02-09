@@ -101,6 +101,7 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         type: node["type"],
         isHighlight: false,
         isSelected: false,
+        isVisible: true,
         isSingleton: totalKinks === 1,
         isRef: node.hasOwnProperty("chrom"),
         annotations: []
@@ -122,6 +123,7 @@ function createNewNodeLink(node, nodeid, idx, totalKinks, nodeLength) {
         source: `${nodeid}#${idx - 1}`,
         target: `${nodeid}#${idx}`,
         nodeid,
+        isVisible: true,
         class: "node",
         type: node["type"],
         length: Math.min(nodeLength / totalKinks, 1000),

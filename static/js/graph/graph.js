@@ -13,6 +13,14 @@ const VELOCITY_DECAY=0.1;
 
 // todo https://github.com/vasturiano/d3-force-registry
 
+function getCanvasWidth(){
+    return window.innerWidth*FORCE_GRAPH_WIDTH_PROPORTION;
+}
+function getCanvasHeight(){
+    return window.innerHeight*FORCE_GRAPH_HEIGHT_PROPORTION;
+}
+
+
 function renderGraph(graph){
 
     console.log("forceGraph:", graph);
@@ -21,16 +29,16 @@ function renderGraph(graph){
     var forceGraph = ForceGraph()(canvasElement)
         .graphData(graph)
         .nodeId("__nodeid")
-        .height(window.innerHeight*FORCE_GRAPH_HEIGHT_PROPORTION)
-        .width(window.innerWidth*FORCE_GRAPH_WIDTH_PROPORTION)
+        .height(getCanvasHeight())
+        .width(getCanvasWidth())
         .backgroundColor(getBackgroundColor())
         .linkColor(link => getLinkColor(link))
         .nodeColor(node => getNodeColor(node))
         .nodeVal(NODE_SIZE)
         .nodeRelSize(HOVER_PRECISION)
         .autoPauseRedraw(false) // keep drawing after engine has stopped
-        .d3VelocityDecay(VELOCITY_DECAY)
-
+        .d3VelocityDecay(0.1)
+        .d3AlphaDecay(0)
         .nodeCanvasObject((node, ctx) => renderManagerPaintNode(ctx, node, forceGraph)) 
         .linkCanvasObject((link, ctx) => renderManagerPaintLink(ctx, link, forceGraph)) 
         .nodeLabel("__nodeid")
@@ -47,8 +55,8 @@ function renderGraph(graph){
 
     window.addEventListener('resize', () => {
         forceGraph
-            .height(window.innerHeight*FORCE_GRAPH_HEIGHT_PROPORTION)
-            .width(window.innerWidth*FORCE_GRAPH_WIDTH_PROPORTION);
+            .height(getCanvasHeight())
+            .width(getCanvasWidth());
     });
 
     console.log("forceGraph:", forceGraph);
@@ -60,7 +68,8 @@ function renderGraph(graph){
         debugInformationUpdate(forceGraph.graphData());
     })
 
-    forceGraph.onRenderFramePre((ctx) => { renderManagerPreRender(ctx, forceGraph); })
+    
+    forceGraph.onRenderFramePre((ctx) => { renderManagerPreRender(ctx, forceGraph, getCanvasWidth(), getCanvasHeight()); })
     forceGraph.onRenderFramePost((ctx) => { renderManagerPostRender(ctx, forceGraph); })
     
     
@@ -70,9 +79,11 @@ function renderGraph(graph){
         return (link.type === "edge") ? 10 : link.length ;
     }
     
-    forceGraph.d3Force('link').distance(link_force_distance).strength(0.5).iterations(1)
+    forceGraph.d3Force('link').distance(100).strength(0.9).iterations(1)
     forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
     forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
+
+    graphSettingEngineSetup(forceGraph);
 
 }
 
@@ -106,7 +117,6 @@ function processGraphData(rawGraph){
     const links = processLinks(rawGraph.links);
     
     const graph = {"nodes": nodeResult.nodes, "links": links.concat(nodeResult.nodeLinks)}
-    console.log("look here",graph);
 
     document.dispatchEvent(new CustomEvent("updatedGraphData", { detail: { graph: graph } }));
 }

@@ -21,8 +21,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/color-picker.css') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/graph.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/keyboard-shortcuts.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/graph-info.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/keyboard-shortcuts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/information-panel.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/graph-settings.css') }}">
 
 </head>
 
@@ -47,11 +49,19 @@
     <div class="flex-row">
     
         <div id="graph" class="flex-1" tabindex="0"></div>
-        <div class="flex-col flex-1">
-            {% include 'graph-info.html' %}
-            {% include 'keyboard-shortcuts.html' %}
-        </div>
+        <div id="tabs-container" class="flex-1 flex-col">
+            <div class="tabs">
+                <button class="tab" onclick="switchTab('graph-info-tab')"><i class="fa-solid fa-rectangle-list"></i></button>
+                <button class="tab" onclick="switchTab('graph-settings-tab')"><i class="fa-solid fa-gear"></i></button>
+                <button class="tab" onclick="switchTab('keyboard-shortcuts-tab')"><i class="fa-solid fa-keyboard"></i></button>
+            </div>
 
+            <div id="graph-info-tab" class="tab-content flex-9"> {% include 'graph-info.html' %} </div>
+            <div id="graph-settings-tab" class="tab-content active-tab-content flex-9"> {% include 'graph-settings.html' %} </div>
+            <div id="keyboard-shortcuts-tab" class="tab-content flex-9"> {% include 'keyboard-shortcuts.html' %} </div>
+
+        </div>
+        
     </div>
 </div>
 
@@ -123,14 +133,17 @@
 <script src="{{url_for('static', filename='js/graph/engines/selection-engine.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/engines/gene-highlight-engine.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/engines/node-pop-engine.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/engines/graph-setting-engine.js')}}"></script>
 
 
-<script src="{{url_for('static', filename='js/graph/graph-colors.js')}}"></script>
-<script src="{{url_for('static', filename='js/graph/graph-highlight.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/utils/graph-colors.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/utils/draw-helper.js')}}"></script>
 
-<script src="{{url_for('static', filename='js/graph/draw-helper.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/path-manager.js')}}"></script>
-<script src="{{url_for('static', filename='js/graph/information-panel.js')}}"></script>
+
+<script src="{{url_for('static', filename='js/ui/tabs/tabs.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/tabs/information-panel.js')}}"></script>
+<script src="{{url_for('static', filename='js/ui/tabs/graph-settings.js')}}"></script>
 
 
 </body>

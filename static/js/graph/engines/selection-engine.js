@@ -12,6 +12,8 @@ var BLOCK_SINGLE_SELECTION = false;
 var DRAW_HIGHLIGHT_ON_TOP = false;
 const HIGHLIGHT_COLOR = "#fab3ae";
 const SELECTED_COLOR = "#f44336";
+var IS_DRAGGING_NODE = false;
+
 
 function selectionEnginePointerDown(event, forceGraph, canvasElement, canvas, coordinates, inputState){
     if (inputState!=PAN_ZOOM_MODE) {
@@ -28,6 +30,7 @@ function selectionEnginePointerUp(event, forceGraph, canvasElement, canvas, coor
         DRAW_HIGHLIGHT_ON_TOP = false;
     }
 
+    IS_DRAGGING_NODE = false;
     destroySelectionBox();
 }
 
@@ -71,7 +74,7 @@ function selectionEnginePointerMove(event, forceGraph, canvasElement, canvas, co
     } else { // highlight nearest node when not rectangle selecting
         forceGraph.graphData().nodes.forEach(node => node.isHighlighted = false);
         const nearestNode = findNearestNode(forceGraph.graphData().nodes, coordinates);
-        if(nearestNode){
+        if(!IS_DRAGGING_NODE && nearestNode){
             normDist = findNormalizedDistance(nearestNode, coordinates, canvas);
             if (normDist < HIGHTLIGHT_RANGE){
                 nearestNode.isHighlighted = true;
@@ -110,6 +113,7 @@ document.addEventListener('inputModeChange', function(event) {
 });
 
 function selectionEngineNodeDragged(node){
+    IS_DRAGGING_NODE = true;
     destroySelectionBox();
 }
 
@@ -143,6 +147,7 @@ function nodesInSelectionBox(event, forceGraph){
 
 
 function selectionEngineDraw(ctx, graphData) {
+    ctx.save();
 
     let highlightNodeIds = new Set();
     let selectedNodeIds = new Set();
@@ -154,21 +159,21 @@ function selectionEngineDraw(ctx, graphData) {
             count+=1;
             const selectedNodeId = nodeidSplit(node.__nodeid);
             selectedNodeIds.add(selectedNodeId);
-
-            // todo: summarize all highlighted nodes
-            updateGraphInfo(selectedNodeId);
+            
+            if (count == 0){
+                // todo: summarize all highlighted nodes
+                updateGraphInfo(selectedNodeId);
+            }
         }
         
         if (node.isHighlighted) {
             count+=1;
             const highlightNodeId = nodeidSplit(node.__nodeid);
             highlightNodeIds.add(highlightNodeId);
-
-            // todo: summarize all highlighted nodes
-            updateGraphInfo(highlightNodeId);
         }
 
     });
+
 
     const zoomFactor = ctx.canvas.__zoom["k"];
     const hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE * (1 / zoomFactor / 10));
@@ -193,4 +198,6 @@ function selectionEngineDraw(ctx, graphData) {
             }
         }
     });
+
+    ctx.restore();
 }
