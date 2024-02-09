@@ -60,25 +60,20 @@ function draw_cross(ctx, x, y, size, color){
 }
 
 function outlineNode(node, ctx, shift, size, color) {
-    ctx.save();
     ctx.beginPath();
     ctx.arc(node.x+shift, node.y+shift, size, 0, 2 * Math.PI, false);
     ctx.fillStyle = color;
     ctx.fill();
-    ctx.restore();
 }
 
 function outlineLink(link, ctx, shift, width, color) {
-    ctx.save();
     ctx.beginPath();
     ctx.moveTo(link.source.x+shift, link.source.y+shift);
     ctx.lineWidth = width;
     ctx.strokeStyle = color;
     ctx.lineTo(link.target.x+shift, link.target.y+shift);
     ctx.lineCap = 'round';
-
     ctx.stroke();
-    ctx.restore();
 }
 
 function add_text(text, ctx, x, y, size, color, align="center", baseline="middle") {

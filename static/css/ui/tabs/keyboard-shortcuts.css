@@ -1,11 +1,3 @@
-#keyboard-shortcuts {
-    padding: 10px;
-    background-color: var(--detail-box);
-    border-radius: 5px;
-    max-width: 20vw;
-    
-}
-
 kbd {
         align-items: center;
         border: 1px solid var(--dark-green);
@@ -14,7 +6,6 @@ kbd {
         box-sizing: border-box;
         display: inline-flex;
         gap: 0 .5em;
-        font-size: small;
         justify-content: center;
         margin: 0 .15em;
         min-width: 24px;
