@@ -14,7 +14,7 @@ function nodeEffectiveRange(zoomFactor){
     return Math.max(10, (HOVER_PRECISION/zoomFactor));
 }
 
-function renderManagerPaintNode(ctx, node) {
+function renderManagerPaintNode(ctx, node, forceGraph) {
     if (!node.isVisible){ return; }
 
     const zoomFactor = ctx.canvas.__zoom["k"]
@@ -23,7 +23,9 @@ function renderManagerPaintNode(ctx, node) {
     let shape = node.type === "null" ? 1 : 0
     let size = NODE_SIZE;
     if(DEBUG){
-        draw_circle_outline2(ctx, x, y, nodeEffectiveRange(zoomFactor)*NODE_SIZE/8 , "orange", 1, null)
+        //draw_circle_outline2(ctx, x, y, nodeEffectiveRange(zoomFactor)*NODE_SIZE/8 , "orange", 1, null)
+        const nodeBox = nodeNeighborhood(node, forceGraph)
+        draw_rectangle_outline(ctx, nodeBox.x, nodeBox.y, nodeBox.width, nodeBox.height, "purple", lineWidth=3);
     }
     if (!node.isSingleton){
         return;
@@ -39,7 +41,7 @@ function renderManagerPaintNode(ctx, node) {
     ][shape]();
 }
 
-function renderManagerPaintLink(ctx, link){
+function renderManagerPaintLink(ctx, link, forceGraph){
     if (!link.isVisible){ return; }
 
     ctx.save();

@@ -18,9 +18,6 @@ import argparse
 
 app = Flask(__name__)
 
-def create_app():
-    db_init()
-
 @app.route('/select', methods=["GET"])
 def select():
     genome = request.args.get("genome")
@@ -126,14 +123,13 @@ def index():
 
 if __name__ == '__main__':
 
-    create_app()
-
     with app.app_context():
 
         parser = argparse.ArgumentParser(description="PangyPlot command line options.")
+        parser.add_argument('--db', help='Database name', default=None)
         parser.add_argument('--gfa', help='Path to the rGFA file', default=None)
         parser.add_argument('--layout', help='Path to the odgi layout TSV file', default=None)
-        parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', action="store_true")
+        parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', default=None)
         parser.add_argument('--gff3', help='Path to the GFF3 file', default=None)
         parser.add_argument('--ref', help='Reference assembly name', default=None)
         parser.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
@@ -143,10 +139,13 @@ if __name__ == '__main__':
         parser.add_argument('--gencode', help='Add genocode annotations', action='store_true')
         args = parser.parse_args()
 
+        db_init(args.db)
+
         flag = False
         for attr, value in vars(args).items():
             if value:
                 flag = True
+
 
         if args.drop:
             print("dropping all")

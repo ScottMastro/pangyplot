@@ -36,6 +36,18 @@ function draw_square(ctx, x, y, size, color){
     ctx.restore();
 }
 
+function draw_rectangle_outline(ctx, x, y, width, height, color, lineWidth=3) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = lineWidth;
+    const startX = x;
+    const startY = y;
+    ctx.beginPath();
+    ctx.rect(startX, startY, width, height);
+    ctx.stroke();
+    ctx.restore();
+}
+
 function draw_triangle(ctx, x, y, size, color){
     ctx.save();
     ctx.fillStyle = color;

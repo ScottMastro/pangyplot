@@ -20,8 +20,9 @@ function processSubgraphData(subgraph, originNode, forceGraph){
     graph = forceGraph.graphData();
 
     const nodeResult = processNodes(subgraph.nodes);
+    const nodeBox = nodeNeighborhood(originNode, forceGraph)
+    nodeResult.nodes = squishToNeighborhood(nodeResult.nodes, nodeBox);
 
-    nodeResult.nodes = shiftCoordinates(nodeResult.nodes, originNode);
     graph = deleteNode(graph, originNode.nodeid);
 
     let links = subgraph.links.filter(l => l.source in NODEIDS && l.target in NODEIDS )
@@ -49,13 +50,13 @@ function fetchSubgraph(originNode, forceGraph) {
 
     if (! queueSubgraph(nodeid)){ return }
 
-    const genome = GRAPH_GENOME;
-    const chromosome = GRAPH_CHROM;
-    const start = GRAPH_START_POS;
-    const end = GRAPH_END_POS;
+    // graph.js getGraphCoordinates()
+    const params = {
+        nodeid,
+        ...getGraphCoordinates()
+    };
 
-    const url = buildUrl('/subgraph', {nodeid, genome, chromosome, start, end });
-
+    const url = buildUrl('/subgraph', params);
     fetchData(url, 'subgraph').then(fetchedData => {
         dequeueSubgraph(nodeid);
         processSubgraphData(fetchedData, originNode, forceGraph)    
@@ -76,7 +77,9 @@ function popNodeEngineMouseClick(event, forceGraph, canvasElement, canvas, coord
     if (inputState===NODE_POP_MODE){
 
         const nearestNode = findNearestNode(forceGraph.graphData().nodes, coordinates);
-        if (nearestNode["type"] == "null"){ return }
+        if (nearestNode.type == "null" || nearestNode.type == "segment"){ 
+            return;
+        }
         const normDist = findNormalizedDistance(nearestNode, coordinates, canvas);
     
         if (normDist < CAN_CLICK_RANGE){

@@ -80,7 +80,6 @@ function shiftCoordinates(nodes, originNode){
     return nodes
 }
 
-
 function getNodeLength(node) {
     return node.hasOwnProperty("length") ? node["length"] : node["size"];
 }
@@ -91,6 +90,12 @@ function calculateNumberOfKinks(nodeLength) {
 }
 
 function createNewNode(node, nodeid, idx, totalKinks) {
+    if(node.nodeid == 1620352){
+        console.log(idx, getCoordinates(node, totalKinks, idx))
+
+    }
+
+
     let newNode = {
         nodeid,
         __nodeid: `${nodeid}#${idx}`,
@@ -146,6 +151,7 @@ function processNodes(rawNodes) {
         INIT_POSITIONS[nodeid] = getCoordinates(rawNode);
         NODE_INFO[nodeid] = rawNode;
 
+        
         for (let i = 0; i < numberOfKinks; i++) {
             const newNode = createNewNode(rawNode, nodeid, i, numberOfKinks);
             nodes.push(newNode);

@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     const sliders = [
-        { id: "friction-slider", defaultValue: 0.0228 },
-        { id: "velocity-slider", defaultValue: 0.4 },
-        { id: "other1-slider", defaultValue: 0.2 },
-        { id: "other2-slider", defaultValue: 0.3 },
-        { id: "other3-slider", defaultValue: 0.5 },
-        { id: "other4-slider", defaultValue: 0.6 }
+        { id: "alpha-slider", defaultValue: 0.0228 },
+        { id: "friction-slider", defaultValue: 0.1 },
+        { id: "attraction-slider", defaultValue: -500 },
+        { id: "collision-slider", defaultValue: 50 },
+        { id: "spread-slider", defaultValue: 0 },
+        { id: "pull-slider", defaultValue: 100 }
     ];
 
     sliders.forEach(sliderInfo => {
