@@ -91,9 +91,10 @@ def parse_gff3(gff3, refGenome):
             annotation = parse_line(line)
             if annotation:
                 if refGenome is not None:
-                    annotation["chrom"] = f"{refGenome}#{annotation['chrom']}"
+                    annotation["genome"] = refGenome
+                    annotation["chrom"] = annotation['chrom']
                 annotation["file"] = filename
                 annotations.append(annotation)
 
     annotationDict = split_annotations_by_type(annotations)
-    add_annotations(annotationDict)
+    add_annotations(refGenome, annotationDict)

@@ -13,33 +13,25 @@ def add_annotations_by_type(session, annotations, type, batchSize):
                 """
         session.run(query, {"batch": batch})
 
-def add_gene_links(session):
-    query = (
-        "MATCH (n) WHERE n.gene_id IS NOT NULL "
-        "MATCH (g:Gene) WHERE g.id = n.gene_id "
-        "MERGE (n)-[:GENE]->(g)"
-    )
-    session.run(query)
-
-def add_annotation_links(session):
+def add_annotation_links(genome, session):
 
     query = """
-            MATCH (t:Transcript) WHERE t.gene_id IS NOT NULL
-            MATCH (g:Gene) WHERE g.id = t.gene_id
+            MATCH (t:Transcript) WHERE t.gene_id IS NOT NULL AND t.genome = $genome
+            MATCH (g:Gene) WHERE g.id = t.gene_id AND g.genome = $genome
             MERGE (t)-[:INSIDE]->(g)
             """
-    session.run(query)
+    session.run(query, parameters={'genome': genome})
                 
     query = """
-            MATCH (n) WHERE n.transcript_id IS NOT NULL
-            MATCH (t:Transcript) WHERE t.id = n.transcript_id
+            MATCH (n) WHERE n.transcript_id IS NOT NULL AND n.genome = $genome
+            MATCH (t:Transcript) WHERE t.id = n.transcript_id AND t.genome = $genome
             MERGE (n)-[:INSIDE]->(t)
             """
-    session.run(query)
+    session.run(query, parameters={'genome': genome})
+    
+def add_annotations(refGenome, annotationDict, batchSize=10000):
 
-def add_annotations(annotationDict, batchSize=10000):   
-
-    with get_session() as session:
+    with get_session() as (db, session):
 
         add_annotations_by_type(session, annotationDict[GENE], GENE, batchSize)
         print(GENE, len(annotationDict[GENE]))
@@ -49,4 +41,4 @@ def add_annotations(annotationDict, batchSize=10000):
             print(type, len(annotationDict[type]))
             add_annotations_by_type(session, annotationDict[type], type, batchSize)
         
-        add_annotation_links(session)
+        add_annotation_links(refGenome, session)

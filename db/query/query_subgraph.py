@@ -2,13 +2,13 @@ from db.neo4j_db import get_session
 import db.utils.create_record as record
 from db.utils.integrity_check import deduplicate_links
 
-def get_subgraph_nodes(nodeid, chrom, start, end):
+def get_subgraph_nodes(nodeid, genome, chrom, start, end):
     nodes,links = [],[]
-    with get_session() as session:
+    with get_session() as (db, session):
 
-        # todo: strict fails to get nodes w/o start and end positions
+        # todo: strict fails to get nodes w/o start and end positions (add genome)
         strict = "WHERE n.chrom = $chrom AND n.start <= $end AND n.end >= $start AND ID(t) = $i AND NOT EXISTS {"
-        lax = "WHERE ID(t) = $i AND NOT EXISTS {"
+        lax = "WHERE n.db = $db AND ID(t) = $i AND NOT EXISTS {"
         query = """
                 MATCH (n)-[:PARENT|INSIDE]->(t)
                 """+lax+"""
@@ -20,7 +20,7 @@ def get_subgraph_nodes(nodeid, chrom, start, end):
                 RETURN n, labels(n) AS type, collect(DISTINCT r1) AS ends, collect(DISTINCT r2) AS links
                 """
 
-        parameters = {"i": nodeid, "start": start, "end": end, "chrom": chrom}
+        parameters = {"db": db, "i": nodeid, "start": start, "end": end, "genome": genome, "chrom": chrom}
         results = session.run(query, parameters)
 
         for result in results:
@@ -39,18 +39,18 @@ def get_subgraph_nodes(nodeid, chrom, start, end):
 
 def get_subgraph_simple(nodeid):
     nodes,links = [],[]
-    with get_session() as session:
+    with get_session() as (db, session):
 
         query = """
                 MATCH (t)<-[:PARENT|INSIDE*]-(n)
-                WHERE ID(t) = $i AND n.subtype <> "super" AND NOT EXISTS {
+                WHERE n.db = $db AND ID(t) = $i AND n.subtype <> "super" AND NOT EXISTS {
                     MATCH (n)-[:PARENT|INSIDE]->(m)
                     WHERE m.subtype <> "super"
                 }
                 OPTIONAL MATCH (n)-[r:END]-(s:Segment)
                 RETURN n, s, labels(n) AS type, collect(DISTINCT r) AS ends
                 """
-        results = session.run(query, {"i": nodeid})
+        results = session.run(query, {"db": db, "i": nodeid})
 
         for result in results:
             node = record.node_record(result["n"], result["type"][0])
@@ -69,8 +69,8 @@ def get_subgraph_simple(nodeid):
     return nodes, links
    
 
-def get_subgraph(nodeid, chrom, start, end):
-    nodes,links = get_subgraph_nodes(nodeid, chrom, start, end)
+def get_subgraph(nodeid, genome, chrom, start, end):
+    nodes,links = get_subgraph_nodes(nodeid, genome, chrom, start, end)
 
     print(f"SUBGRAPH QUERY: ")#{chrom}:{start}-{end}")
     print(f"   Nodes: {len(nodes)}")

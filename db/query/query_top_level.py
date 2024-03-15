@@ -3,12 +3,12 @@ import db.utils.create_record as record
 from db.utils.integrity_check import deduplicate_links, remove_invalid_links
 
 
-def get_top_level_aggregates(session, type, chrom, start, end):
+def get_top_level_aggregates(db, session, type, genome, chrom, start, end):
     nodes,links = [],[]
 
     query = """
             MATCH (n:"""+type+""")
-            WHERE n.start <= $end AND n.end >= $start AND n.chrom = $chrom AND NOT EXISTS {
+            WHERE n.db = $db AND n.start <= $end AND n.end >= $start AND n.chrom = $chrom AND NOT EXISTS {
                 MATCH (n)-[:INSIDE|PARENT]->(m)
                 WHERE m.start >= $start AND m.end <= $end AND m.chrom = $chrom
             }
@@ -17,7 +17,7 @@ def get_top_level_aggregates(session, type, chrom, start, end):
             RETURN n, labels(n) AS type, collect(DISTINCT r1) AS ends, collect(DISTINCT r2) AS links
             """
 
-    parameters = {"start": start, "end": end, "chrom": chrom}
+    parameters = {"start": start, "end": end, "db": db, "genome": genome, "chrom": chrom}
     results = session.run(query, parameters)
 
     for result in results:
@@ -27,51 +27,21 @@ def get_top_level_aggregates(session, type, chrom, start, end):
 
     return nodes, links
 
-def get_top_level_chains(session, chrom, start, end):
-    return get_top_level_aggregates(session, "Chain", chrom, start, end)
-def get_top_level_bubbles(session, chrom, start, end):
-    return get_top_level_aggregates(session, "Bubble", chrom, start, end)
-def get_top_level_segments(session, chrom, start, end):
-    return get_top_level_aggregates(session, "Segment", chrom, start, end)
-
-#todo: delete?
-def get_top_level_segments2(session, chrom, start, end):
-    segments,links = [],[]
-
-    # NOTE: we find all segments that overlap the range, but only look for bubbles fully contained
-    query = """
-            MATCH (s:Segment)
-            WHERE s.start <= $end AND s.end >= $start AND s.chrom = $chrom AND NOT EXISTS {
-                MATCH (s)-[:INSIDE]->(n)
-                WHERE n.start >= $start AND n.end <= $end AND n.chrom = $chrom
-            }
-            MATCH (s)-[r:LINKS_TO]->(m:Segment) 
-            RETURN s, collect(r) AS links
-            """
-    parameters = {"start": start, "end": end, "chrom": chrom}
-    results = session.run(query, parameters)
+def get_top_level_chains(db, session, genome, chrom, start, end):
+    return get_top_level_aggregates(db, session, "Chain", genome, chrom, start, end)
+def get_top_level_bubbles(db, session, genome, chrom, start, end):
+    return get_top_level_aggregates(db, session, "Bubble", genome, chrom, start, end)
+def get_top_level_segments(db, session, genome, chrom, start, end):
+    return get_top_level_aggregates(db, session, "Segment", genome, chrom, start, end)
 
 
-    for result in results:
-        segments.append( record.segment_record(result["s"]) )
-        links.extend( [record.link_record_simple(r) for r in result["links"]] )
+def get_top_level(genome, chrom, start, end):
 
-    segIds={s["nodeid"] for s in segments}
-    keepLinks = []
-    for link in links:
-        if link["target"] not in segIds or link["source"] not in segIds:
-            continue
-        keepLinks.append(link)
+    with get_session() as (db, session):
 
-    return segments, keepLinks
-
-def get_top_level(chrom, start, end):
-
-    with get_session() as session:
-
-        chains,chainLinks = get_top_level_chains(session, chrom, start, end)
-        bubbles,bubbleLinks = get_top_level_bubbles(session, chrom, start, end)
-        segments,segmentLinks = get_top_level_segments(session, chrom, start, end)
+        chains,chainLinks = get_top_level_chains(db, session, genome, chrom, start, end)
+        bubbles,bubbleLinks = get_top_level_bubbles(db, session, genome, chrom, start, end)
+        segments,segmentLinks = get_top_level_segments(db, session, genome, chrom, start, end)
 
     nodes = chains + bubbles + segments
     links = chainLinks + bubbleLinks + segmentLinks

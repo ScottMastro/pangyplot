@@ -1,35 +1,25 @@
 from flask import Flask, render_template, request, jsonify, make_response
 from cytoband import get_cytoband 
-from db.neo4j_db import db_init
 from db.query.query_top_level import get_top_level
 from db.query.query_annotation import get_genes_in_range,text_search_gene
 from db.query.query_subgraph import get_subgraph
 from db.query.query_all import query_all_chromosomes
-
-import db.modify.drop_data as drop
-
-from parser.parse_gfa import parse_graph
-from parser.parse_layout import parse_layout
-from parser.parse_gff3 import parse_gff3
-import db.bubble_gun as bubble_gun
-from db.modify.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
-
-import argparse
+from argparser import parse_args
 
 app = Flask(__name__)
 
 @app.route('/select', methods=["GET"])
 def select():
     genome = request.args.get("genome")
-    chrom = genome + "#" + request.args.get("chromosome")
+    chrom = request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
-    print(f"Making graph for {chrom}:{start}-{end}...")
+    print(f"Making graph for {genome}#{chrom}:{start}-{end}...")
     
     start = int(start)
     end = int(end)
 
-    resultDict = get_top_level(chrom, start, end)
+    resultDict = get_top_level(genome, chrom, start, end)
     
     return resultDict, 200
 
@@ -54,7 +44,7 @@ def genes():
 def subgraph():
     nodeid = request.args.get("nodeid")
     genome = request.args.get("genome")
-    chrom = genome + "#" + request.args.get("chromosome")
+    chrom = request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
 
@@ -64,7 +54,7 @@ def subgraph():
     print(f"Getting subgraph for {nodeid}...")
 
     nodeid = int(nodeid)
-    resultDict = get_subgraph(nodeid, chrom, start, end)
+    resultDict = get_subgraph(nodeid, genome, chrom, start, end)
     return resultDict, 200
 
 @app.route('/chromosomes', methods=["GET"])
@@ -122,86 +112,4 @@ def index():
     return response
 
 if __name__ == '__main__':
-
-    with app.app_context():
-
-        parser = argparse.ArgumentParser(description="PangyPlot command line options.")
-        parser.add_argument('--db', help='Database name', default=None)
-        parser.add_argument('--gfa', help='Path to the rGFA file', default=None)
-        parser.add_argument('--layout', help='Path to the odgi layout TSV file', default=None)
-        parser.add_argument('--bubbles', help='Path to the bubblegun JSON file', default=None)
-        parser.add_argument('--gff3', help='Path to the GFF3 file', default=None)
-        parser.add_argument('--ref', help='Reference assembly name', default=None)
-        parser.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
-        #parser.add_argument('--ref', help='GAF file with reference coordinates', default=None)
-        parser.add_argument('--demo', help='Use DRB1 demo data', action='store_true')
-        parser.add_argument('--drop', help='Drop all tables', action='store_true')
-        parser.add_argument('--gencode', help='Add genocode annotations', action='store_true')
-        args = parser.parse_args()
-
-        db_init(args.db)
-
-        flag = False
-        for attr, value in vars(args).items():
-            if value:
-                flag = True
-
-
-        if args.drop:
-            print("dropping all")
-            drop.drop_all()
-            #drop.drop_bubbles()
-            #drop.drop_annotations()
-
-        if args.gencode:
-            args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
-            args.ref = "CHM13"
-
-        if args.demo:
-            args.gfa = "static/data/DRB1-3123_sorted.gfa"
-            args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
-            args.bubbles = "static/data/DRB1-3123_sorted.bubble.json"
-
-        if args.chrM:
-            args.gfa = "static/data/hprc-v1.0-mc-grch38.chrM.gfa"
-            args.layout = "static/data/hprc-v1.0-mc-grch38.chrM.lay.tsv"
-            args.bubbles = "static/data/hprc-v1.0-mc-grch38.chrM.json"
-            flag = False
-
-        if (args.gfa and args.layout is None) or (args.gfa is None and args.layout) :
-            print("Both GFA and layout TSV file required to construst graph!")
-            parser.print_help()
-
-        if (args.gff3 and args.ref is None):
-            print("Need specify --ref when parsing GFF3 file!")
-            parser.print_help()
-
-        if args.gfa and args.layout:
-            print("Parsing layout...")
-            layoutCoords = parse_layout(args.layout)
-            print("Parsing GFA...")
-            parse_graph(args.gfa, layoutCoords)
-            
-        if args.bubbles:
-            #drop.drop_bubbles()
-            print("Calculating bubbles...")
-            bubble_gun.shoot()
-            add_null_nodes()
-            connect_bubble_ends_to_chain()
-            add_chain_subtype()
-            print("Done.")
-
-            #print("Parsing bubbles...")
-            #parse_bubbles(args.bubbles)
-            #print("Done.")
-        
-        if args.gff3 and args.ref:
-            drop.drop_annotations()
-            print("Parsing GFF3...")
-            parse_gff3(args.gff3, args.ref)
-            print("Done.")
-
-
-        if not flag:
-            app.run()
-        
+    parse_args(app)
