@@ -11,12 +11,16 @@ def create_index(session, type, properties):
         else:
             raise
 
-def create_restraint(session, type, property):
+def create_restraint(session, type, properties):
+    if isinstance(properties, str):
+        properties = [properties]
+
+    properties_str = ', '.join([f'n.{prop}' for prop in properties])
     try:
-        session.run(f"CREATE CONSTRAINT FOR (n:{type}) REQUIRE n.{property} IS UNIQUE")
+        session.run(f"CREATE CONSTRAINT FOR (n:{type}) REQUIRE ({properties_str}) IS UNIQUE")
     except exceptions.ClientError as e:
         if "EquivalentSchemaRuleAlreadyExists" in e.code:
-            # Index already exists.
+            # Restraint already exists.
             pass
         else:
             raise
@@ -24,6 +28,16 @@ def create_restraint(session, type, property):
 def drop_index(session, indexName):
     session.run(f"DROP INDEX {indexName}")
 
+def drop_all_constraints(session):
+    constraints = session.run("SHOW CONSTRAINTS")
+    for constraint in constraints:
+        try:
+            constraintName = constraint["name"]
+            session.run(f"DROP CONSTRAINT {constraintName}")
+            print(f"Constraint {constraintName} dropped.")
+        except exceptions.ClientError as e:
+            print(f"Failed to drop constraint {constraintName}: {e}")
+            
 def drop_all_index(session):
     indexes = session.run("SHOW INDEXES")
     for index in indexes:

@@ -1,6 +1,6 @@
 from db.neo4j_db import get_session
 
-def insert_chain_nodes(session, chains, batch_size):
+def insert_chain_nodes(db, session, chains, batch_size):
 
     for i in range(0, len(chains), batch_size):
         batch = chains[i:i + batch_size]
@@ -8,20 +8,20 @@ def insert_chain_nodes(session, chains, batch_size):
         print(f"{i}/{len(chains)} chains inserted.")
         query = """
                 UNWIND $chains AS chain
-                CREATE (:Chain {id: chain.id})
+                CREATE (:Chain {db: $db, id: chain.id})
                 """
-        session.run(query, {"chains": batch})
+        session.run(query, {"chains": batch, "db": db})
 
-def create_links(session, links, nodeType, relationship, direction):
+def create_links(db, session, links, nodeType, relationship, direction):
     a = direction if direction == "<-" else "-"
     b = direction if direction == "->" else "-"
     query = """
             UNWIND $links AS link
-            MATCH (n:"""+nodeType+""" {id: link.oid}), (c:Chain {id: link.cid}) 
+            MATCH (n:"""+nodeType+""" {db: $db, id: link.oid}), (c:Chain {db: $db, id: link.cid})
             """ + f" CREATE (n){a}[:{relationship}]{b}(c)"
-    session.run(query, {"links": links})
+    session.run(query, {"links": links, "db": db})
 
-def insert_chain_links(session, chains, batch_size):
+def insert_chain_links(db, session, chains, batch_size):
     startLinks,endLinks,insideLinks = [],[],[]
     superBubbles,parentChains = [],[]
 
@@ -38,35 +38,35 @@ def insert_chain_links(session, chains, batch_size):
 
     for i in range(0, len(startLinks), batch_size):
         batch = startLinks[i:i + batch_size]
-        create_links(session, batch, "Segment", "END", "->",) #n->c
+        create_links(db, session, batch, "Segment", "END", "->",) #n->c
 
     for i in range(0, len(endLinks), batch_size):
         batch = endLinks[i:i + batch_size]
-        create_links(session, batch, "Segment", "END", "<-",) #n<-c
+        create_links(db, session, batch, "Segment", "END", "<-",) #n<-c
 
     for i in range(0, len(insideLinks), batch_size):
         batch = insideLinks[i:i + batch_size]
-        create_links(session, batch, "Bubble", "INSIDE", "->") #n->c
+        create_links(db, session, batch, "Bubble", "INSIDE", "->") #n->c
 
     for i in range(0, len(superBubbles), batch_size):
         batch = superBubbles[i:i + batch_size]
-        create_links(session, batch, "Bubble", "PARENT", "<-") #n<-c
+        create_links(db, session, batch, "Bubble", "PARENT", "<-") #n<-c
 
     for i in range(0, len(parentChains), batch_size):
         batch = parentChains[i:i + batch_size]
-        create_links(session, batch, "Chain", "PARENT", "<-") #n<-c
+        create_links(db, session, batch, "Chain", "PARENT", "<-") #n<-c
 
 def insert_chains(chains, batch_size=10000):
     if len(chains) == 0: return
-    with get_session() as session:
-        insert_chain_nodes(session, chains, batch_size)
-        insert_chain_links(session, chains, batch_size)
+    with get_session() as (db, session):
+        insert_chain_nodes(db, session, chains, batch_size)
+        insert_chain_links(db, session, chains, batch_size)
 
 def add_chain_properties():
 
-    with get_session() as session:
+    with get_session() as (db, session):
 
-        MATCH = "MATCH (b:Bubble)-[r:INSIDE]->(c:Chain) "
+        MATCH = "MATCH (b:Bubble)-[r:INSIDE]->(c:Chain) WHERE c.db = $db "
         q1= MATCH + " WITH c, MIN(b.start) AS start SET c.start = start"
         q2= MATCH + " WITH c, MAX(b.end) AS end SET c.end = end"
         q3= MATCH + " WITH c, SUM(b.size) AS size SET c.size = size"
@@ -76,9 +76,9 @@ def add_chain_properties():
         print("Calculating chain properties...")
         for query in [q1,q2,q3,q4,q5]:
             print(query)
-            session.run(query)
+            session.run(query, {"db": db})
 
-    with get_session() as session:
+    with get_session() as (db, session):
 
         q6 = MATCH + " WITH c, MIN(b.x1) AS x SET c.x1 = x"
         q7 = MATCH + " WITH c, MAX(b.x2) AS x SET c.x2 = x"
@@ -99,23 +99,25 @@ def add_chain_properties():
         print("Calculating chain layout...")
         for query in [q6,q7,q8,q9,q10,q11]:
             print(query)
-            session.run(query)
+            session.run(query, {"db": db})
 
-    with get_session() as session:
+    with get_session() as (db, session):
 
         MATCH = """
                 MATCH (e1:Segment)-[:END]->(c:Chain)-[:END]->(e2:Segment)
-                WHERE e1.chrom IS NOT NULL AND e2.chrom IS NOT NULL AND c.chrom is NULL 
-                """
+                WHERE e1.db = $db AND e2.db = $db""" + \
+                " AND e1.genome = e2.genome" + \
+                " AND e1.chrom IS NOT NULL AND e2.chrom IS NOT NULL AND c.chrom is NULL"
 
         q1 = MATCH + " SET c.start = CASE WHEN e1.end < e2.end THEN e1.end + 1 ELSE e2.end + 1 END"
         q2 = MATCH + " SET c.end = CASE WHEN e1.start > e2.start THEN e1.start - 1 ELSE e2.start - 1 END"
-        q3 = MATCH + " SET c.chrom = e1.chrom"
+        q3 = MATCH + " SET c.genome = e1.genome"
+        q4 = MATCH + " SET c.chrom = e1.chrom"
 
 
         print("Calculating chain properties...")
-        for query in [q1,q2,q3]:
+        for query in [q1,q2,q3,q4]:
             print(query)
-            session.run(query)
+            session.run(query, {"db": db})
             
 

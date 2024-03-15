@@ -109,7 +109,11 @@ def parse_line_S(line):
                 result["genome"] = tigId.split("|")[0]
                 if result["genome"].startswith("id="):
                     result["genome"] = result["genome"][3:]
+            elif "#" in tigId:
+                result["genome"] = tigId.split("#")[0]
+                result["chrom"] = tigId.split("#")[-1]
             else:
+                result["genome"] = "NA"
                 result["chrom"] = tigId
 
         elif col.startswith("SO:"):

@@ -31,7 +31,7 @@ def create_gene_objects(data):
     return [geneDict[gid] for gid in geneDict]
 
 def query_gene_range(chrom, start, end):
-    with get_session() as session:
+    with get_session() as (_, session):
         geneData = []
 
         query = """
@@ -76,7 +76,7 @@ def text_search_gene_query(session, searchTerm, before, after, maxResults=20):
     return genes
 
 def text_search_gene(searchTerm, maxResults=20):
-    with get_session() as session:
+    with get_session() as (_, session):
 
         genes1 = text_search_gene_query(session, searchTerm, False, True, maxResults)
         

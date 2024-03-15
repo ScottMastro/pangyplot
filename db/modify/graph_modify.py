@@ -1,31 +1,33 @@
 from db.neo4j_db import get_session
 
 def add_chain_subtype():
-    with get_session() as session:
+    with get_session() as (db, session):
         query = """
         MATCH (b:Bubble)-[r:INSIDE]->(c:Chain)
+        WHERE b.db = $db
         WITH c, 
             CASE WHEN ANY(bubble IN collect(b) WHERE bubble.subtype = "super") THEN "super" 
                 ELSE "simple" 
             END as subtype
         SET c.subtype = subtype
         """
-        session.run(query)
+        session.run(query, {"db": db})
 
 def connect_bubble_ends_to_chain():
-    with get_session() as session:
+    with get_session() as (db, session):
         query = """
                 MATCH (s:Segment)-[:END]-(b:Bubble)-[:INSIDE]->(c:Chain)
-                WHERE NOT (c)-[:END]-(s)
+                WHERE s.db = $db AND NOT (c)-[:END]-(s) 
                 MERGE (s)-[:INSIDE]->(c)
                 """
-        session.run(query)
+        session.run(query, {"db": db})
 
 def add_null_nodes():
-    with get_session() as session:
+    with get_session() as (db, session):
 
         query = """
                 MATCH (s1:Segment)-[l:LINKS_TO]->(s2:Segment)
+                WHERE s1.db = $db
                 MATCH (s1)-[e1:END]->(b:Bubble)-[e2:END]->(s2)
                 CREATE (s3:Segment {
                     id: s1.id + '_' + s2.id,
@@ -41,4 +43,4 @@ def add_null_nodes():
                 DELETE l
                 """
 
-        session.run(query)
+        session.run(query, {"db": db})

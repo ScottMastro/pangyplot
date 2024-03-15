@@ -1,15 +1,15 @@
 from db.neo4j_db import get_session
 import db.utils.create_record as record
 
-def get_segments(session, x, y):
+def get_segments(db, session, x, y):
 
     query = """
             MATCH (s1:Segment)-[:LINKS_TO]-(s2:Segment)
-            WHERE s1.id = $x AND s2.id = $y
+            WHERE s1.db = $db AND s1.id = $x AND s2.id = $y
             RETURN s1, s2
             """
 
-    results = session.run(query, {"x": x, "y": y})
+    results = session.run(query, {"x": x, "y": y, "db": db})
 
     nodeX, nodeY = None, None
     for result in results:
@@ -18,14 +18,14 @@ def get_segments(session, x, y):
 
     return (nodeX,nodeY)
 
-def get_other_links(session, x, y):
+def get_other_links(db, session, x, y):
 
     query = """
             MATCH (s1:Segment)-[l:LINKS_TO]-(s2:Segment)
-            WHERE s1.id <> $x AND s2.id = $y
+            WHERE s1.db = $db AND s1.id <> $x AND s2.id = $y
             RETURN l
             """
-    results = session.run(query, {"x": x, "y": y})
+    results = session.run(query, {"x": x, "y": y, "db": db})
 
     links = []
     for result in results:
@@ -34,16 +34,16 @@ def get_other_links(session, x, y):
 
     return links
     
-def drop_by_id(session, id):
+def drop_by_id(db, session, id):
 
     query = """
             MATCH (s:Segment)
-            WHERE s.id = $id
+            WHERE s.db = $db AND s.id = $id
             DETACH DELETE s       
             """
-    session.run(query, {"id": id})
+    session.run(query, {"id": id, "db": db})
 
-def combine_nodes(session, keepNode, removeNode):
+def combine_nodes(db, session, keepNode, removeNode):
     params = {"id": keepNode["id"]}
     params["compact"] = [] if "compact" not in keepNode else keepNode["compact"]
     params["compact"].append(removeNode["id"])
@@ -51,9 +51,10 @@ def combine_nodes(session, keepNode, removeNode):
     params["y2"] = removeNode["y2"]
     params["sequence"] = keepNode["sequence"] + removeNode["sequence"]
     params["length"] = len(params["sequence"])
+    params["db"] = db
 
     query = """
-            MATCH (s:Segment { id: $id })
+            MATCH (s:Segment {db: $db, id: $id })
             SET s.compact = $compact,
                 s.x2 = $x2,
                 s.y2 = $y2,
@@ -88,16 +89,16 @@ def restore_links(session, keepNode, removeNode, recoverLinks):
 
 def compact_segment(keepSegmentId, removeSegmentId):
 
-    with get_session() as session:
+    with get_session() as (db, session):
 
-        keepNode, removeNode = get_segments(session, keepSegmentId, removeSegmentId)
-        recoverLinks = get_other_links(session, keepSegmentId, removeSegmentId)
+        keepNode, removeNode = get_segments(db, session, keepSegmentId, removeSegmentId)
+        recoverLinks = get_other_links(db, session, keepSegmentId, removeSegmentId)
 
         #print("keepNode", keepNode)
         #print("removeNode", removeNode)
         #print("recoverLinks", recoverLinks)
 
-        drop_by_id(session, removeSegmentId)
-        combine_nodes(session, keepNode, removeNode)
-        restore_links(session, keepNode, removeNode, recoverLinks)
+        drop_by_id(db, session, removeSegmentId)
+        combine_nodes(db, session, keepNode, removeNode)
+        restore_links(db, session, keepNode, removeNode, recoverLinks)
 
