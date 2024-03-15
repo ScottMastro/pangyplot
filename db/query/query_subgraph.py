@@ -6,11 +6,14 @@ def get_subgraph_nodes(nodeid, chrom, start, end):
     nodes,links = [],[]
     with get_session() as session:
 
+        # todo: strict fails to get nodes w/o start and end positions
+        strict = "WHERE n.chrom = $chrom AND n.start <= $end AND n.end >= $start AND ID(t) = $i AND NOT EXISTS {"
+        lax = "WHERE ID(t) = $i AND NOT EXISTS {"
         query = """
                 MATCH (n)-[:PARENT|INSIDE]->(t)
-                WHERE n.chrom = $chrom AND n.start <= $end AND n.end >= $start AND ID(t) = $i AND  NOT EXISTS {
+                """+lax+"""
                     MATCH (n)-[:PARENT|INSIDE]->(m)
-                    WHERE ID(m) <> ID(t) AND (m)-[:PARENT|INSIDE*]->(t)                
+                    WHERE ID(m) <> ID(t) AND (m)-[:PARENT|INSIDE*]->(t)
                 }
                 OPTIONAL MATCH (n)-[r1:END]-(s1:Segment)
                 OPTIONAL MATCH (n)-[r2:LINKS_TO]-(s2:Segment)
@@ -27,6 +30,7 @@ def get_subgraph_nodes(nodeid, chrom, start, end):
             links.extend( [record.link_record_simple(r) for r in result["links"]] )
 
     # trivial case where bubble chain has only one bubble
+    # pop the bubble immediately
     if len(nodes) == 1 and lastType == "Bubble":
         print("trivial case")
         return get_subgraph_nodes(nodes[0]["nodeid"])

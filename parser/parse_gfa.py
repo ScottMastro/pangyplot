@@ -101,7 +101,17 @@ def parse_line_S(line):
 
     for col in cols[3:]:
         if col.startswith("SN:"):
-            result["chrom"] = col.split(":")[-1]
+
+            tigId = col.split(":")[-1]
+
+            if "|" in tigId:
+                result["chrom"] = tigId.split("|")[-1]
+                result["genome"] = tigId.split("|")[0]
+                if result["genome"].startswith("id="):
+                    result["genome"] = result["genome"][3:]
+            else:
+                result["chrom"] = tigId
+
         elif col.startswith("SO:"):
             # add 1 to position
             result["pos"] = int(col.split(":")[-1]) +1
@@ -109,7 +119,6 @@ def parse_line_S(line):
             result["end"] = result["pos"] + result["length"] -1
         elif col.startswith("SR:"):
             result["sr"] = col.split(":")[-1]
-
 
     return result
     
@@ -264,19 +273,26 @@ def parse_graph(gfa, layoutCoords):
                 segments=[]
 
 
-        collapseDict = collapse_binary(collapseDict, sampleIdDict)
-
-        for link in links:
-            key = (str(link["from_id"]) + link["from_strand"],
-                    str(link["to_id"]) + link["to_strand"])
-            if key in collapseDict:
-                hap = collapseDict[key]
-                link["haplotype"] = hap
-                link["frequency"] = sum(hap)/len(hap)
-            else:
-                n = max([sampleIdDict[x] for x in sampleIdDict])+1
-                link["haplotype"] = [False] * n
+        if len(collapseDict) == 0:
+            for link in links:
+                link["haplotype"] = []
                 link["frequency"] = 0
+
+        else:
+
+            collapseDict = collapse_binary(collapseDict, sampleIdDict)
+
+            for link in links:
+                key = (str(link["from_id"]) + link["from_strand"],
+                        str(link["to_id"]) + link["to_strand"])
+                if key in collapseDict:
+                    hap = collapseDict[key]
+                    link["haplotype"] = hap
+                    link["frequency"] = sum(hap)/len(hap)
+                else:
+                    n = max([sampleIdDict[x] for x in sampleIdDict])+1
+                    link["haplotype"] = [False] * n
+                    link["frequency"] = 0
 
         insert_segments(segments)
         insert_segment_links(links)

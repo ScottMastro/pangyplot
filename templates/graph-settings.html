@@ -1,49 +1,46 @@
 <div id="graph-settings" class="flex-col">
+
+
+    <div class="graph-setting flex-1 flex-row">
+        <label class="graph-setting-label flex-1" for="alpha-slider">Alpha: </label>
+        <input type="range" id="alpha-slider" name="alpha-slider" class="flex-1" min="0" max="1" step="0.0001" value="0.0228">
+        <span id="alpha-slider-value" class="graph-setting-value flex-1">0.0228</span>
+        <button onclick="resetSlider('alpha-slider', 0.0228)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
+    </div>
+    
     <div class="graph-setting flex-1 flex-row">
         <label class="graph-setting-label flex-1" for="friction-slider">Friction: </label>
-        <input type="range" id="friction-slider" name="friction-slider" class="flex-1" min="0" max="1" step="0.0001" value="0.0228">
-        <span id="friction-slider-value" class="graph-setting-value flex-1">0.0228</span>
-        <button onclick="resetSlider('friction-slider', 0.0228)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
+        <input type="range" id="friction-slider" name="friction-slider" class="flex-1" min="0.05" max="1.0" step="0.01" value="0.4">
+        <span id="friction-slider-value" class="graph-setting-value flex-1">0.1</span>
+        <button onclick="resetSlider('friction-slider', 0.1)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
     </div>
 
     <div class="graph-setting flex-1 flex-row">
-        <label class="graph-setting-label flex-1" for="velocity-slider">Velocity: </label>
-        <input type="range" id="velocity-slider" name="velocity-slider" class="flex-1" min="0" max="1" step="0.0001" value="0.4">
-        <span id="velocity-slider-value" class="graph-setting-value flex-1">0.4</span>
-        <button onclick="resetSlider('velocity-slider', 0.4)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
-    </div>
-
-
-    <!-- Adding other1 slider -->
-    <div class="graph-setting flex-1 flex-row">
-        <label class="graph-setting-label flex-1" for="other1-slider">Other1: </label>
-        <input type="range" id="other1-slider" name="other1-slider" class="flex-1" min="0" max="1" step="0.0001" value="0.2">
-        <span id="other1-slider-value" class="graph-setting-value flex-1">0.2</span>
-        <button onclick="resetSlider('other1-slider', 0.2)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
+        <label class="graph-setting-label flex-1" for="attraction-slider">Attraction: </label>
+        <input type="range" id="attraction-slider" name="attraction-slider" class="flex-1" min="-1000" max="1000" step="1" value="-500">
+        <span id="attraction-slider-value" class="graph-setting-value flex-1">-500</span>
+        <button onclick="resetSlider('attraction-slider', -500)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
     </div>
     
-    <!-- Adding other2 slider -->
     <div class="graph-setting flex-1 flex-row">
-        <label class="graph-setting-label flex-1" for="other2-slider">Other2: </label>
-        <input type="range" id="other2-slider" name="other2-slider" class="flex-1" min="0" max="1" step="0.0001" value="0.3">
-        <span id="other2-slider-value" class="graph-setting-value flex-1">0.3</span>
-        <button onclick="resetSlider('other2-slider', 0.3)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
+        <label class="graph-setting-label flex-1" for="collision-slider">Collision: </label>
+        <input type="range" id="collision-slider" name="collision-slider" class="flex-1" min="0" max="200" step="1" value="50">
+        <span id="collision-slider-value" class="graph-setting-value flex-1">50</span>
+        <button onclick="resetSlider('collision-slider', 50)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
     </div>
     
-    <!-- Adding other3 slider -->
     <div class="graph-setting flex-1 flex-row">
-        <label class="graph-setting-label flex-1" for="other3-slider">Other3: </label>
-        <input type="range" id="other3-slider" name="other3-slider" class="flex-1" min="0" max="1" step="0.0001" value="0.5">
-        <span id="other3-slider-value" class="graph-setting-value flex-1">0.5</span>
-        <button onclick="resetSlider('other3-slider', 0.5)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
+        <label class="graph-setting-label flex-1" for="spread-slider">Spread: </label>
+        <input type="range" id="spread-slider" name="spread-slider" class="flex-1" min="-0.005" max="0.005" step="0.0001" value="0">
+        <span id="spread-slider-value" class="graph-setting-value flex-1">0</span>
+        <button onclick="resetSlider('spread-slider', 0)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
     </div>
     
-    <!-- Adding other4 slider -->
     <div class="graph-setting flex-1 flex-row">
-        <label class="graph-setting-label flex-1" for="other4-slider">Other4: </label>
-        <input type="range" id="other4-slider" name="other4-slider" class="flex-1" min="0" max="1" step="0.0001" value="0.6">
-        <span id="other4-slider-value" class="graph-setting-value flex-1">0.6</span>
-        <button onclick="resetSlider('other4-slider', 0.6)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
+        <label class="graph-setting-label flex-1" for="pull-slider">Pull: </label>
+        <input type="range" id="pull-slider" name="pull-slider" class="flex-1" min="0" max="200" step="1" value="100">
+        <span id="pull-slider-value" class="graph-setting-value flex-1">100</span>
+        <button onclick="resetSlider('pull-slider', 100)" class="graph-setting-reset-button"><i class="fas fa-undo"></i></button>
     </div>
 
     <button id="reset-all-button" class="reset-all-button"><i class="fas fa-undo"></i> Reset All</button>

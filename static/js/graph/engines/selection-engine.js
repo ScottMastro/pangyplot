@@ -160,7 +160,7 @@ function selectionEngineDraw(ctx, graphData) {
             const selectedNodeId = nodeidSplit(node.__nodeid);
             selectedNodeIds.add(selectedNodeId);
             
-            if (count == 0){
+            if (count == 1){
                 // todo: summarize all highlighted nodes
                 updateGraphInfo(selectedNodeId);
             }

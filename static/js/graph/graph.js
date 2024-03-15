@@ -1,3 +1,4 @@
+// global
 var GRAPH_GENOME=null;
 var GRAPH_CHROM=null;
 var GRAPH_START_POS=null;
@@ -9,6 +10,13 @@ const FORCE_GRAPH_WIDTH_PROPORTION = 0.8;
 DEBUG=true
 
 const VELOCITY_DECAY=0.1;
+
+function getGraphCoordinates(){
+    return {genome: GRAPH_GENOME,
+            chromosome:GRAPH_CHROM,
+            start:GRAPH_START_POS,
+            end:GRAPH_END_POS};
+}
 
 
 // todo https://github.com/vasturiano/d3-force-registry
@@ -38,7 +46,7 @@ function renderGraph(graph){
         .nodeRelSize(HOVER_PRECISION)
         .autoPauseRedraw(false) // keep drawing after engine has stopped
         .d3VelocityDecay(0.1)
-        .d3AlphaDecay(0)
+        .d3AlphaDecay(0.0228)
         .nodeCanvasObject((node, ctx) => renderManagerPaintNode(ctx, node, forceGraph)) 
         .linkCanvasObject((link, ctx) => renderManagerPaintLink(ctx, link, forceGraph)) 
         .nodeLabel("__nodeid")
@@ -62,13 +70,11 @@ function renderGraph(graph){
     console.log("forceGraph:", forceGraph);
 
 
-    //forceGraph.onRenderFramePre((ctx) => { calculateFPS(); })
-
     forceGraph.onEngineTick(() => {
         debugInformationUpdate(forceGraph.graphData());
     })
 
-    
+
     forceGraph.onRenderFramePre((ctx) => { renderManagerPreRender(ctx, forceGraph, getCanvasWidth(), getCanvasHeight()); })
     forceGraph.onRenderFramePost((ctx) => { renderManagerPostRender(ctx, forceGraph); })
     
@@ -78,8 +84,14 @@ function renderGraph(graph){
     function link_force_distance(link) {
         return (link.type === "edge") ? 10 : link.length ;
     }
+
+    const nodes = graph.nodes;
+    // Create and add the custom force
+    forceGraph.d3Force('spreadX', d3.forceX().strength(0).x((d, i) => (i / forceGraph.graphData().nodes.length)));
     
-    forceGraph.d3Force('link').distance(100).strength(0.9).iterations(1)
+    
+    
+    forceGraph.d3Force('link').distance(100).strength(0.9)
     forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
     forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
 
