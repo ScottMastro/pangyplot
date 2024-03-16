@@ -31,6 +31,9 @@
 <body class="flex-col">
 
 {% include 'navbar-template.html' %}
+
+ <!--<select id="db-selection"> </select>-->
+
 {% include 'cytoband-template.html' %}
 
 <div class="flex-row fixed-height-1">
@@ -145,6 +148,7 @@
 <script src="{{url_for('static', filename='js/ui/tabs/tabs.js')}}"></script>
 <script src="{{url_for('static', filename='js/ui/tabs/information-panel.js')}}"></script>
 <script src="{{url_for('static', filename='js/ui/tabs/graph-settings.js')}}"></script>
+ <!--<script src="{{url_for('static', filename='js/ui/db-selection.js')}}"></script>-->
 
 
 </body>

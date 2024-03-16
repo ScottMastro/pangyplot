@@ -63,7 +63,7 @@ def combine_nodes(db, session, keepNode, removeNode):
             """
     session.run(query, params)
 
-def restore_links(session, keepNode, removeNode, recoverLinks):
+def restore_links(db, session, keepNode, removeNode, recoverLinks):
     keepSegmentNodeId = keepNode["nodeid"]
     removeSegmentNodeId = removeNode["nodeid"]
     for link in recoverLinks:
@@ -75,14 +75,14 @@ def restore_links(session, keepNode, removeNode, recoverLinks):
     query = """
             UNWIND $links AS link
             MATCH (a:Segment), (b:Segment)
-            WHERE ID(a) = link.source AND ID(b) = link.target
+            WHERE a.db = $db AND ID(a) = link.source AND ID(b) = link.target
             CREATE (a)-[:LINKS_TO {
                 from_strand: link.from_strand,
                 to_strand: link.to_strand,
                 haplotype: link.haplotype,
                 frequency: link.frequency}]->(b)
             """
-    result = session.run(query, {"links": recoverLinks})
+    result = session.run(query, {"db": db, "links": recoverLinks})
     #summary = result.consume()
     #relationships_created = summary.counters.relationships_created
     #print("relationships_created:", relationships_created)

@@ -148,7 +148,6 @@ function fetchAndConstructGraph(genome, chrom, start, end){
         return;
     }
 
-    //todo: accomodate other genomes
     GRAPH_GENOME = genome;
     GRAPH_CHROM = chrom;
     GRAPH_START_POS = start;
@@ -165,8 +164,7 @@ document.addEventListener('constructGraph', function(event) {
     graphElement.classList.remove("graph-container-empty");
     graphElement.scrollIntoView({ behavior: 'smooth' });
 
-    //todo: accomodate other genomes
-    fetchAndConstructGraph("CHM13", event.detail.chrom, event.detail.start, event.detail.end);
+    fetchAndConstructGraph(event.detail.genome, event.detail.chrom, event.detail.start, event.detail.end);
 });
 
 
@@ -175,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //PRSS region
     //const data = { chrom: "chr7", start: "144084904", end: "144140209", source: "testing"  };
     // chr18 region
-    const data = { chrom: "chr18", start: "47506000", end: "47600000",  source: "testing" };
+    const data = { genome: "CHM13", chrom: "chr18", start: "47506000", end: "47600000",  source: "testing" };
 
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
