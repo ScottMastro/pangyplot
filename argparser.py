@@ -18,7 +18,8 @@ def parse_args(app):
         subparsers = parser.add_subparsers(dest='command', help='Available commands', required=True)
 
         parser_run = subparsers.add_parser('run', help='Launch the software.')
-        
+        parser_run.add_argument('--db', help='Database name', default=None, required=True)
+
         parser_add = subparsers.add_parser('add', help='Add a dataset.')
         parser_add.add_argument('--db', help='Database name', default=None, required=True)
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
@@ -28,7 +29,6 @@ def parse_args(app):
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
         parser_annotate.add_argument('--ref', help='Reference name', default=None)
         parser_annotate.add_argument('--gff3', help='Path to the GFF3 file', default=None, required=True)
-
 
         parser_drop = subparsers.add_parser('drop', help='Drop data tables')
         parser_drop.add_argument('--db', help='Drop from only one database (provide name).', default=None)
@@ -43,7 +43,7 @@ def parse_args(app):
         args = parser.parse_args()
 
         if args.command == 'run':
-            db_init(None)
+            db_init(args.db)
             app.run()
             exit
 
@@ -55,7 +55,8 @@ def parse_args(app):
             if args.all:
                 print(f"Dropping everything...")
                 drop.drop_all()
-                exit
+                flag = True
+
 
             if args.db:
                 print(f'Dropping "{args.db}" tables...')
@@ -94,18 +95,14 @@ def parse_args(app):
             print("Adding annotations...")
             db_init(None)
             if args.gff3 and args.ref:
-                drop.drop_annotations()
+                #drop.drop_annotations()
                 print("Parsing GFF3...")
                 parse_gff3(args.gff3, args.ref)
-                print("Done.")
 
         if args.command == "add":
+            db_init(args.db)
             if (args.gfa and args.layout is None) or (args.gfa is None and args.layout) :
                 print("Both GFA and layout TSV file required to construst graph!")
-                parser.print_help()
-
-            if (args.gff3 and args.ref is None):
-                print("Need specify --ref when parsing GFF3 file!")
                 parser.print_help()
 
             if args.gfa and args.layout:

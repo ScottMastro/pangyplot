@@ -24,16 +24,16 @@ document.getElementById("go-button").addEventListener("click", function () {
       start = String(Math.max(0, startInt-flanking));
     } if(plusFlanking.classList.contains("button-selected")){
       const endInt = parseInt(end);
-      console.log(endInt, flanking, endInt+flanking)
       end = String(endInt+flanking);
     }
 
+    //todo: get genome
     const data = {
+      genome: "CHM13",
       chrom: chrom,
       start: start,
       end: end,
     };
-
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
   }
 

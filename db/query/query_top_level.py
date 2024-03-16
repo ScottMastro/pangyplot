@@ -38,7 +38,7 @@ def get_top_level_segments(db, session, genome, chrom, start, end):
 def get_top_level(genome, chrom, start, end):
 
     with get_session() as (db, session):
-
+        print(db)
         chains,chainLinks = get_top_level_chains(db, session, genome, chrom, start, end)
         bubbles,bubbleLinks = get_top_level_bubbles(db, session, genome, chrom, start, end)
         segments,segmentLinks = get_top_level_segments(db, session, genome, chrom, start, end)
