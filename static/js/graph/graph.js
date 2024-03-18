@@ -87,7 +87,7 @@ function renderGraph(graph){
 
     const nodes = graph.nodes;
     // Create and add the custom force
-    forceGraph.d3Force('spreadX', d3.forceX().strength(0).x((d, i) => (i / forceGraph.graphData().nodes.length)));
+    //forceGraph.d3Force('spreadX', d3.forceX().strength(0).x((d, i) => (i / forceGraph.graphData().nodes.length)));
     
     
     
