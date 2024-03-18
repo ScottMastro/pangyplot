@@ -33,7 +33,7 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
     # pop the bubble immediately
     if len(nodes) == 1 and lastType == "Bubble":
         print("trivial case")
-        return get_subgraph_nodes(nodes[0]["nodeid"])
+        return get_subgraph_nodes(nodes[0]["nodeid"], genome, chrom, start, end)
 
     return nodes, deduplicate_links(links)
 

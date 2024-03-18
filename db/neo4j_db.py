@@ -4,9 +4,10 @@ from dotenv import load_dotenv
 from contextlib import contextmanager
 import db.utils.create_index as index
 
+
 NEO4J_DRIVER = None
 GENE_TEXT_INDEX = "gene_fulltext_index"
-CURRENT_DB = "default"
+CURRENT_DB = None
 
 def init_driver():
     load_dotenv()

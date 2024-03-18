@@ -6,22 +6,27 @@ from parser.parse_gfa import parse_graph
 from parser.parse_layout import parse_layout
 from parser.parse_gff3 import parse_gff3
 import db.bubble_gun as bubble_gun
+from db.utils.check_status import get_status
 
 from db.modify.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
 
 def parse_args(app):
 
+    DEFAULT_DB = "default"
     with app.app_context():
 
         parser = argparse.ArgumentParser(description="PangyPlot command line options.")
 
         subparsers = parser.add_subparsers(dest='command', help='Available commands', required=True)
 
+        parser_status = subparsers.add_parser('status', help='Check the database status.')
+
         parser_run = subparsers.add_parser('run', help='Launch the software.')
-        parser_run.add_argument('--db', help='Database name', default=None, required=True)
+        parser_run.add_argument('--db', help='Database name', default=DEFAULT_DB, required=True)
 
         parser_add = subparsers.add_parser('add', help='Add a dataset.')
-        parser_add.add_argument('--db', help='Database name', default=None, required=True)
+        parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB, required=True)
+        parser_add.add_argument('--ref', help='Database name', default=None, required=True)
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
         parser_add.add_argument('--bubbles', help='Path to the bubblegun JSON file', default=None, required=True)
@@ -31,7 +36,7 @@ def parse_args(app):
         parser_annotate.add_argument('--gff3', help='Path to the GFF3 file', default=None, required=True)
 
         parser_drop = subparsers.add_parser('drop', help='Drop data tables')
-        parser_drop.add_argument('--db', help='Drop from only one database (provide name).', default=None)
+        parser_drop.add_argument('--db', help='Drop from only one database (provide name).', default=DEFAULT_DB)
         parser_drop.add_argument('--annotations', help='Drop annotations.', action='store_true')
         parser_drop.add_argument('--all', help='Drop everything.', action='store_true')
 
@@ -41,6 +46,11 @@ def parse_args(app):
         parser.add_argument('--drb1', help='Use DRB1 demo data', action='store_true')
 
         args = parser.parse_args()
+
+        if args.command == 'status':
+            db_init(None)
+            get_status()
+            exit
 
         if args.command == 'run':
             db_init(args.db)
@@ -59,7 +69,7 @@ def parse_args(app):
 
 
             if args.db:
-                print(f'Dropping "{args.db}" tables...')
+                print(f'Dropping "{args.db}" data...')
                 drop.drop_db(args.db)
                 flag = True
 
@@ -80,6 +90,7 @@ def parse_args(app):
             if args.drb1:
                 args.command = "add"
                 args.db = "DRB1-3123"
+                args.ref = None
                 args.gfa = "static/data/DRB1-3123_sorted.gfa"
                 args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
                 args.bubbles = "static/data/DRB1-3123_sorted.bubble.json"
@@ -88,6 +99,7 @@ def parse_args(app):
                 args.command = "add"
                 args.db = "chrM"
                 args.gfa = "static/data/hprc-v1.0-mc-grch38.chrM.gfa"
+                args.ref = "GRCh38"
                 args.layout = "static/data/hprc-v1.0-mc-grch38.chrM.lay.tsv"
                 args.bubbles = "static/data/hprc-v1.0-mc-grch38.chrM.json"
             
@@ -101,15 +113,12 @@ def parse_args(app):
 
         if args.command == "add":
             db_init(args.db)
-            if (args.gfa and args.layout is None) or (args.gfa is None and args.layout) :
-                print("Both GFA and layout TSV file required to construst graph!")
-                parser.print_help()
 
-            if args.gfa and args.layout:
+            if args.gfa and args.ref and args.layout:
                 print("Parsing layout...")
                 layoutCoords = parse_layout(args.layout)
                 print("Parsing GFA...")
-                parse_graph(args.gfa, layoutCoords)
+                parse_graph(args.gfa, args.ref, layoutCoords)
                 
             if args.bubbles:
                 #drop.drop_bubbles()

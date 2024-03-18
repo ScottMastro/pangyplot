@@ -30,6 +30,7 @@ def add_null_nodes():
                 WHERE s1.db = $db
                 MATCH (s1)-[e1:END]->(b:Bubble)-[e2:END]->(s2)
                 CREATE (s3:Segment {
+                    db: $db,
                     id: s1.id + '_' + s2.id,
                     sequence: "",
                     length: 0,

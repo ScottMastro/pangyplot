@@ -22,7 +22,7 @@ function renderManagerPaintNode(ctx, node, forceGraph) {
     let x = node.x; let y = node.y;
     let shape = node.type === "null" ? 1 : 0
     let size = NODE_SIZE;
-    if(DEBUG){
+    if(DEBUG && false){
         //draw_circle_outline2(ctx, x, y, nodeEffectiveRange(zoomFactor)*NODE_SIZE/8 , "orange", 1, null)
         const nodeBox = nodeNeighborhood(node, forceGraph)
         draw_rectangle_outline(ctx, nodeBox.x, nodeBox.y, nodeBox.width, nodeBox.height, "purple", lineWidth=3);
