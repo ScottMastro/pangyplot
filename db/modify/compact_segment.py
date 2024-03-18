@@ -55,7 +55,8 @@ def combine_nodes(db, session, keepNode, removeNode):
 
     query = """
             MATCH (s:Segment {db: $db, id: $id })
-            SET s.compact = $compact,
+            SET s.db = $db,
+                s.compact = $compact,
                 s.x2 = $x2,
                 s.y2 = $y2,
                 s.sequence = $sequence,

@@ -25,15 +25,7 @@ function should_highlight_link(link){
 
     for (let i = 0, n = link.pairs.length, pair=null; i < n; ++i) {
         pair = link.pairs[i];
-        if (pair[0]=="80810285"){
-            console.log(80810285);
-
-        }
-
         if (selectedPath.hasOwnProperty(pair[0])) {
-            if (pair[0]=="80810285"){
-                console.log(pair,selectedPath[pair[0]])
-            }
             if(selectedPath[pair[0]].includes(pair[1])){
                 return true;
             }

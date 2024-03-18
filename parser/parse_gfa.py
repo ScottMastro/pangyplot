@@ -87,7 +87,7 @@ def collect_position_data(gfa):
 
     return fromLinkData, toLinkData, segmentData
 
-def parse_line_S(line):
+def parse_line_S(line, ref):
 
     result = {"type" : "S"}   
     cols = line.strip().split("\t")
@@ -99,30 +99,37 @@ def parse_line_S(line):
     for key in ["chrom", "pos", "sr", "start", "end"]:
         result[key]= None
 
+    genome = None
     for col in cols[3:]:
         if col.startswith("SN:"):
 
             tigId = col.split(":")[-1]
 
             if "|" in tigId:
-                result["chrom"] = tigId.split("|")[-1]
-                result["genome"] = tigId.split("|")[0]
-                if result["genome"].startswith("id="):
-                    result["genome"] = result["genome"][3:]
+                chrom = tigId.split("|")[-1]
+                genome = tigId.split("|")[0]
+                if genome.startswith("id="):
+                    genome = genome[3:]
             elif "#" in tigId:
-                result["genome"] = tigId.split("#")[0]
-                result["chrom"] = tigId.split("#")[-1]
+                genome = tigId.split("#")[0]
+                chrom = tigId.split("#")[-1]
             else:
-                result["genome"] = "NA"
-                result["chrom"] = tigId
+                genome = ref
+                chrom = tigId
 
         elif col.startswith("SO:"):
             # add 1 to position
-            result["pos"] = int(col.split(":")[-1]) +1
-            result["start"] = result["pos"]
-            result["end"] = result["pos"] + result["length"] -1
+            position = int(col.split(":")[-1]) +1
+            start = position
+            end = position + result["length"] -1
         elif col.startswith("SR:"):
             result["sr"] = col.split(":")[-1]
+
+    if genome is not None and genome == ref:
+        result["genome"] = genome
+        result["chrom"] = chrom
+        result["start"] = start
+        result["end"] = end
 
     return result
     
@@ -240,7 +247,7 @@ def collapse_binary(collapseDict, sampleIdDict):
         collapseDict[key] = boolList
     return collapseDict
 
-def parse_graph(gfa, layoutCoords):
+def parse_graph(gfa, ref, layoutCoords):
     count = 0
     segmentCount = 0
     segments, links = [],[]
@@ -253,7 +260,7 @@ def parse_graph(gfa, layoutCoords):
         for line in gfaFile:
             count+=1
             if line[0] == "S":
-                segment = parse_line_S(line)
+                segment = parse_line_S(line, ref)
                 lenDict[segment["id"]] = segment["length"]
                 for c in ["x1", "y1", "x2", "y2"]:
                     segment[c] = layoutCoords[segmentCount][c]

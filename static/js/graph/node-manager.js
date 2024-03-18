@@ -90,11 +90,6 @@ function calculateNumberOfKinks(nodeLength) {
 }
 
 function createNewNode(node, nodeid, idx, totalKinks) {
-    if(node.nodeid == 1620352){
-        console.log(idx, getCoordinates(node, totalKinks, idx))
-
-    }
-
 
     let newNode = {
         nodeid,
@@ -167,7 +162,6 @@ function processNodes(rawNodes) {
     return { nodes: nodes, nodeLinks: nodeLinks };
 }
 
-/*
 const XSCALE_NODE = 1
 const YSCALE_NODE = 1
 
@@ -182,4 +176,3 @@ function scale_node(node){
     node.y2 = node.y1 * YSCALE_NODE;
     return node
 }
-*/

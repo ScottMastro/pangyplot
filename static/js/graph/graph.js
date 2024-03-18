@@ -7,9 +7,37 @@ var GRAPH_END_POS=null;
 const FORCE_GRAPH_HEIGHT_PROPORTION = 0.8;
 const FORCE_GRAPH_WIDTH_PROPORTION = 0.8;
 
+const NORMALIZATION_RANGE = 1000;
+var NORMALIZATION_X = 1;
+var NORMALIZATION_Y = 1;
+var SHIFT_X = 0;
+var SHIFT_Y = 0;
+
 DEBUG=true
 
 const VELOCITY_DECAY=0.1;
+
+function normalizeGraph(graph) {
+    const coordinates = findBoundingBoxNodes(graph.nodes);
+
+    const NORMALIZATION_X = (coordinates.xmax - coordinates.xmin)/NORMALIZATION_RANGE;
+    const NORMALIZATION_Y = (coordinates.ymax - coordinates.ymin)/NORMALIZATION_RANGE;
+    const SHIFT_X = coordinates.xmin;
+    const SHIFT_Y = coordinates.ymin;
+
+    graph.nodes.forEach(node => {
+        node.x = (node.x - SHIFT_X) / NORMALIZATION_X;
+        node.y = (node.y - SHIFT_Y) / NORMALIZATION_Y;
+    });
+
+
+    graph.nodes.forEach(node => {
+        console.log(`(${node.__nodeid}, ${node.x}, ${node.y})`);
+    });
+
+    return graph;
+}
+
 
 function getGraphCoordinates(){
     return {genome: GRAPH_GENOME,
@@ -27,7 +55,6 @@ function getCanvasWidth(){
 function getCanvasHeight(){
     return window.innerHeight*FORCE_GRAPH_HEIGHT_PROPORTION;
 }
-
 
 function renderGraph(graph){
 
@@ -69,11 +96,9 @@ function renderGraph(graph){
 
     console.log("forceGraph:", forceGraph);
 
-
     forceGraph.onEngineTick(() => {
         debugInformationUpdate(forceGraph.graphData());
     })
-
 
     forceGraph.onRenderFramePre((ctx) => { renderManagerPreRender(ctx, forceGraph, getCanvasWidth(), getCanvasHeight()); })
     forceGraph.onRenderFramePost((ctx) => { renderManagerPostRender(ctx, forceGraph); })
@@ -89,21 +114,16 @@ function renderGraph(graph){
     // Create and add the custom force
     //forceGraph.d3Force('spreadX', d3.forceX().strength(0).x((d, i) => (i / forceGraph.graphData().nodes.length)));
     
-    
-    
     forceGraph.d3Force('link').distance(100).strength(0.9)
     forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
     forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
 
     graphSettingEngineSetup(forceGraph);
-
 }
 
 document.addEventListener("updatedGraphData", function(event) {
     renderGraph(event.detail.graph);
 });
-
-
 
 
 // ==================================================
@@ -130,7 +150,9 @@ function processGraphData(rawGraph){
     
     const graph = {"nodes": nodeResult.nodes, "links": links.concat(nodeResult.nodeLinks)}
 
-    document.dispatchEvent(new CustomEvent("updatedGraphData", { detail: { graph: graph } }));
+    const normalizedGraph = normalizeGraph(graph);
+
+    document.dispatchEvent(new CustomEvent("updatedGraphData", { detail: { graph: normalizedGraph } }));
 }
 
 function fetchGraph(genome, chromosome, start, end) {

@@ -28,7 +28,12 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
         event.preventDefault();
 
         if (event.code === 'Space' || event.key === ' ') {
-            forceGraph.centerAt(0,0,1000);
+            console.log(findBoundingBoxNodes(forceGraph.graphData().nodes));
+            const nodes = [forceGraph.graphData().nodes[0]]
+            
+            const box = findBoundingBoxNodes(nodes);
+            console.log(nodes);
+            forceGraph.centerAt(box.x, box.y, 1000);
         }
         const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
 
