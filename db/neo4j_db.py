@@ -53,12 +53,12 @@ def close_driver():
 def db_init(dbName=None):
     init_driver()
     update_db(dbName)
-
+    
     with get_session() as (db, session):
 
         #index.drop_all_constraints(session)
         #index.drop_all_index(session)
-
+        
         compoundPosition = ["db", "genome", "chrom", "start", "end"]
 
         for x in ["Segment", "Bubble", "Chain"]:

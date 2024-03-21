@@ -13,7 +13,7 @@ def get_top_level_aggregates(db, session, genome, chrom, start, end):
                     MATCH (n)-[:INSIDE|PARENT]->(m)
                     WHERE m.chrom = $chrom AND m.start >= $start AND m.end <= $end
             }
-            OPTIONAL MATCH (n)-[r:END]-(s1:Segment)
+            OPTIONAL MATCH (n)-[r:END]-(e:Segment)
             RETURN n, labels(n) AS type, collect(DISTINCT r) AS links
             """
 

@@ -1,4 +1,5 @@
 import gzip,re
+import parser.parse_utils as utils
 from statistics import mean
 from db.insert.insert_segment import insert_segments, insert_segment_links
 
@@ -87,35 +88,30 @@ def collect_position_data(gfa):
 
     return fromLinkData, toLinkData, segmentData
 
-def parse_line_S(line, ref):
+def parse_line_S(line, ref, positions):
 
     result = {"type" : "S"}   
     cols = line.strip().split("\t")
     
-    result["id"] = cols[1]
+    id = cols[1]
+    result["id"] = id
     result["seq"] = cols[2]
     result["length"] = len(cols[2])
 
-    for key in ["chrom", "pos", "sr", "start", "end"]:
+    for key in ["genome", "chrom", "pos", "sr", "start", "end"]:
         result[key]= None
+
+    if id in positions:
+        for key in ["genome", "chrom", "start", "end"]:
+            result[key] = positions[id][key]
 
     genome = None
     for col in cols[3:]:
         if col.startswith("SN:"):
-
             tigId = col.split(":")[-1]
-
-            if "|" in tigId:
-                chrom = tigId.split("|")[-1]
-                genome = tigId.split("|")[0]
-                if genome.startswith("id="):
-                    genome = genome[3:]
-            elif "#" in tigId:
-                genome = tigId.split("#")[0]
-                chrom = tigId.split("#")[-1]
-            else:
-                genome = ref
-                chrom = tigId
+            result = parse_reference_string(tigId, ref=None)
+            genome = result["genome"]
+            chrom = result["chrome"]
 
         elif col.startswith("SO:"):
             # add 1 to position
@@ -247,7 +243,7 @@ def collapse_binary(collapseDict, sampleIdDict):
         collapseDict[key] = boolList
     return collapseDict
 
-def parse_graph(gfa, ref, layoutCoords):
+def parse_graph(gfa, ref, positions, layoutCoords):
     count = 0
     segmentCount = 0
     segments, links = [],[]
@@ -260,7 +256,7 @@ def parse_graph(gfa, ref, layoutCoords):
         for line in gfaFile:
             count+=1
             if line[0] == "S":
-                segment = parse_line_S(line, ref)
+                segment = parse_line_S(line, ref, positions)
                 lenDict[segment["id"]] = segment["length"]
                 for c in ["x1", "y1", "x2", "y2"]:
                     segment[c] = layoutCoords[segmentCount][c]
