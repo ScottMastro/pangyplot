@@ -5,6 +5,8 @@ import db.modify.drop_data as drop
 from parser.parse_gfa import parse_graph
 from parser.parse_layout import parse_layout
 from parser.parse_gff3 import parse_gff3
+from parser.parse_positions import parse_positions
+
 import db.bubble_gun as bubble_gun
 from db.utils.check_status import get_status
 
@@ -29,7 +31,7 @@ def parse_args(app):
         parser_add.add_argument('--ref', help='Database name', default=None, required=True)
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
-        parser_add.add_argument('--bubbles', help='Path to the bubblegun JSON file', default=None, required=True)
+        parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=False)
 
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
         parser_annotate.add_argument('--ref', help='Reference name', default=None)
@@ -101,7 +103,6 @@ def parse_args(app):
                 args.gfa = "static/data/hprc-v1.0-mc-grch38.chrM.gfa"
                 args.ref = "GRCh38"
                 args.layout = "static/data/hprc-v1.0-mc-grch38.chrM.lay.tsv"
-                args.bubbles = "static/data/hprc-v1.0-mc-grch38.chrM.json"
             
         if args.command == 'annotate':
             print("Adding annotations...")
@@ -113,12 +114,17 @@ def parse_args(app):
 
         if args.command == "add":
             db_init(args.db)
+            
+            positions = dict()
+            if args.positions:
+                print("Parsing positions...")
+                positions = parse_positions(args.positions)
 
             if args.gfa and args.ref and args.layout:
                 print("Parsing layout...")
                 layoutCoords = parse_layout(args.layout)
                 print("Parsing GFA...")
-                parse_graph(args.gfa, args.ref, layoutCoords)
+                parse_graph(args.gfa, args.ref, positions, layoutCoords)
                 
             if args.bubbles:
                 #drop.drop_bubbles()
