@@ -28,7 +28,7 @@ def parse_args(app):
 
         parser_add = subparsers.add_parser('add', help='Add a dataset.')
         parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB, required=True)
-        parser_add.add_argument('--ref', help='Database name', default=None, required=True)
+        parser_add.add_argument('--ref', help='Reference name', default=None, required=True)
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
         parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=False)
@@ -126,7 +126,6 @@ def parse_args(app):
                 print("Parsing GFA...")
                 parse_graph(args.gfa, args.ref, positions, layoutCoords)
                 
-            if args.bubbles:
                 #drop.drop_bubbles()
                 print("Calculating bubbles...")
                 bubble_gun.shoot()
