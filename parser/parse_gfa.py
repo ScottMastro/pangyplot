@@ -172,7 +172,14 @@ def parse_line_P(line):
     result["sample"] = cols[1]
     result["hap"] = None
 
-    if ":" in result["sample"] and "-" in result["sample"]:
+    if "#" in result["sample"]:
+        parts = cols[1].split("#")[0]
+        result["sample"] = parts[0]
+        if len(parts[1]) == 1:
+            result["hap"] = parts[1] 
+        #todo: can maybe find [start-end]
+
+    elif ":" in result["sample"] and "-" in result["sample"]:
         result["sample"] = cols[1].split(":")[0]
         result["start"] = int(cols[1].split(":")[1].split("-")[0])
         result["end"] = int(cols[1].split(":")[1].split("-")[1])
