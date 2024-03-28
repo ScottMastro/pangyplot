@@ -191,11 +191,14 @@ document.addEventListener('constructGraph', function(event) {
 
 
 document.addEventListener('DOMContentLoaded', function () {
-
     //PRSS region
     //const data = { chrom: "chr7", start: "144084904", end: "144140209", source: "testing"  };
     // chr18 region
-    const data = { genome: "CHM13", chrom: "chr18", start: "47506000", end: "47600000",  source: "testing" };
+    //const data = { genome: "CHM13", chrom: "chr18", start: "47506000", end: "47600000",  source: "testing" };
+
+
+    // muc4 region
+    const data = { genome: "CHM13", chrom: "chr3", start: "195707180", end: "195826273",  source: "testing" };
 
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));

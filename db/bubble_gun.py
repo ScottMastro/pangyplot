@@ -80,6 +80,7 @@ def read_from_db():
 def compact_graph(graph):
     list_of_nodes = list(graph.nodes.keys())
     for n in list_of_nodes:
+        print(n)
         if n in graph.nodes:
             while True:
                 if len(graph.nodes[n].end) == 1: 
@@ -144,11 +145,11 @@ def shoot():
     graph = Graph()
     graph.nodes = read_from_db()
 
-    print("Compacting graph...")
-    before = len(graph.nodes)
-    compact_graph(graph)
-    after = len(graph.nodes)
-    print(f"{after}/{before} segments retained.")
+    #print("Compacting graph...")
+    #before = len(graph.nodes)
+    #compact_graph(graph)
+    #after = len(graph.nodes)
+    #print(f"{after}/{before} segments retained.")
 
     print("Finding bubble chains...")
     start_time = time.time()

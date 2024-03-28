@@ -55,6 +55,7 @@ def get_top_level(genome, chrom, start, end):
     with get_session() as (db, session):
         print(db)
         aggregates,aggregateLinks = get_top_level_aggregates(db, session, genome, chrom, start, end)
+        print(len(aggregates))
         segments,segmentLinks = get_top_level_segments(db, session, genome, chrom, start, end)
 
     nodes = aggregates + segments

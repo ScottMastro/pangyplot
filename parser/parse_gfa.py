@@ -275,7 +275,6 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 else:
                     path = parse_line_W(line)
                 collapseDict, sampleIdDict = collapse_path(collapseDict, sampleIdDict, path)
-                print("W", end='', flush=True)
             elif line[0] == "L":
                 link = parse_line_L(line)
                 links.append(link)
