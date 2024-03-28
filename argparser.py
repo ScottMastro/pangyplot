@@ -118,13 +118,13 @@ def parse_args(app):
             positions = dict()
             if args.positions:
                 print("Parsing positions...")
-                positions = parse_positions(args.positions)
+                #positions = parse_positions(args.positions)
 
             if args.gfa and args.ref and args.layout:
                 print("Parsing layout...")
-                layoutCoords = parse_layout(args.layout)
+                #layoutCoords = parse_layout(args.layout)
                 print("Parsing GFA...")
-                parse_graph(args.gfa, args.ref, positions, layoutCoords)
+                #parse_graph(args.gfa, args.ref, positions, layoutCoords)
                 
                 #drop.drop_bubbles()
                 print("Calculating bubbles...")
