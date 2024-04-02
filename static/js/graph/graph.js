@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // muc4 region
     let start=198347200
     let end=198855600
-    const data = { genome: "CHM13", chrom: "chr3", start: start, end: start+1800,  source: "testing" };
+    const data = { genome: "CHM13", chrom: "chr3", start: start+1000, end: start+1100,  source: "testing" };
     
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
