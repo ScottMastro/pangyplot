@@ -91,7 +91,7 @@ def restore_links(db, session, keepNode, removeNode, recoverLinks):
 def compact_segment(keepSegmentId, removeSegmentId):
 
     with get_session() as (db, session):
-
+        print(keepSegmentId, removeSegmentId)
         keepNode, removeNode = get_segments(db, session, keepSegmentId, removeSegmentId)
         recoverLinks = get_other_links(db, session, keepSegmentId, removeSegmentId)
 

@@ -16,7 +16,7 @@ def get_top_level_aggregates(db, session, genome, chrom, start, end):
             OPTIONAL MATCH (n)-[r:END]-(e:Segment)
             RETURN n, labels(n) AS type, collect(DISTINCT r) AS links
             """
-
+    print(query)
     parameters = {"start": start, "end": end, "db": db, "genome": genome, "chrom": chrom}
     results = session.run(query, parameters)
 
@@ -37,14 +37,19 @@ def get_top_level_segments(db, session, genome, chrom, start, end):
                     WHERE m.chrom = $chrom AND m.start >= $start AND m.end <= $end
             }
             OPTIONAL MATCH (n)-[r:LINKS_TO]-(s:Segment)
-            RETURN n,s, collect(DISTINCT r) AS links
+            RETURN n, s, collect(DISTINCT r) AS links
             """
 
     parameters = {"start": start, "end": end, "db": db, "genome": genome, "chrom": chrom}
     results = session.run(query, parameters)
 
+    collected_nodes = set()
     for result in results:
-        nodes.append( record.segment_record(result["n"]) )
+        node = record.segment_record(result["n"])
+        if node["id"] not in collected_nodes:
+            nodes.append(node)
+            collected_nodes.add(node["id"])
+
         links.extend( [record.link_record_simple(r) for r in result["links"]] )
 
     return nodes, links
@@ -53,9 +58,9 @@ def get_top_level_segments(db, session, genome, chrom, start, end):
 def get_top_level(genome, chrom, start, end):
 
     with get_session() as (db, session):
-        print(db)
         aggregates,aggregateLinks = get_top_level_aggregates(db, session, genome, chrom, start, end)
         print(len(aggregates))
+
         segments,segmentLinks = get_top_level_segments(db, session, genome, chrom, start, end)
 
     nodes = aggregates + segments

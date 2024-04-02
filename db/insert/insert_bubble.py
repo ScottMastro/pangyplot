@@ -61,9 +61,10 @@ def add_bubble_properties():
         q3= MATCH + " WITH b, SUM(s.length) AS size SET b.size = size"
         q4= MATCH + " WITH b, SUM(1) AS n SET b.n = n"
         q5= MATCH + " WITH b, COLLECT(DISTINCT s.chrom)[0] AS chrom SET b.chrom = chrom"
+        q6= MATCH + " WITH b, COLLECT(DISTINCT s.genome)[0] AS genome SET b.genome = genome"
 
         print("Calculating bubble properties...")
-        for query in [q1,q2,q3,q4,q5]:
+        for query in [q1,q2,q3,q4,q5,q6]:
             print(query)
             session.run(query, {"db": db})
 
