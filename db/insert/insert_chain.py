@@ -72,9 +72,10 @@ def add_chain_properties():
         q3= MATCH + " WITH c, SUM(b.size) AS size SET c.size = size"
         q4= MATCH + " WITH c, SUM(b.n) AS n SET c.n = n"
         q5= MATCH + " WITH c, COLLECT(DISTINCT b.chrom)[0] AS chrom SET c.chrom = chrom"
+        q6= MATCH + " WITH c, COLLECT(DISTINCT b.genome)[0] AS genome SET c.genome = genome"
 
         print("Calculating chain properties...")
-        for query in [q1,q2,q3,q4,q5]:
+        for query in [q1,q2,q3,q4,q5,q6]:
             print(query)
             session.run(query, {"db": db})
 

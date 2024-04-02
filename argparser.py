@@ -32,6 +32,7 @@ def parse_args(app):
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
         parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=False)
+        parser_add.add_argument('--compact', help='Attempt to compact graph (not recommended for large graph)', action='store_true', required=False)
 
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
         parser_annotate.add_argument('--ref', help='Reference name', default=None)
@@ -118,17 +119,17 @@ def parse_args(app):
             positions = dict()
             if args.positions:
                 print("Parsing positions...")
-                #positions = parse_positions(args.positions)
+                positions = parse_positions(args.positions)
 
             if args.gfa and args.ref and args.layout:
                 print("Parsing layout...")
-                #layoutCoords = parse_layout(args.layout)
+                layoutCoords = parse_layout(args.layout)
                 print("Parsing GFA...")
-                #parse_graph(args.gfa, args.ref, positions, layoutCoords)
+                parse_graph(args.gfa, args.ref, positions, layoutCoords)
                 
                 #drop.drop_bubbles()
                 print("Calculating bubbles...")
-                bubble_gun.shoot()
+                bubble_gun.shoot(args.compact)
                 add_null_nodes()
                 connect_bubble_ends_to_chain()
                 add_chain_subtype()
