@@ -1,13 +1,15 @@
 CHR=chr3
+START=198347210
+END=198855552
 #wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.chroms/${CHR}.full.og
 
-PREFIX=./subset_198347210_198855552
+PREFIX=./subset_${START}_${END}
 mkdir -p $PREFIX
 
 OG=${PREFIX}/subset.og
 GFA=${PREFIX}/subset.gfa
 
-odgi extract -t 15 -P -E -r CHM13#chr3:198347210-198855552 -i ${CHR}.full.og -o ${PREFIX}/extracted.og
+odgi extract -t 15 -P -E -r CHM13#${CHR}:${START}-${END} -i ${CHR}.full.og -o ${PREFIX}/extracted.og
 odgi unchop -P -i ${PREFIX}/extracted.og -o ${PREFIX}/unchopped.og
 odgi view -g -i ${PREFIX}/unchopped.og > ${PREFIX}/unchopped.gfa
 odgi build -t 15 -g ${PREFIX}/unchopped.gfa -s -O -o $OG
