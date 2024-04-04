@@ -58,26 +58,3 @@ function hideLoader() {
     document.querySelector('.loader-filter').style.display = 'none';
 }
 hideLoader()
-
-function findBoundingBoxNodes(nodes) {
-    let xmin = Infinity;
-    let xmax = -Infinity;
-    let ymin = Infinity;
-    let ymax = -Infinity;
-
-    nodes.forEach(node => {
-        if (node.x < xmin) xmin = node.x;
-        if (node.x > xmax) xmax = node.x;
-        if (node.y < ymin) ymin = node.y;
-        if (node.y > ymax) ymax = node.y;
-    });
-
-    return {
-        x: (xmin + xmax) / 2,
-        y: (ymin + ymax) / 2,
-        xmin: xmin,
-        xmax: xmax,
-        ymin: ymin,
-        ymax: ymax
-    };
-}

@@ -29,11 +29,14 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
 
         if (event.code === 'Space' || event.key === ' ') {
             const nodes = [forceGraph.graphData().nodes[0]]            
-            const box = findBoundingBoxNodes(nodes);
-            forceGraph.centerAt(box.x, box.y, 1000);
+            const box = findNodeBounds(nodes);
+            forceGraph.centerAt(box.x + box.width/2, box.y + box.height/2, 1000);
         }
         if (event.code === 'ArrowUp') {
             forceGraph.centerAt(0, 0, 1000);
+        }
+        if (event.code === 'ArrowDown') {
+            normalizeGraph(forceGraph.graphData());
         }
 
         const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);

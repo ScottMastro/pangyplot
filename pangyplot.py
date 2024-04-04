@@ -43,16 +43,16 @@ def select():
 @app.route('/genes', methods=["GET"])
 def genes():
     genome = request.args.get("genome")
-    chrom = genome + "#" + request.args.get("chromosome")
+    chrom = request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
-    print(f"Getting genes in {chrom}:{start}-{end}...")
+    print(f"Getting genes in {genome}#{chrom}:{start}-{end}...")
     
     start = int(start)
     end = int(end)
     
     resultDict = {}
-    resultDict["genes"] = get_genes_in_range(chrom, start, end)
+    resultDict["genes"] = get_genes_in_range(genome, chrom, start, end)
     resultDict["annotations"] = []
 
     return resultDict, 200

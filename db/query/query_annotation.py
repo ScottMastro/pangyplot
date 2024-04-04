@@ -30,16 +30,17 @@ def create_gene_objects(data):
 
     return [geneDict[gid] for gid in geneDict]
 
-def query_gene_range(chrom, start, end):
+#todo: do we care about transcript?
+def query_gene_range_transcript(genome, chrom, start, end):
     with get_session() as (_, session):
         geneData = []
 
         query = """
                 MATCH (n)-[:INSIDE*]->(t:Transcript)-[:INSIDE]->(g:Gene)
-                WHERE g.chrom = $chrom AND g.start <= $end AND g.end >= $start
+                WHERE g.genome = $genome AND g.chrom = $chrom AND g.start <= $end AND g.end >= $start
                 RETURN g, t, n, labels(n) AS type
                 """
-        results = session.run(query, {"chrom": chrom, "start":start, "end":end})
+        results = session.run(query, {"genome": genome, "chrom": chrom, "start":start, "end":end})
         
         for result in results:
             gene = record.gene_record(result["g"])
@@ -50,10 +51,27 @@ def query_gene_range(chrom, start, end):
 
     return create_gene_objects(geneData)
 
-def get_genes_in_range(chrom, start, end):
-    genes = query_gene_range( chrom, start, end)
+def query_gene_range(genome, chrom, start, end):
+    with get_session() as (_, session):
+        geneData = []
 
-    print(f"GENE QUERY: #{chrom}:{start}-{end}")
+        query = """
+                MATCH (g:Gene)
+                WHERE g.genome = $genome AND g.chrom = $chrom AND g.start <= $end AND g.end >= $start
+                RETURN g
+                """
+        results = session.run(query, {"genome": genome, "chrom": chrom, "start":start, "end":end})
+        
+        for result in results:
+            gene = record.gene_record(result["g"])
+            geneData.append(gene)
+
+    return geneData
+
+def get_genes_in_range(genome, chrom, start, end):
+    genes = query_gene_range(genome, chrom, start, end)
+
+    print(f"GENE QUERY: {genome}#{chrom}:{start}-{end}")
     print(f"   Genes: {len(genes)}")
 
     return genes

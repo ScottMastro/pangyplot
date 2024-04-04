@@ -8,7 +8,7 @@ def add_annotations_by_type(session, annotations, type, batchSize):
         batch = annotations[i:i + batchSize]
         query = f"""
                 UNWIND $batch AS ann
-                CREATE (a:{type})
+                MERGE (a:{type} {{id: ann.id}})
                 SET a += ann
                 """
         session.run(query, {"batch": batch})

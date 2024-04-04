@@ -4,6 +4,7 @@ const NODE_ANNOTATION_DATA = {};
 function processAnnotationData(genes){
     genes.forEach(gene => {
         GENE_ANNOTATIONS[gene.id] = gene;
+        //console.log(gene.name, gene)
     });
 }
 
@@ -12,8 +13,10 @@ function annotateNode(node) {
     //speed up by sorting nodes and genes
     NODE_ANNOTATION_DATA[node.__nodeid] = []
     Object.values(GENE_ANNOTATIONS).forEach(gene => {
-        if(annotationOverlap(gene, node)){
-            NODE_ANNOTATION_DATA[node.__nodeid].push(gene.id)
+        if (gene.Name == "MUC4"){
+            if(annotationOverlap(gene, node)){
+                NODE_ANNOTATION_DATA[node.__nodeid].push(gene.id)
+            }
         }
     });
 }
@@ -21,6 +24,7 @@ function annotateNode(node) {
 document.addEventListener("updatedGraphData", function(event) {
     //possible todo:
     //skip nodes already done
+    console.log("REANNOTATE")
     const graph = event.detail.graph;
     graph.nodes.forEach(node => {
         annotateNode(node);

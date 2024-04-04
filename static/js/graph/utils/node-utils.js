@@ -1,67 +1,67 @@
-//todo: is this script needed?
+const SCALE_FACTOR = 1;
 
-const NORMALIZATION_RANGE = 1000;
-var NORMALIZATION_X = 1;
-var NORMALIZATION_Y = 1;
-var SHIFT_X = 0;
-var SHIFT_Y = 0;
-
+function resetGraphPositions(graph){
+    graph.nodes.forEach(node => {
+        node.x = node.initX;
+        node.y = node.initY;
+    });
+}
 
 function normalizeGraph(graph) {
-    return graph;
-    const coordinates = findBoundingBoxNodes(graph.nodes);
 
-    const NORMALIZATION_X = (coordinates.xmax - coordinates.xmin)/NORMALIZATION_RANGE;
-    const NORMALIZATION_Y = (coordinates.ymax - coordinates.ymin)/NORMALIZATION_RANGE;
-    const SHIFT_X = coordinates.xmin;
-    const SHIFT_Y = coordinates.ymin;
-
-    graph.nodes.forEach(node => {
-        node.x = (node.x - SHIFT_X) / NORMALIZATION_X;
-        node.y = (node.y - SHIFT_Y) / NORMALIZATION_Y;
-    });
-
+    resetGraphPositions(graph)
+    
+    const bounds = findNodeBounds(graph.nodes);
+    
+    //const scaleX = (coordinates.xmax - coordinates.xmin)/SCALE_FACTOR;
+    //const scaleY = (coordinates.ymax - coordinates.ymin)/SCALE_FACTOR;
+    const shiftX = bounds.x;
+    const shiftY = bounds.y;
 
     graph.nodes.forEach(node => {
-        console.log(`(${node.__nodeid}, ${node.x}, ${node.y})`);
+        node.x = (node.x - shiftX) / SCALE_FACTOR;
+        node.y = (node.y - shiftY) / SCALE_FACTOR;
     });
 
     return graph;
 }
 
-function shiftCoordinates(nodes, originNode){
-    const initPos = INIT_POSITIONS[originNode.nodeid]
-    const xshift = originNode.x - initPos.x
-    const yshift = originNode.y - initPos.y
+function findNodeBoundsInit(nodes) {
+    let bounds = {
+        minX: Infinity,
+        maxX: -Infinity,
+        minY: Infinity,
+        maxY: -Infinity
+    };
 
     nodes.forEach(node => {
-        node.x = node.x + xshift
-        node.y = node.y + yshift
+        if (node.initX < bounds.minX) bounds.minX = node.initX;
+        if (node.initX > bounds.maxX) bounds.maxX = node.initX;
+        if (node.initY < bounds.minY) bounds.minY = node.initY;
+        if (node.initY > bounds.maxY) bounds.maxY = node.initY;
     });
 
-    return nodes
+    return { x: bounds.minX, y: bounds.minY, 
+        width: bounds.maxX - bounds.minX, 
+        height: bounds.maxY - bounds.minY };
 }
 
+function findNodeBounds(nodes) {
+    let bounds = {
+        minX: Infinity,
+        maxX: -Infinity,
+        minY: Infinity,
+        maxY: -Infinity
+    };
 
+    nodes.forEach(node => {
+        if (node.x < bounds.minX) bounds.minX = node.x;
+        if (node.x > bounds.maxX) bounds.maxX = node.x;
+        if (node.y < bounds.minY) bounds.minY = node.y;
+        if (node.y > bounds.maxY) bounds.maxY = node.y;
+    });
 
-//todo: delete?
-function nodeNeighborhood(node, forceGraph) {
-    const links = forceGraph.graphData().links;
-    const nodes = forceGraph.graphData().nodes;
-
-    const connectedLinks = links.filter(link => link.class === "edge" && (link.sourceid === node.nodeid || link.targetid === node.nodeid));
-    const neighborNodeIds = new Set(connectedLinks.flatMap(link => [link.sourceid, link.targetid]));
-    //include both neighbors and self 
-    neighborNodeIds.add(node.nodeid);
-
-    const boundingNodes = Array.from(neighborNodeIds).map(id => nodes.find(n => n.nodeid === id));    
-    const bounds = findNodeBounds(boundingNodes);
-    const maxDimension = Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
-
-    return { x: node.x - maxDimension/2, 
-             y: node.y - maxDimension/2, 
-             width: maxDimension, 
-             height: maxDimension };
+    return { x: bounds.minX, y: bounds.minY, 
+        width: bounds.maxX - bounds.minX, 
+        height: bounds.maxY - bounds.minY };
 }
-
-
