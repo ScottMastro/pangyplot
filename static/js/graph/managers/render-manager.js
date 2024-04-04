@@ -3,9 +3,9 @@ const LINK_SIZE=10;
 const HOVER_PRECISION=2;
 
 
-function getLinkWidth(link) {
+function getLinkWidth(link, zoomFactor) {
     if (link.class === "node"){
-        return NODE_SIZE;
+        return NODE_SIZE + 3/zoomFactor;
     }
     return LINK_SIZE;
 }
@@ -33,7 +33,7 @@ function renderManagerPaintNode(ctx, node, forceGraph) {
 
     let color = getNodeColor(node);
     [
-        () => { draw_circle(ctx, x, y, size, color); },
+        () => { draw_circle(ctx, x, y, size + 3/zoomFactor, color); },
         () => { draw_circle_outline(ctx, x, y, size, color, lineWidth=5); },
         () => { draw_square(ctx, x, y, size, color); },
         () => { draw_cross(ctx, x, y, size, color); },
@@ -44,10 +44,12 @@ function renderManagerPaintNode(ctx, node, forceGraph) {
 function renderManagerPaintLink(ctx, link, forceGraph){
     if (!link.isVisible){ return; }
 
+    const zoomFactor = ctx.canvas.__zoom["k"]
+
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(link.source.x, link.source.y);
-    ctx.lineWidth = getLinkWidth(link); 
+    ctx.lineWidth = getLinkWidth(link, zoomFactor); 
     ctx.lineTo(link.target.x, link.target.y);
     ctx.lineCap = 'round';
     ctx.strokeStyle = getLinkColor(link);
@@ -109,7 +111,7 @@ function renderManagerPreRender(ctx, forceGraph, canvasWidth, canvasHeight){
     forceGraph.nodeVisibility(node => node.isVisible);
 
     ctx.save();
-    //geneHighlightEngineDraw(ctx, forceGraph.graphData());
+    geneHighlightEngineDraw(ctx, forceGraph.graphData());
     selectionEngineDraw(ctx, forceGraph.graphData());
 
     forceGraph.backgroundColor(getBackgroundColor());

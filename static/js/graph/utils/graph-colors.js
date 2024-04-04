@@ -90,9 +90,9 @@ function intToColor(seed, adjust=0) {
     
     rgb = COLOR_CACHE[originalSeed];
     var l = Math.floor(adjust*255)
-    var r = Math.min(255, rgb[0]+l)
-    var g = Math.min(255, rgb[1]+l)
-    var b = Math.min(255, rgb[2]+l)
+    var r = Math.min(255, Math.abs(rgb[0])+l)
+    var g = Math.min(255, Math.abs(rgb[1])+l)
+    var b = Math.min(255, Math.abs(rgb[2])+l)
 
     //console.log(r,g,b);
     let color = "rgba(" + r.toString() + "," 

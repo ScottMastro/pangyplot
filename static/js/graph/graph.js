@@ -50,11 +50,11 @@ function renderGraph(graph){
         .nodeLabel("__nodeid")
         .onNodeDrag((node, translate) => inputManagerNodeDragged(node, translate, forceGraph))
         .onNodeClick((node, event) => inputManagerNodeClicked(node, event, forceGraph))
+        .minZoom(1e-6) //default = 0.01
+        .maxZoom(1000) //default = 1000
 
         //.linkDirectionalParticles(4)
 
-    //    .minZoom(MIN_ZOOM)
-    //    .maxZoom(MAX_ZOOM)
 
     inputManagerSetupInputListeners(forceGraph, canvasElement);
 
@@ -99,10 +99,6 @@ function renderGraph(graph){
     graphSettingEngineSetup(forceGraph);
 }
 
-document.addEventListener("updatedGraphData", function(event) {
-    renderGraph(event.detail.graph);
-});
-
 
 // ==================================================
 
@@ -127,6 +123,7 @@ function processGraphData(rawGraph){
 
     const normalizedGraph = normalizeGraph(graph);
 
+    renderGraph(normalizedGraph);
     document.dispatchEvent(new CustomEvent("updatedGraphData", { detail: { graph: normalizedGraph } }));
 }
 
@@ -174,8 +171,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // muc4 region
     let start=198347210
-    let end=198855552
-    const data = { genome: "CHM13", chrom: "chr3", start: start, end: start+40000,  source: "testing" };
+    let end=198855552 // start+100000
+
+    const data = { genome: "CHM13", chrom: "chr3", start: start, end: end,  source: "testing" };
     
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
