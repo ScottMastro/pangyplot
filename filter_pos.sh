@@ -9,7 +9,7 @@ mkdir -p $PREFIX
 OG=${PREFIX}/subset.og
 GFA=${PREFIX}/subset.gfa
 
-odgi extract -t 15 -P -E -r CHM13#${CHR}:${START}-${END} -i ${CHR}.full.og -o ${PREFIX}/extracted.og
+odgi extract -t 15 -P -r CHM13#${CHR}:${START}-${END} -i ${CHR}.full.og -o ${PREFIX}/extracted.og
 odgi unchop -P -i ${PREFIX}/extracted.og -o ${PREFIX}/unchopped.og
 odgi view -g -i ${PREFIX}/unchopped.og > ${PREFIX}/unchopped.gfa
 odgi build -t 15 -g ${PREFIX}/unchopped.gfa -s -O -o $OG
@@ -31,8 +31,8 @@ cat $GFA | grep ^S | awk '{print $2 "," length($3)-1}' > ${PREFIX}/segment_ends.
 odgi position -t 15 -i $OG -r $PATHNAME --graph-pos-file ${PREFIX}/segment_ends.txt > ${PREFIX}/end_positions.txt
 rm ${PREFIX}/segment_ends.txt
 
-awk -F"[,\t]" -v pathStart="$PATHSTART" '{split($4, pos, ":"); print $1 "\t" pos[1] ":" $5+1+pathStart}' ${PREFIX}/start_positions.txt | grep -v ^"#" | sort -n -k1,1 > ${PREFIX}/tmp1.txt
-awk -F"[,\t]" -v pathStart="$PATHSTART" '{split($4, pos, ":"); print $1 "\t" pos[1] ":" $5+1+pathStart}' ${PREFIX}/end_positions.txt | grep -v ^"#" | sort -n -k1,1 > ${PREFIX}/tmp2.txt
+awk -F"[,\t]" -v pathStart="$PATHSTART" '{split($4, pos, ":"); print $1 "\t" pos[1] ":" $7+$5+1+pathStart}' ${PREFIX}/start_positions.txt | grep -v ^"#" | sort -n -k1,1 > ${PREFIX}/tmp1.txt
+awk -F"[,\t]" -v pathStart="$PATHSTART" '{split($4, pos, ":"); print $1 "\t" pos[1] ":" $7+$5+1+pathStart}' ${PREFIX}/end_positions.txt | grep -v ^"#" | sort -n -k1,1 > ${PREFIX}/tmp2.txt
 
 join -t $'\t' ${PREFIX}/tmp1.txt ${PREFIX}/tmp2.txt > ${PREFIX}/subset.positions.txt
 rm ${PREFIX}/tmp1.txt ; rm ${PREFIX}/tmp2.txt

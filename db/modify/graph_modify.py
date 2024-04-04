@@ -37,7 +37,12 @@ def add_null_nodes():
                     x1: s1.x2,
                     y1: s1.y2,
                     x2: s2.x1,
-                    y2: s2.y1
+                    y2: s2.y1,
+                    start: CASE WHEN s1.start < s2.start THEN s1.start ELSE s2.start END,
+                    end: CASE WHEN s1.end < s2.end THEN s1.end ELSE s2.end END,
+                    genome: COALESCE(s1.genome, s2.genome),
+                    chrom: COALESCE(s1.chrom, s2.chrom),
+                    tag: "null"
                 })
                 CREATE (s1)-[:LINKS_TO]->(s3)-[:LINKS_TO]->(s2)
                 CREATE (s3)-[:INSIDE]->(b)

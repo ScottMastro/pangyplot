@@ -1,38 +1,61 @@
-function fixCoordinates(nodes, originNode){
+//todo: is this script needed?
+
+const NORMALIZATION_RANGE = 1000;
+var NORMALIZATION_X = 1;
+var NORMALIZATION_Y = 1;
+var SHIFT_X = 0;
+var SHIFT_Y = 0;
+
+
+function normalizeGraph(graph) {
+    return graph;
+    const coordinates = findBoundingBoxNodes(graph.nodes);
+
+    const NORMALIZATION_X = (coordinates.xmax - coordinates.xmin)/NORMALIZATION_RANGE;
+    const NORMALIZATION_Y = (coordinates.ymax - coordinates.ymin)/NORMALIZATION_RANGE;
+    const SHIFT_X = coordinates.xmin;
+    const SHIFT_Y = coordinates.ymin;
+
+    graph.nodes.forEach(node => {
+        node.x = (node.x - SHIFT_X) / NORMALIZATION_X;
+        node.y = (node.y - SHIFT_Y) / NORMALIZATION_Y;
+    });
+
+
+    graph.nodes.forEach(node => {
+        console.log(`(${node.__nodeid}, ${node.x}, ${node.y})`);
+    });
+
+    return graph;
+}
+
+function shiftCoordinates(nodes, originNode){
+    const initPos = INIT_POSITIONS[originNode.nodeid]
+    const xshift = originNode.x - initPos.x
+    const yshift = originNode.y - initPos.y
+
     nodes.forEach(node => {
-        node.x = originNode.x;
-        node.y = originNode.y 
+        node.x = node.x + xshift
+        node.y = node.y + yshift
     });
 
     return nodes
 }
-function findNodeBounds(nodes) {
-    let bounds = {
-        minX: Infinity,
-        maxX: -Infinity,
-        minY: Infinity,
-        maxY: -Infinity
-    };
 
-    nodes.forEach(node => {
-        if (node.x < bounds.minX) bounds.minX = node.x;
-        if (node.x > bounds.maxX) bounds.maxX = node.x;
-        if (node.y < bounds.minY) bounds.minY = node.y;
-        if (node.y > bounds.maxY) bounds.maxY = node.y;
-    });
 
-    return bounds;
-}
 
+//todo: delete?
 function nodeNeighborhood(node, forceGraph) {
     const links = forceGraph.graphData().links;
     const nodes = forceGraph.graphData().nodes;
 
     const connectedLinks = links.filter(link => link.class === "edge" && (link.sourceid === node.nodeid || link.targetid === node.nodeid));
     const neighborNodeIds = new Set(connectedLinks.flatMap(link => [link.sourceid, link.targetid]));
-    const neighbors = Array.from(neighborNodeIds).map(id => nodes.find(n => n.nodeid === id));
+    //include both neighbors and self 
+    neighborNodeIds.add(node.nodeid);
 
-    const bounds = findNodeBounds(neighbors);
+    const boundingNodes = Array.from(neighborNodeIds).map(id => nodes.find(n => n.nodeid === id));    
+    const bounds = findNodeBounds(boundingNodes);
     const maxDimension = Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY);
 
     return { x: node.x - maxDimension/2, 
@@ -41,20 +64,4 @@ function nodeNeighborhood(node, forceGraph) {
              height: maxDimension };
 }
 
-function squishToNeighborhood(nodes, neighborhoodBox) {
-    const bounds = findNodeBounds(nodes);
-    const originalWidth = bounds.maxX - bounds.minX;
-    const originalHeight = bounds.maxY - bounds.minY;
 
-    const scaleX = neighborhoodBox.width / (originalWidth+1);
-    const scaleY = neighborhoodBox.height / (originalHeight+1);
-
-    nodes.forEach(node => {
-        const dx = ((node.x - bounds.minX) * scaleX);
-        const dy = ((node.y - bounds.minY) * scaleY);
-        node.x = neighborhoodBox.x + dx;
-        node.y = neighborhoodBox.y + dy;
-    });
-
-    return nodes;
-}
