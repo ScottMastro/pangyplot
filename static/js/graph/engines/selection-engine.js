@@ -94,6 +94,7 @@ function selectionEngineMouseClick(event, forceGraph, canvasElement, canvas, coo
         if (normDist < CAN_CLICK_RANGE){
             destroySelectionBox();
             nearestNode.isSelected = true;
+            console.log(nearestNode);
         }
     }
 }

@@ -7,36 +7,7 @@ var GRAPH_END_POS=null;
 const FORCE_GRAPH_HEIGHT_PROPORTION = 0.8;
 const FORCE_GRAPH_WIDTH_PROPORTION = 0.8;
 
-const NORMALIZATION_RANGE = 1000;
-var NORMALIZATION_X = 1;
-var NORMALIZATION_Y = 1;
-var SHIFT_X = 0;
-var SHIFT_Y = 0;
-
 DEBUG=true
-
-const VELOCITY_DECAY=0.1;
-
-function normalizeGraph(graph) {
-    const coordinates = findBoundingBoxNodes(graph.nodes);
-
-    const NORMALIZATION_X = (coordinates.xmax - coordinates.xmin)/NORMALIZATION_RANGE;
-    const NORMALIZATION_Y = (coordinates.ymax - coordinates.ymin)/NORMALIZATION_RANGE;
-    const SHIFT_X = coordinates.xmin;
-    const SHIFT_Y = coordinates.ymin;
-
-    graph.nodes.forEach(node => {
-        node.x = (node.x - SHIFT_X) / NORMALIZATION_X;
-        node.y = (node.y - SHIFT_Y) / NORMALIZATION_Y;
-    });
-
-
-    graph.nodes.forEach(node => {
-        console.log(`(${node.__nodeid}, ${node.x}, ${node.y})`);
-    });
-
-    return graph;
-}
 
 
 function getGraphCoordinates(){
@@ -118,6 +89,13 @@ function renderGraph(graph){
     forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
     forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
 
+    const pause = false;
+    if(pause){
+        forceGraph.d3AlphaDecay(1)
+        forceGraph.d3Force('link', null);   // Disable link force
+        forceGraph.d3Force('charge', null); // Disable charge force
+        forceGraph.d3Force('collide', null); // Disable center force
+    }
     graphSettingEngineSetup(forceGraph);
 }
 
@@ -133,9 +111,6 @@ function link_force_distance(link) {
     return (link.type === "edge") ? 10 : link.length ;
 }
 
-    FORCE_GRAPH.d3Force('link', null);   // Disable link force
-    FORCE_GRAPH.d3Force('charge', null); // Disable charge force
-    FORCE_GRAPH.d3Force('center', null); // Disable center force
 
 
 FORCE_GRAPH.d3Force('link').distance(link_force_distance).strength(0.5).iterations(1)
@@ -198,9 +173,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     // muc4 region
-    let start=198347200
-    let end=198855600
-    const data = { genome: "CHM13", chrom: "chr3", start: start+1000, end: start+1100,  source: "testing" };
+    let start=198347210
+    let end=198855552
+    const data = { genome: "CHM13", chrom: "chr3", start: start, end: start+40000,  source: "testing" };
     
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));

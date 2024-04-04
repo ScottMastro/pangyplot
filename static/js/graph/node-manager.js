@@ -1,4 +1,3 @@
-var INIT_POSITIONS = {};
 var NODEIDS = {};
 var NODE_INFO = {};
 
@@ -48,36 +47,26 @@ function calculateEffectiveNodePosition(node){
 
 function getCoordinates(node, n=1, i=0){
     let x, y;
-    if (node.hasOwnProperty("x") && node.hasOwnProperty("y")) {
-        x = node["x"];
-        y = node["y"];
-    } else {
-        if (n === 1) {
+
+    if (n === 1) {
+
+        if (node.hasOwnProperty("x") && node.hasOwnProperty("y")) {
+            x = node["x"];
+            y = node["y"];
+        } else {
             x = (node["x1"] + node["x2"]) / 2;
             y = (node["y1"] + node["y2"]) / 2;
-        } else {
-            let p = 1-(i / (n - 1));
-            p = Math.max(0, p);
-            p = Math.min(1, p);
-            x = p * node["x1"] + (1 - p) * node["x2"];
-            y = p * node["y1"] + (1 - p) * node["y2"];
         }
+
+    } else {
+        let p = 1-(i / (n - 1));
+        p = Math.max(0, p);
+        p = Math.min(1, p);
+        x = p * node["x1"] + (1 - p) * node["x2"];
+        y = p * node["y1"] + (1 - p) * node["y2"];
     }
 
     return {x:x, y:y}
-}
-
-function shiftCoordinates(nodes, originNode){
-    const initPos = INIT_POSITIONS[originNode.nodeid]
-    const xshift = originNode.x - initPos.x
-    const yshift = originNode.y - initPos.y
-
-    nodes.forEach(node => {
-        node.x = node.x + xshift
-        node.y = node.y + yshift
-    });
-
-    return nodes
 }
 
 function getNodeLength(node) {
@@ -90,14 +79,16 @@ function calculateNumberOfKinks(nodeLength) {
 }
 
 function createNewNode(node, nodeid, idx, totalKinks) {
-
+    let coords = getCoordinates(node, totalKinks, idx);
     let newNode = {
         nodeid,
         __nodeid: `${nodeid}#${idx}`,
         __nodeidx: idx,
         class: (idx === 0 || idx === totalKinks - 1) ? "end" : "mid",
-        x: getCoordinates(node, totalKinks, idx).x,
-        y: getCoordinates(node, totalKinks, idx).y,
+        x: coords.x,
+        y: coords.y,
+        initX: coords.x,
+        initY: coords.y,
         type: node["type"],
         isHighlight: false,
         isSelected: false,
@@ -137,16 +128,13 @@ function processNodes(rawNodes) {
     let nodeLinks = [];
 
     rawNodes.forEach(rawNode => {
-
         const nodeLength = getNodeLength(rawNode);
         const numberOfKinks = calculateNumberOfKinks(nodeLength);
         const nodeid = String(rawNode.nodeid);
 
         NODEIDS[nodeid] = [];
-        INIT_POSITIONS[nodeid] = getCoordinates(rawNode);
         NODE_INFO[nodeid] = rawNode;
 
-        
         for (let i = 0; i < numberOfKinks; i++) {
             const newNode = createNewNode(rawNode, nodeid, i, numberOfKinks);
             nodes.push(newNode);

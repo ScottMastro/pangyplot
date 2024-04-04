@@ -9,6 +9,16 @@ def deduplicate_links(links):
         dedup.append(link)
     return dedup
 
+def deduplicate_nodes(nodes):
+    nodeSet = set()
+    dedup = []
+    for node in nodes:
+        if node["nodeid"] in nodeSet:
+            continue
+        nodeSet.add(node["nodeid"])
+        dedup.append(node)
+    return dedup
+
 def remove_invalid_links(nodes, links):
     nodeids={node["nodeid"] for node in nodes}
     keepLinks = []
