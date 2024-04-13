@@ -24,7 +24,6 @@ function annotateNode(node) {
 document.addEventListener("updatedGraphData", function(event) {
     //possible todo:
     //skip nodes already done
-    console.log("REANNOTATE")
     const graph = event.detail.graph;
     graph.nodes.forEach(node => {
         annotateNode(node);

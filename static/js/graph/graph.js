@@ -27,6 +27,7 @@ function getCanvasHeight(){
     return window.innerHeight*FORCE_GRAPH_HEIGHT_PROPORTION;
 }
 
+
 function renderGraph(graph){
 
     console.log("forceGraph:", graph);
@@ -65,6 +66,7 @@ function renderGraph(graph){
             .width(getCanvasWidth());
     });
 
+
     console.log("forceGraph:", forceGraph);
 
     forceGraph.onEngineTick(() => {
@@ -83,18 +85,41 @@ function renderGraph(graph){
 
     const nodes = graph.nodes;
     // Create and add the custom force
+
+    function forceCenterEachNode(alpha) {
+        for (let node of forceGraph.graphData().nodes) {
+            if (node.isSingleton){
+                node.vx += (node.initX - node.x) * 0.01 * alpha;
+                node.vy += (node.initY - node.y) * 0.01 * alpha;
+            } else if (node.class = "end"){
+                node.vx += (node.initX - node.x) * 0.02 * alpha;
+                node.vy += (node.initY - node.y) * 0.02 * alpha;
+            } else{
+                node.vx += (node.initX - node.x) * 0.02 * alpha;
+                node.vy += (node.initY - node.y) * 0.02 * alpha;
+            }
+        }
+    }
+    
+    forceGraph.d3Force('centerEachNode', forceCenterEachNode);
+
     //forceGraph.d3Force('spreadX', d3.forceX().strength(0).x((d, i) => (i / forceGraph.graphData().nodes.length)));
     
-    forceGraph.d3Force('link').distance(100).strength(0.9)
+    forceGraph.d3Force('center', null);
+    forceGraph.d3Force('link').distance(100).strength(0.9);
+    //forceGraph.d3Force('link', null);   // Disable link force
+
     forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
     forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
+
 
     const pause = false;
     if(pause){
         forceGraph.d3AlphaDecay(1)
         forceGraph.d3Force('link', null);   // Disable link force
         forceGraph.d3Force('charge', null); // Disable charge force
-        forceGraph.d3Force('collide', null); // Disable center force
+        forceGraph.d3Force('collide', null); // Disable collide force
+        forceGraph.d3Force('center', null); // Disable center force
     }
     graphSettingEngineSetup(forceGraph);
 }

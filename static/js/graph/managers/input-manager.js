@@ -16,10 +16,8 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
         return { min: {x:tl.x, y:tl.y}, max: {x:br.x, y:br.y} };
     };
     
-
     forceGraph.enableZoomInteraction(false);
     forceGraph.enablePanInteraction(false);
-
 
     // keyboard
 
@@ -39,7 +37,7 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
             normalizeGraph(forceGraph.graphData());
         }
 
-        const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
+        graphInputStateUpdate(event, forceGraph, canvasElement);
     });
 
 
