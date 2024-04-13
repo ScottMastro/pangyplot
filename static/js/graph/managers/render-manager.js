@@ -27,9 +27,6 @@ function renderManagerPaintNode(ctx, node, forceGraph) {
         const nodeBox = nodeNeighborhood(node, forceGraph)
         draw_rectangle_outline(ctx, nodeBox.x, nodeBox.y, nodeBox.width, nodeBox.height, "purple", lineWidth=3);
     }
-    if (!node.isSingleton){
-        return;
-    }
 
     let color = getNodeColor(node);
     [

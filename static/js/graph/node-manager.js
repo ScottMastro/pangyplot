@@ -80,6 +80,16 @@ function calculateNumberOfKinks(nodeLength) {
 
 function createNewNode(node, nodeid, idx, totalKinks) {
     let coords = getCoordinates(node, totalKinks, idx);
+    let seqLength = 0;
+    let largestChild = 0;
+
+    if (node.type == "segment") {
+        seqLength = node.length;
+    } else {
+        seqLength = node.size;
+        largestChild = node.largest_child;
+    }
+
     let newNode = {
         nodeid,
         __nodeid: `${nodeid}#${idx}`,
@@ -89,15 +99,21 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         y: coords.y,
         initX: coords.x,
         initY: coords.y,
-        type: node["type"],
+        type: node.type,
+        seqLen: seqLength,
         isHighlight: false,
         isSelected: false,
         isVisible: true,
+        largestChild: largestChild,
         isSingleton: totalKinks === 1,
         isRef: node.hasOwnProperty("chrom"),
         annotations: []
     };
 
+    //if (newNode.class == "end" && ! newNode.isSingleton){
+    //    newNode.fx = coords.x;
+    //    newNode.fy = coords.y;
+    //}
 
     ["chrom", "start", "end", "subtype"].forEach(key => {
         if (node.hasOwnProperty(key)) {

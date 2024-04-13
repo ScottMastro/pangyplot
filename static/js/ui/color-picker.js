@@ -44,6 +44,13 @@ document.querySelectorAll('.color-preset-option').forEach(elem => {
     });
 });
 
+document.querySelectorAll('.color-style-option').forEach(elem => {
+    elem.addEventListener('click', () => {
+        const colorData = { style: elem.getAttribute('data-style') };
+        document.dispatchEvent(new CustomEvent("updateColorStyle", { detail: colorData }));
+    });
+});
+
 bgColorPicker.addEventListener('change', function(event) {
     const colorData = { type: "background", color: bgColorPicker.value };
     document.dispatchEvent(new CustomEvent("updateColor", { detail: colorData }));

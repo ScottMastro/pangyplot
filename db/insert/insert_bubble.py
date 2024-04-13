@@ -59,44 +59,29 @@ def add_bubble_properties():
         q1= MATCH + " WITH b, MIN(s.start) AS start SET b.start = start"
         q2= MATCH + " WITH b, MAX(s.end) AS end SET b.end = end"
         q3= MATCH + " WITH b, SUM(s.length) AS size SET b.size = size"
-        q4= MATCH + " WITH b, SUM(1) AS n SET b.n = n"
-        q5= MATCH + " WITH b, COLLECT(DISTINCT s.chrom)[0] AS chrom SET b.chrom = chrom"
-        q6= MATCH + " WITH b, COLLECT(DISTINCT s.genome)[0] AS genome SET b.genome = genome"
+        q4= MATCH + " WITH b, MAX(s.length) AS largest SET b.largest_child = largest"
+        q5= MATCH + " WITH b, SUM(1) AS n SET b.n = n"
+        q6= MATCH + " WITH b, COLLECT(DISTINCT s.chrom)[0] AS chrom SET b.chrom = chrom"
+        q7= MATCH + " WITH b, COLLECT(DISTINCT s.genome)[0] AS genome SET b.genome = genome"
 
         print("Calculating bubble properties...")
-        for query in [q1,q2,q3,q4,q5,q6]:
+        for query in [q1,q2,q3,q4,q5,q6,q7]:
             print(query)
             session.run(query, {"db": db})
 
     with get_session() as (db, session):
 
-        def layout_query(a,b):
-            c = "MIN" if b=="1" else "MAX"
-            d = "<" if b=="1" else ">"
-            return MATCH + f"""
-                WITH b, {c}(s.{a}1) AS p, {c}(s.{a}2) AS q
-                WITH b, CASE WHEN p {d} q THEN p ELSE q END AS r
-                SET b.{a}{b} = r
-                """
-        
-        q6 = layout_query("x","1")
-        q7 = layout_query("x","2")
-        q8 = layout_query("y","1")
-        q9 = layout_query("y","2")
-
-        q10 = MATCH + """
-        WITH b, SUM(s.x1) AS x1, SUM(s.x2) AS x2, SUM(2) AS n
-        WITH b, (x1+x2)/n AS x
-        SET b.x = x
+        MATCH = """
+            MATCH (x)-[:INSIDE]->(b:Bubble)<-[r:END]-(s:Segment)
+            WHERE b.db = $db AND exists((x)-[]-(s))
         """
-        q11 = MATCH + """
-        WITH b, SUM(s.y1) AS y1, SUM(s.y2) AS y2, SUM(2) AS n
-        WITH b, (y1+y2)/n AS y
-        SET b.y = y
-        """
+        q7 = MATCH + " WITH b, avg(x.x1) AS avgX1 SET b.x1 = avgX1"
+        q8 = MATCH + " WITH b, avg(x.y1) AS avgY1 SET b.y1 = avgY1"
+        q9 = MATCH + " WITH b, avg(x.x2) AS avgX2 SET b.x2 = avgX2"
+        q10 = MATCH + " WITH b, avg(x.y2) AS avgY2 SET b.y2 = avgY2"
 
         print("Calculating bubble layout...")
-        for query in [q6,q7,q8,q9,q10,q11]:
+        for query in [q7,q8,q9,q10]:
             print(query)
             session.run(query, {"db": db})
 

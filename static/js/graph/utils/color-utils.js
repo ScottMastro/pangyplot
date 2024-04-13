@@ -1,68 +1,49 @@
 const COLOR_CACHE = {};
 
-const REF_COLOR="#3C5E81";
-const HIGHLIGHT_LINK_COLOR="#FF0000";
 
-var BACKGROUND_COLOR="#373737";
-
-var NODE_COLOR1="#0762E5";
-var NODE_COLOR2="#F2DC0F";
-var NODE_COLOR3="#FF6700";
-var LINK_COLOR="#969696";
-
-
-document.addEventListener('updateColor', function(event) {
-    if (event.detail.type === "node"){
-        NODE_COLOR1 = event.detail.color1;
-        NODE_COLOR2 = event.detail.color2;
-        NODE_COLOR3 = event.detail.color3;
-    } else if (event.detail.type === "link"){
-        LINK_COLOR = event.detail.color;
-    } else if (event.detail.type === "background"){
-        BACKGROUND_COLOR = event.detail.color;
+function hexToRgb(hex) {
+    let r = 0, g = 0, b = 0;
+    if (hex.length == 4) {
+        r = parseInt(hex[1] + hex[1], 16);
+        g = parseInt(hex[2] + hex[2], 16);
+        b = parseInt(hex[3] + hex[3], 16);
+    } else if (hex.length == 7) {
+        r = parseInt(hex[1] + hex[2], 16);
+        g = parseInt(hex[3] + hex[4], 16);
+        b = parseInt(hex[5] + hex[6], 16);
     }
-});
-
-
-function getBackgroundColor(){
-    return BACKGROUND_COLOR;
+    return [r, g, b];
 }
 
-function getLinkColor(link){
-
-    if (link.class === "node"){        
-        switch (link.type) {
-            case "segment":
-                return NODE_COLOR1;
-            case "bubble":
-                return NODE_COLOR2;
-            case "chain":
-                return NODE_COLOR3;
-            default:
-                return REF_COLOR;
-        }
-    }
-   
-    if(should_highlight_link(link)){
-        return HIGHLIGHT_LINK_COLOR;
-    }
-
-    return LINK_COLOR;
+function rgbToHex(r, g, b) {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
 }
 
-function getNodeColor(node){
-    switch (node.type) {
-        case "segment":
-            return NODE_COLOR1;
-        case "bubble":
-            return NODE_COLOR2;
-        case "chain":
-            return NODE_COLOR3;
-        case "null":
-            return LINK_COLOR;        
-        default:
-            return REF_COLOR;
-    }    
+function interpolateColor(color1, color2, factor) {
+    let result = color1.slice();
+    for (let i = 0; i < 3; i++) {
+        result[i] = Math.round(result[i] + factor * (color2[i] - color1[i]));
+    }
+    return result;
+}
+
+function getGradientColor(rangeStart, rangeEnd, value) {
+    let factor = (value - rangeStart) / (rangeEnd - rangeStart);
+    let color1 = hexToRgb(NODE_COLOR1);
+    let color2 = hexToRgb(NODE_COLOR2);
+    let color3 = hexToRgb(NODE_COLOR3);
+
+    if (factor <= 0) {
+        return NODE_COLOR1;
+    } else if (factor >= 1) {
+        return NODE_COLOR3;
+    } else if (factor <= 0.5) {
+        let midFactor = factor / 0.5;
+        return rgbToHex(...interpolateColor(color1, color2, midFactor));
+    } else { 
+        let midFactor = (factor - 0.5) / 0.5; 
+        return rgbToHex(...interpolateColor(color2, color3, midFactor));
+    }
 }
 
 function intToColor(seed, adjust=0) {

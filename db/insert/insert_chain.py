@@ -70,37 +70,57 @@ def add_chain_properties():
         q1= MATCH + " WITH c, MIN(b.start) AS start SET c.start = start"
         q2= MATCH + " WITH c, MAX(b.end) AS end SET c.end = end"
         q3= MATCH + " WITH c, SUM(b.size) AS size SET c.size = size"
-        q4= MATCH + " WITH c, SUM(b.n) AS n SET c.n = n"
-        q5= MATCH + " WITH c, COLLECT(DISTINCT b.chrom)[0] AS chrom SET c.chrom = chrom"
-        q6= MATCH + " WITH c, COLLECT(DISTINCT b.genome)[0] AS genome SET c.genome = genome"
+        q4= MATCH + " WITH c, MAX(b.size) AS largest SET c.largest_child = largest"
+        q5= MATCH + " WITH c, SUM(b.n) AS n SET c.n = n"
+        q6= MATCH + " WITH c, COLLECT(DISTINCT b.chrom)[0] AS chrom SET c.chrom = chrom"
+        q7= MATCH + " WITH c, COLLECT(DISTINCT b.genome)[0] AS genome SET c.genome = genome"
+
+        #todo remove?
+        #q7 = MATCH + """
+        #WITH c, SUM(b.x1*b.n) AS x1, SUM(b.x2*b.n) AS x2, SUM(2*b.n) AS n
+        #WITH c, (x1+x2)/n AS x
+        #SET c.x = x
+        #"""
+        #todo remove?
+        #q8 = MATCH + """
+        #WITH c, SUM(b.y1*b.n) AS y1, SUM(b.y2*b.n) AS y2, SUM(2*b.n) AS n
+        #WITH c, (y1+y2)/n AS y
+        #SET c.y = y
+        #"""
 
         print("Calculating chain properties...")
-        for query in [q1,q2,q3,q4,q5,q6]:
+        for query in [q1,q2,q3,q4,q5,q6,q7]:
             print(query)
             session.run(query, {"db": db})
 
     with get_session() as (db, session):
 
-        q6 = MATCH + " WITH c, MIN(b.x1) AS x SET c.x1 = x"
-        q7 = MATCH + " WITH c, MAX(b.x2) AS x SET c.x2 = x"
-        q8 = MATCH + " WITH c, MIN(b.y1) AS y SET c.y1 = y"
-        q9 = MATCH + " WITH c, MAX(b.y2) AS y SET c.y2 = y"
+        MATCH = """
+            MATCH (x)-[:INSIDE]->(c:Chain)<-[r:END]-(s:Segment)
+            WHERE c.db = $db AND exists((x)-[]-(s))
+        """
 
-        q10 = MATCH + """
-        WITH c, SUM(b.x1*b.n) AS x1, SUM(b.x2*b.n) AS x2, SUM(2*b.n) AS n
-        WITH c, (x1+x2)/n AS x
-        SET c.x = x
+        q9 = MATCH + " WITH c, avg(x.x1) AS avgX1 SET c.x1 = avgX1"
+        q10 = MATCH + " WITH c, avg(x.y1) AS avgY1 SET c.y1 = avgY1"
+
+        MATCH = """
+            MATCH (x)-[:INSIDE]->(c:Chain)-[r:END]->(s:Segment)
+            WHERE c.db = $db AND exists((x)-[]-(s))
         """
-        q11 = MATCH + """
-        WITH c, SUM(b.y1*b.n) AS y1, SUM(b.y2*b.n) AS y2, SUM(2*b.n) AS n
-        WITH c, (y1+y2)/n AS y
-        SET c.y = y
-        """
+
+        q11 = MATCH + " WITH c, avg(x.x2) AS avgX2 SET c.x2 = avgX2"
+        q12 = MATCH + " WITH c, avg(x.y2) AS avgY2 SET c.y2 = avgY2"
+
 
         print("Calculating chain layout...")
-        for query in [q6,q7,q8,q9,q10,q11]:
+        for query in [q9,q10,q11,q12]:
             print(query)
             session.run(query, {"db": db})
+
+        #q10 = MATCH + " WITH c, MAX(b.x2) AS x SET c.x2 = x"
+        #q11 = MATCH + " WITH c, MIN(b.y1) AS y SET c.y1 = y"
+        #q12 = MATCH + " WITH c, MAX(b.y2) AS y SET c.y2 = y"
+
 
     with get_session() as (db, session):
 
