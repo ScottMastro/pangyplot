@@ -1,24 +1,13 @@
-function draw_circle(ctx, x, y, size, color){
-    ctx.save();
+function drawCircle(ctx, x, y, size, color){
+    const previousFillStyle = ctx.fillStyle;
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(x, y, size/2, 0, 2 * Math.PI, false);
     ctx.fill();
-    ctx.restore();
+    ctx.fillStyle = previousFillStyle;
 }
 
-function draw_circle_outline2(ctx, x, y, size, color, lineWidth=3, fill=null){
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.fillStyle = fill;
-    ctx.lineWidth = lineWidth;
-    ctx.beginPath();
-    ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-    ctx.stroke();
-    ctx.restore();
-}
-
-function draw_circle_outline(ctx, x, y, size, color, lineWidth=3, fill=BACKGROUND_COLOR){
+function drawCircleOutline(ctx, x, y, size, color, lineWidth=3, fill=BACKGROUND_COLOR){
     ctx.save();
     ctx.strokeStyle = color;
     ctx.fillStyle = fill;
@@ -29,14 +18,45 @@ function draw_circle_outline(ctx, x, y, size, color, lineWidth=3, fill=BACKGROUN
     ctx.restore();
 }
 
-function draw_square(ctx, x, y, size, color){
+function drawLine(ctx, x1, y1, x2, y2, width, color){
+    const previousLineWidth = ctx.lineWidth;
+    const previousLineCap = ctx.lineCap;
+    const previousStrokeStyle = ctx.strokeStyle;
+
+    ctx.lineWidth = width;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = color;
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    ctx.lineWidth = previousLineWidth;
+    ctx.lineCap = previousLineCap;
+    ctx.strokeStyle = previousStrokeStyle;
+}
+
+
+function drawCircleOutline2(ctx, x, y, size, color, lineWidth=3, fill=null){
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = fill;
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+    ctx.stroke();
+    ctx.restore();
+}
+
+function drawSquare(ctx, x, y, size, color){
     ctx.save();
     ctx.fillStyle = color;
     ctx.fillRect(x - size/2, y - size/2, size, size);
     ctx.restore();
 }
 
-function draw_rectangle_outline(ctx, x, y, width, height, color, lineWidth=3) {
+function drawRectangleOutline(ctx, x, y, width, height, color, lineWidth=3) {
     ctx.save();
     ctx.strokeStyle = color;
     ctx.lineWidth = lineWidth;
@@ -48,7 +68,7 @@ function draw_rectangle_outline(ctx, x, y, width, height, color, lineWidth=3) {
     ctx.restore();
 }
 
-function draw_triangle(ctx, x, y, size, color){
+function drawTriangle(ctx, x, y, size, color){
     ctx.save();
     ctx.fillStyle = color;
     ctx.beginPath();
@@ -59,7 +79,7 @@ function draw_triangle(ctx, x, y, size, color){
     ctx.restore();
 }
 
-function draw_cross(ctx, x, y, size, color){
+function drawCross(ctx, x, y, size, color){
     ctx.save();
     ctx.strokeStyle = color;
     ctx.beginPath(); 
@@ -79,16 +99,25 @@ function outlineNode(node, ctx, shift, size, color) {
 }
 
 function outlineLink(link, ctx, shift, width, color) {
-    ctx.beginPath();
-    ctx.moveTo(link.source.x+shift, link.source.y+shift);
+    const previousLineWidth = ctx.lineWidth;
+    const previousLineCap = ctx.lineCap;
+    const previousStrokeStyle = ctx.strokeStyle;
+
     ctx.lineWidth = width;
     ctx.strokeStyle = color;
-    ctx.lineTo(link.target.x+shift, link.target.y+shift);
     ctx.lineCap = 'round';
+
+    ctx.beginPath();
+    ctx.moveTo(link.source.x+shift, link.source.y+shift);
+    ctx.lineTo(link.target.x+shift, link.target.y+shift);
     ctx.stroke();
+
+    ctx.lineWidth = previousLineWidth;
+    ctx.lineCap = previousLineCap;
+    ctx.strokeStyle = previousStrokeStyle;
 }
 
-function add_text(text, ctx, x, y, size, color, align="center", baseline="middle") {
+function drawText(text, ctx, x, y, size, color, align="center", baseline="middle") {
     ctx.save();
     ctx.textAlign = align;
     ctx.textBaseline = baseline;

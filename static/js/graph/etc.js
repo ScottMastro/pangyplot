@@ -47,7 +47,7 @@ function draw_gene_name(ctx, graphData){
         let x = sumX/n; let y = sumY/n;
         let size = Math.max(72, 72*(1/zoomFactor/10));
     
-        add_text(annotationDict[k].gene, ctx, x, y, size, "lightgrey");
+        drawText(annotationDict[k].gene, ctx, x, y, size, "lightgrey");
     }
 
 }
