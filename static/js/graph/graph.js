@@ -193,10 +193,14 @@ document.addEventListener('DOMContentLoaded', function () {
     //const data = { genome: "CHM13", chrom: "chr18", start: "47506000", end: "47600000",  source: "testing" };
 
 
-    // muc4 region
+    // wide muc4/20 region
     let start=198347210
     let end=198855552 // start+100000
-
+    
+    // narrow muc4/20 region
+    start=198543540;
+    end=198660739;
+    
     const data = { genome: "CHM13", chrom: "chr3", start: start, end: end,  source: "testing" };
     
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));

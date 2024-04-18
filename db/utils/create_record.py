@@ -58,6 +58,9 @@ def gene_record(record):
 def transcript_record(record):
     transcript = {k: record[k] for k in record.keys()}
     return transcript
+def exon_record(record):
+    exon = {k: record[k] for k in record.keys()}
+    return exon
 
 
 def annotation_record(record, nodeType):

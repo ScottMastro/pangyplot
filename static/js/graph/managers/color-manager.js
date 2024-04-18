@@ -49,7 +49,9 @@ function colorManagerLinkColor(link){
         case "ref_alt":
             return colorByRef(false);
         case "gc_content": 
-            return colorByGC(null);        
+            return colorByGC(null);
+        case "position": 
+            return colorByPosition(link.source.start, link.source.end);  
         default:
             return colorByType(link.type);        
     }
@@ -66,7 +68,9 @@ function colorManagerNodeColor(node){
         case "ref_alt":
             return colorByRef(node.isRef);
         case "gc_content": 
-            return colorByGC(null);        
+            return colorByGC(null);
+        case "position": 
+            return colorByPosition(node.start, node.end);
         default:
             return colorByType(node.type);
     }
@@ -74,6 +78,14 @@ function colorManagerNodeColor(node){
 
 function colorByGC(content){
     return NULL_COLOR;
+}
+
+function colorByPosition(start, end){
+    if (start == null || end == null){
+        return NULL_COLOR;
+    }
+    const position = (start+end)/2;
+    return getGradientColor(position, GRAPH_START_POS, GRAPH_END_POS, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
 }
 
 function colorBySize(size){

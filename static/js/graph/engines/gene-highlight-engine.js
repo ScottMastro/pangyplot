@@ -1,4 +1,4 @@
-const HIGHLIGHT_SIZE=60;
+const HIGHLIGHT_SIZE=80;
 const LIGHTNESS_SCALE=0.0;
 
 function geneHighlightEngineDraw(ctx, graphData){
@@ -28,6 +28,51 @@ function geneHighlightEngineDraw(ctx, graphData){
      });
 
      ctx.restore();
+
+}
+
+//todo
+function drawGeneName(ctx, graphData){
+    const zoomFactor = ctx.canvas.__zoom["k"];
+
+    annotationNodesX = {};
+    annotationNodesY = {};
+
+    let nodes = graphData.nodes;
+    for (let i = 0, n = nodes.length, node; i < n; ++i) {
+        node = nodes[i];
+
+        for (let j = 0, m = node.annotations.length, k; j < m; ++j) {
+            k = node.annotations[j]
+
+            if (!annotationNodesX.hasOwnProperty(k)) {
+                annotationNodesX[k] = [];
+                annotationNodesY[k] = [];
+            }
+            annotationNodesX[k].push(node.x)
+            annotationNodesY[k].push(node.y);
+        } 
+    }
+
+    for (var k in annotationNodesX) {
+
+        //f (annotationDict[k].type != "gene"){
+        //     continue;
+        //}
+
+        var n = annotationNodesX[k].length
+        var sumX = annotationNodesX[k].reduce(function(a, b){
+            return a + b;
+        }, 0);
+        var sumY = annotationNodesY[k].reduce(function(a, b){
+            return a + b;
+        }, 0);
+
+        let x = sumX/n; let y = sumY/n;
+        let size = Math.max(72, 72*(1/zoomFactor/10));
+    
+        drawText(annotationDict[k].gene, ctx, x, y, size, "lightgrey");
+    }
 
 }
 

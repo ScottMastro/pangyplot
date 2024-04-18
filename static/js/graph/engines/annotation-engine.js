@@ -1,23 +1,36 @@
-const GENE_ANNOTATIONS = {};
+const GENE_ANNOTATIONS = [];
 const NODE_ANNOTATION_DATA = {};
 
 function processAnnotationData(genes){
     genes.forEach(gene => {
-        GENE_ANNOTATIONS[gene.id] = gene;
-        //console.log(gene.name, gene)
+        if (gene.name == "MUC4" || gene.name == "MUC20"){
+            GENE_ANNOTATIONS.push(gene);
+            console.log(gene.name, gene)
+        }
     });
 }
 
+//todo: this happenes before processAnnotationData can run
 function annotateNode(node) {
     //possible todo:
     //speed up by sorting nodes and genes
     NODE_ANNOTATION_DATA[node.__nodeid] = []
-    Object.values(GENE_ANNOTATIONS).forEach(gene => {
-        if (gene.Name == "MUC4"){
-            if(annotationOverlap(gene, node)){
-                NODE_ANNOTATION_DATA[node.__nodeid].push(gene.id)
-            }
+
+    GENE_ANNOTATIONS.forEach(gene => {
+
+        const transcript = gene.transcripts[0];
+
+        if(annotationOverlap(transcript, node)){
+            NODE_ANNOTATION_DATA[node.__nodeid].push(gene.id)
         }
+
+        transcript.exons.forEach(exon => {
+
+            if(annotationOverlap(exon, node)){
+                NODE_ANNOTATION_DATA[node.__nodeid].push(exon.id)
+            }
+            
+        })
     });
 }
 
@@ -38,6 +51,8 @@ function annotationOverlap(annotation, node) {
     if (node.start <= annotation.end && node.end >= annotation.start){
         let pointPosition = calculateEffectiveNodePosition(node);
         return pointPosition >= annotation.start && pointPosition <= annotation.end;
+
+
     }
 }
 

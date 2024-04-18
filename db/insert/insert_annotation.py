@@ -1,6 +1,9 @@
 from db.neo4j_db import get_session
 
 GENE="Gene"
+EXON="Exon"
+TRANSCRIPT="Transcript"
+
 
 def add_annotations_by_type(session, annotations, type, batchSize):
     if len(annotations) == 0: return
@@ -13,21 +16,18 @@ def add_annotations_by_type(session, annotations, type, batchSize):
                 """
         session.run(query, {"batch": batch})
 
-def add_annotation_links(genome, session):
+def add_annotation_links(session, annotations, type, parentType, batchSize):
+    if len(annotations) == 0: return
+    for i in range(0, len(annotations), batchSize):
+        batch = annotations[i:i + batchSize]
+        query = """
+                UNWIND $batch AS ann
+                MATCH (child:{type} {{id: ann.id, genome: ann.genome}})
+                MATCH (parent:{parentType} {{id: ann.parent, genome: ann.genome}})
+                MERGE (child)-[:INSIDE]->(parent)
+                """.format(type=type, parentType=parentType)
+        session.run(query, {"batch": batch})
 
-    query = """
-            MATCH (t:Transcript) WHERE t.gene_id IS NOT NULL AND t.genome = $genome
-            MATCH (g:Gene) WHERE g.id = t.gene_id AND g.genome = $genome
-            MERGE (t)-[:INSIDE]->(g)
-            """
-    session.run(query, parameters={'genome': genome})
-                
-    query = """
-            MATCH (n) WHERE n.transcript_id IS NOT NULL AND n.genome = $genome
-            MATCH (t:Transcript) WHERE t.id = n.transcript_id AND t.genome = $genome
-            MERGE (n)-[:INSIDE]->(t)
-            """
-    session.run(query, parameters={'genome': genome})
     
 def add_annotations(refGenome, annotationDict, batchSize=10000):
 
@@ -35,10 +35,19 @@ def add_annotations(refGenome, annotationDict, batchSize=10000):
 
         add_annotations_by_type(session, annotationDict[GENE], GENE, batchSize)
         print(GENE, len(annotationDict[GENE]))
-        del annotationDict[GENE]
+        #del annotationDict[GENE]
 
-        for type in annotationDict:
-            print(type, len(annotationDict[type]))
-            add_annotations_by_type(session, annotationDict[type], type, batchSize)
+        add_annotations_by_type(session, annotationDict[TRANSCRIPT], TRANSCRIPT, batchSize)
+        print(TRANSCRIPT, len(annotationDict[TRANSCRIPT]))
+        add_annotation_links(session, annotationDict[TRANSCRIPT], TRANSCRIPT, GENE, batchSize)
+
+        add_annotations_by_type(session, annotationDict[EXON], EXON, batchSize)
+        print(EXON, len(annotationDict[EXON]))
+        add_annotation_links(session, annotationDict[EXON], EXON, TRANSCRIPT, batchSize)
+
+
+        #for type in annotationDict:
+        #    print(type, len(annotationDict[type]))
+        #    add_annotations_by_type(session, annotationDict[type], type, batchSize)
         
-        add_annotation_links(refGenome, session)
+        #add_annotation_links(refGenome, session)

@@ -20,19 +20,25 @@ def parse_line(line):
     result["start"] = int(cols[3])
     result["end"] = int(cols[4])
 
+    result["strand"] = cols[6]
+
     result["id"] = None
     result["gene"] = None
     result["exon"] = None
 
     for c in cols[8].split(";"):
-        if c.startswith("ID"):
+        if c.lower().startswith("id"):
             result["id"] = c.split("=")[1]
-        elif c.startswith("gene_name"):
+            if result["id"].startswith("exon:"):
+                result["exon"] = int(result["id"].split(":")[-1])
+        elif c.lower().startswith("parent="):
+            result["parent"] = c.split("=")[1]
+        elif c.lower().startswith("gene_name"):
             result["gene"] = c.split("=")[1]
-        elif c.startswith("exon_number"):
+        elif c.lower().startswith("exon_number"):
             result["exon"] = int(c.split("=")[1])
         else:
-            result[c.split("=")[0]] = c.split("=")[1]
+            result[c.split("=")[0].lower()] = c.split("=")[1]
     return result
 
 def add_primary_information(transcript):

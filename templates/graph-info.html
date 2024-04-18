@@ -1,5 +1,5 @@
-{% macro info_label(label, id, optional=false) %}
-<div class="info-label flex-1 {{ 'info-optional' if optional }}">
+{% macro info_label(label, id) %}
+<div class="info-label flex-1">
     {{ label }}:<span id="{{ id }}" class="info-value"></span>
 </div>
 {% endmacro %}
@@ -27,8 +27,8 @@
       <button id="info-copy-sequence" title="Copy sequence" class="info-value"><i class="fa fa-copy"></i></button>
 
       <!-- For optional labels -->
-      {{ info_label('Size', 'info-size', true) }}
-      {{ info_label('Subtype', 'info-subtype', true) }}
-      {{ info_label('Number Inside', 'info-number-inside', true) }}
+      {{ info_label('Size', 'info-size') }}
+      {{ info_label('Subtype', 'info-subtype') }}
+      {{ info_label('Number Inside', 'info-number-inside') }}
 
 </div>
