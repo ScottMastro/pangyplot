@@ -2,6 +2,7 @@ var fullSequence ="";
 function updateGraphInfo(nodeid) {
     //todo: avoid using this directly
     nodeInfo = getNodeInformation(nodeid);
+    console.log(nodeInfo);
     document.getElementById('info-node-id').textContent = nodeInfo.id || '';
     document.getElementById('info-node-type').textContent = nodeInfo.type || '';
     document.getElementById('info-chromosome').textContent = nodeInfo.chrom || '';
@@ -14,26 +15,24 @@ function updateGraphInfo(nodeid) {
     let seq = truncatedSequence + (fullSequence.length > 10 ? '...' : '');
     document.getElementById('info-sequence').textContent = seq;
 
+
     if ('subtype' in nodeInfo) {
-        document.getElementById('info-subtype').style.display = 'block';
-        document.getElementById('info-subtype').textContent = nodeInfo.subtype;
-      } else {
-        document.getElementById('info-subtype').style.display = 'none';
-      }
+      document.getElementById('info-subtype').textContent = nodeInfo.subtype;
+    } else {
+      document.getElementById('info-subtype').textContent = '';
+    }
 
-      if ('size' in nodeInfo) {
-        document.getElementById('info-size').style.display = 'block';
-        document.getElementById('info-size').textContent = nodeInfo.size;
-      } else {
-        document.getElementById('info-size').style.display = 'none';
-      }
+    if ('size' in nodeInfo) {
+      document.getElementById('info-size').textContent = nodeInfo.size;
+    } else {
+      document.getElementById('info-size').textContent = '';
+    }
 
-      if ('n' in nodeInfo) {
-        document.getElementById('info-number-inside').style.display = 'block';
-        document.getElementById('info-number-inside').textContent = nodeInfo.n;
-      } else {
-        document.getElementById('info-number-inside').style.display = 'none';
-      }
+    if ('n' in nodeInfo) {
+      document.getElementById('info-number-inside').textContent = nodeInfo.n;
+    } else {
+      document.getElementById('info-number-inside').textContent = '';
+    }
   }
   
 document.getElementById('info-copy-sequence').addEventListener('click', function() {

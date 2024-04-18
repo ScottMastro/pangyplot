@@ -2,71 +2,42 @@ from operator import ge
 from db.neo4j_db import get_session, GENE_TEXT_INDEX
 import db.utils.create_record as record
 
-def create_gene_objects(data):
-    
-    geneDict = dict()
-    transcriptDict = dict()
-    types = ["Exon", "CDS", "Codon", "UTR"]
-    typeDict = {x:f"_{x.lower()}" for x in types}
-
-    for result in data:
-        gene,transcript,type,other = result
-        gid = gene["id"]
-        tid = transcript["id"]
-
-        if not gid in geneDict:
-            gene["_transcripts"] = []
-            geneDict[gid] = gene
-        gene = geneDict[gid]
-
-        if not tid in transcriptDict:
-            for type in typeDict: 
-                transcript[typeDict[type]] = []
-            gene["_transcripts"].append(transcript)
-            transcriptDict[tid] = transcript
-        transcript = transcriptDict[tid]
-
-        transcript[typeDict[type]].append(other)
-
-    return [geneDict[gid] for gid in geneDict]
-
-#todo: do we care about transcript?
-def query_gene_range_transcript(genome, chrom, start, end):
-    with get_session() as (_, session):
-        geneData = []
-
-        query = """
-                MATCH (n)-[:INSIDE*]->(t:Transcript)-[:INSIDE]->(g:Gene)
-                WHERE g.genome = $genome AND g.chrom = $chrom AND g.start <= $end AND g.end >= $start
-                RETURN g, t, n, labels(n) AS type
-                """
-        results = session.run(query, {"genome": genome, "chrom": chrom, "start":start, "end":end})
-        
-        for result in results:
-            gene = record.gene_record(result["g"])
-            transcript = record.transcript_record(result["t"])
-            type = result["type"][0]
-            other = record.annotation_record(result["n"], type)
-            geneData.append([gene, transcript, type, other])
-
-    return create_gene_objects(geneData)
-
 def query_gene_range(genome, chrom, start, end):
     with get_session() as (_, session):
-        geneData = []
+        geneData = dict()
 
         query = """
-                MATCH (g:Gene)
+                MATCH (g:Gene)<-[:INSIDE]-(t:Transcript)<-[:INSIDE]-(e:Exon)
                 WHERE g.genome = $genome AND g.chrom = $chrom AND g.start <= $end AND g.end >= $start
-                RETURN g
+                RETURN g, t, e
                 """
-        results = session.run(query, {"genome": genome, "chrom": chrom, "start":start, "end":end})
-        
-        for result in results:
-            gene = record.gene_record(result["g"])
-            geneData.append(gene)
+        results = session.run(query, {"genome": genome, "chrom": chrom, "start": start, "end": end})
 
-    return geneData
+        current_gene_id = None
+        gene_info = []
+        for result in results:
+
+            gene = record.gene_record(result["g"])
+            transcript = record.transcript_record(result["t"])
+            exon = record.exon_record(result["e"])
+
+            gene_id = gene["id"]
+            transcript_id = transcript["id"]
+
+            if gene_id not in geneData:
+                gene["transcripts"] = dict()
+                geneData[gene_id] = gene
+            if transcript_id not in geneData[gene_id]["transcripts"]:
+                transcript["exons"] = []
+                geneData[gene_id]["transcripts"][transcript_id] = transcript
+
+            geneData[gene_id]["transcripts"][transcript_id]["exons"].append(exon)
+        
+        for gene_id in geneData:
+            geneData[gene_id]["transcripts"] = list(geneData[gene_id]["transcripts"].values())
+            geneData[gene_id]["transcripts"].sort(key=lambda x: (not x.get('mane_select', False),
+                                                                 not x.get('ensembl_canonical', False)))
+    return list(geneData.values())
 
 def get_genes_in_range(genome, chrom, start, end):
     genes = query_gene_range(genome, chrom, start, end)

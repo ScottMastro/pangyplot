@@ -72,7 +72,10 @@ function simplifyGraph(forceGraph, size) {
         
         let x1 = 0; let y1 = 0; let x2 = 0; let y2 = 0;
         let n1 = 0; let n2 = 0;
-
+        const start = Math.min(...componentNodes.map(n => n.start).filter(s => s !== null));
+        const end = Math.max(...componentNodes.map(n => n.end).filter(e => e !== null));
+        //const genome = componentNodes.map(n => n.genome).find(g => g !== null);
+        const chrom = componentNodes.map(n => n.chrom).find(c => c !== null);
 
         component.forEach(nodeId => {
             [...affectedLinks].forEach(link => {
@@ -111,6 +114,9 @@ function simplifyGraph(forceGraph, size) {
             x1: x1, y1: y1,
             x2: x2, y2: y2,
             size: seqLen,
+            start: start,
+            end: end,
+            chrom: chrom,
             largest_child: 0,
             isRef: false
         };

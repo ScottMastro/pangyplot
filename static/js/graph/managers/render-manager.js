@@ -67,7 +67,7 @@ function renderManagerPostRender(ctx, forceGraph){
     ctx.save();
 
     // TODO
-    //draw_gene_name(ctx, graphData);
+    //drawGeneName(ctx, forceGraph.graphData());
 
     ctx.restore();
 }

@@ -59,8 +59,8 @@
                 <button class="tab" onclick="switchTab('keyboard-shortcuts-tab')"><i class="fa-solid fa-keyboard"></i></button>
             </div>
 
-            <div id="graph-info-tab" class="tab-content flex-9"> {% include 'graph-info.html' %} </div>
-            <div id="graph-settings-tab" class="tab-content active-tab-content flex-9"> {% include 'graph-settings.html' %} </div>
+            <div id="graph-info-tab" class="tab-content active-tab-content flex-9"> {% include 'graph-info.html' %} </div>
+            <div id="graph-settings-tab" class="tab-content flex-9"> {% include 'graph-settings.html' %} </div>
             <div id="keyboard-shortcuts-tab" class="tab-content flex-9"> {% include 'keyboard-shortcuts.html' %} </div>
 
         </div>
@@ -151,7 +151,6 @@
 <script src="{{url_for('static', filename='js/ui/tabs/tabs.js')}}"></script>
 <script src="{{url_for('static', filename='js/ui/tabs/information-panel.js')}}"></script>
 <script src="{{url_for('static', filename='js/ui/tabs/graph-settings.js')}}"></script>
- <!--<script src="{{url_for('static', filename='js/ui/db-selection.js')}}"></script>-->
 
 
 </body>

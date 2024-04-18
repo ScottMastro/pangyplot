@@ -32,7 +32,13 @@ function processSearchItemTemplate(template, data) {
 
     function geneToSearchItem(gene, index){
         let chrom = gene.chrom.split("#").pop();
-        let type = gene.gene_type.split("_").join(" ");
+        let type = "Type Unknown";
+        
+        if ('gene_type' in gene) {
+            type = gene.gene_type.split('_').join(' ');
+        } else if ('gene_biotype' in gene) {
+            type = gene.gene_biotype.split('_').join(' ');
+        }
 
         let geneData = {
             index: index,

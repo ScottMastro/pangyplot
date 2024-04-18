@@ -21,7 +21,7 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
 
     // keyboard
 
-    document.addEventListener('keydown', (event) => {
+    canvasElement.addEventListener('keydown', (event) => {
         if (!forceGraph){ return; }
         event.preventDefault();
 
