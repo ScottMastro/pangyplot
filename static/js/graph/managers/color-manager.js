@@ -1,15 +1,14 @@
-const REF_COLOR="#3C5E81";
-const HIGHLIGHT_LINK_COLOR="#FF0000";
-
 var BACKGROUND_COLOR="#373737";
 
+const HIGHLIGHT_LINK_COLOR="#FF0000";
+
+const NULL_COLOR="#3C5E81";
 var NODE_COLOR1="#0762E5";
 var NODE_COLOR2="#F2DC0F";
 var NODE_COLOR3="#FF6700";
 var LINK_COLOR="#969696";
 
 var COLOR_STYLE="default";
-
 
 document.addEventListener('updateColor', function(event) {
     if (event.detail.type === "node"){
@@ -20,55 +19,65 @@ document.addEventListener('updateColor', function(event) {
         LINK_COLOR = event.detail.color;
     } else if (event.detail.type === "background"){
         BACKGROUND_COLOR = event.detail.color;
+    } else if (event.detail.type === "style"){
+        COLOR_STYLE = event.detail.style;
     }
 });
 
-document.addEventListener('updateColorStyle', function(event) {
-    COLOR_STYLE = event.detail.style;
-});
-
-function getBackgroundColor(){
+function colorManagerBackgroundColor(){
     return BACKGROUND_COLOR;
 }
 
-function getLinkColor(link){
-    
+function colorManagerLinkColor(link){
+
+    //todo: move logic elsewhere
     if(should_highlight_link(link)){
         return HIGHLIGHT_LINK_COLOR;
     }
 
-    if (link.class === "node"){        
-
-        switch (COLOR_STYLE) {
-            case "node_type":
-                return colorByType(link.type);        
-            case "bubble_size":
-                return colorByType(link.type);        
-            case "node_length":
-                return colorByLength(link.source.seqLen);
-            case "ref_alt":
-                return colorByType(link.type);        
-            case "gc_content":
-                return colorByType(link.type);        
-            default:
-                return colorByType(link.type);        
-        }
-
-        switch (link.type) {
-            case "segment":
-                return NODE_COLOR1;
-            case "bubble":
-                return NODE_COLOR2;
-            case "chain":
-                return NODE_COLOR3;
-            default:
-                return REF_COLOR;
-        }
+    if (link.class != "node"){
+        return LINK_COLOR;
     }
-   
 
+    switch (COLOR_STYLE) {
+        case "node_type":
+            return colorByType(link.type);        
+        case "bubble_size":
+            return colorBySize(null);
+        case "node_length":
+            return colorByLength(link.source.seqLen);
+        case "ref_alt":
+            return colorByRef(false);
+        case "gc_content": 
+            return colorByGC(null);        
+        default:
+            return colorByType(link.type);        
+    }
+}
 
-    return LINK_COLOR;
+function colorManagerNodeColor(node){
+    switch (COLOR_STYLE) {
+        case "node_type":
+            return colorByType(node.type);
+        case "bubble_size":
+            return colorBySize(null);
+        case "node_length":
+            return colorByLength(node.seqLen);
+        case "ref_alt":
+            return colorByRef(node.isRef);
+        case "gc_content": 
+            return colorByGC(null);        
+        default:
+            return colorByType(node.type);
+    }
+}
+
+function colorByGC(content){
+    return NULL_COLOR;
+}
+
+function colorBySize(size){
+    return NULL_COLOR;
 }
 
 function colorByType(type){
@@ -82,34 +91,18 @@ function colorByType(type){
         case "null":
             return LINK_COLOR;        
         default:
-            return REF_COLOR;
+            return NULL_COLOR;
     }    
+}
+
+function colorByRef(isRef){
+    return isRef ? NODE_COLOR1 : NODE_COLOR3;
 }
 
 function colorByLength(length){
     const low = 1;
     const high = 10000;
 
-    const color = getGradientColor(low, high, length);
+    const color = getGradientColor(length, low, high, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
     return color;
-    return REF_COLOR;
-}
-
-
-function getNodeColor(node){
-    switch (COLOR_STYLE) {
-        case "node_type":
-            return colorByType(node.type);        
-        case "bubble_size":
-            return colorByType(node.type);
-        case "node_length":
-            return colorByLength(node.seqLen);
-        case "ref_alt":
-            return colorByType(node.type);
-        case "gc_content":
-            return colorByType(node.type);     
-        default:
-            return colorByType(node.type);
-    }
-
 }

@@ -38,16 +38,13 @@ function renderGraph(graph){
         .nodeId("__nodeid")
         .height(getCanvasHeight())
         .width(getCanvasWidth())
-        .backgroundColor(getBackgroundColor())
-        .linkColor(link => getLinkColor(link))
-        .nodeColor(node => getNodeColor(node))
         .nodeVal(NODE_SIZE)
         .nodeRelSize(HOVER_PRECISION)
         .autoPauseRedraw(false) // keep drawing after engine has stopped
         .d3VelocityDecay(0.1)
         .d3AlphaDecay(0.0228)
-        .nodeCanvasObject((node, ctx) => renderManagerPaintNode(ctx, node, forceGraph)) 
-        .linkCanvasObject((link, ctx) => renderManagerPaintLink(ctx, link, forceGraph)) 
+        .nodeCanvasObject((node, ctx) => renderManagerPaintNode(ctx, node)) 
+        .linkCanvasObject((link, ctx) => renderManagerPaintLink(ctx, link)) 
         .nodeLabel("__nodeid")
         .onNodeDrag((node, translate) => inputManagerNodeDragged(node, translate, forceGraph))
         .onNodeClick((node, event) => inputManagerNodeClicked(node, event, forceGraph))
@@ -70,6 +67,8 @@ function renderGraph(graph){
     console.log("forceGraph:", forceGraph);
 
     forceGraph.onEngineTick(() => {
+        forceGraph.backgroundColor(colorManagerBackgroundColor());
+
         debugInformationUpdate(forceGraph.graphData());
     })
 

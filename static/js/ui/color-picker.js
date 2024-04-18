@@ -46,8 +46,8 @@ document.querySelectorAll('.color-preset-option').forEach(elem => {
 
 document.querySelectorAll('.color-style-option').forEach(elem => {
     elem.addEventListener('click', () => {
-        const colorData = { style: elem.getAttribute('data-style') };
-        document.dispatchEvent(new CustomEvent("updateColorStyle", { detail: colorData }));
+        const colorData = { type: "style", style: elem.getAttribute('data-style') };
+        document.dispatchEvent(new CustomEvent("updateColor", { detail: colorData }));
     });
 });
 

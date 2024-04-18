@@ -1,6 +1,5 @@
 const COLOR_CACHE = {};
 
-
 function hexToRgb(hex) {
     let r = 0, g = 0, b = 0;
     if (hex.length == 4) {
@@ -25,25 +24,6 @@ function interpolateColor(color1, color2, factor) {
         result[i] = Math.round(result[i] + factor * (color2[i] - color1[i]));
     }
     return result;
-}
-
-function getGradientColor(rangeStart, rangeEnd, value) {
-    let factor = (value - rangeStart) / (rangeEnd - rangeStart);
-    let color1 = hexToRgb(NODE_COLOR1);
-    let color2 = hexToRgb(NODE_COLOR2);
-    let color3 = hexToRgb(NODE_COLOR3);
-
-    if (factor <= 0) {
-        return NODE_COLOR1;
-    } else if (factor >= 1) {
-        return NODE_COLOR3;
-    } else if (factor <= 0.5) {
-        let midFactor = factor / 0.5;
-        return rgbToHex(...interpolateColor(color1, color2, midFactor));
-    } else { 
-        let midFactor = (factor - 0.5) / 0.5; 
-        return rgbToHex(...interpolateColor(color2, color3, midFactor));
-    }
 }
 
 function intToColor(seed, adjust=0) {
@@ -98,4 +78,27 @@ function stringToColor(string, adjust=0){
     color = intToColor(hash, adjust)
     COLOR_CACHE[string] = color
     return(color)
+}
+
+function getGradientColor(value, rangeStart, rangeEnd, colorStops) {
+    let numStops = colorStops.length;
+    if (numStops === 1) {
+        return colorStops[0]; // If only one color stop, return it directly.
+    }
+
+    let factor = (value - rangeStart) / (rangeEnd - rangeStart);
+    factor = Math.min(Math.max(factor, 0), 1); // Clamp factor between 0 and 1
+
+    let scaledFactor = factor * (numStops - 1);
+    let index = Math.floor(scaledFactor);
+    let remainder = scaledFactor - index;
+
+    if (index >= numStops - 1) {
+        return colorStops[numStops - 1];
+    }
+
+    let color1 = hexToRgb(colorStops[index]);
+    let color2 = hexToRgb(colorStops[index + 1]);
+
+    return rgbToHex(...interpolateColor(color1, color2, remainder));
 }
