@@ -22,7 +22,7 @@ def parse_gfa_file(gfa, ref):
             elif line_type == 'L':
                 from_segment = parts[1]
                 to_segment = parts[3]
-                                
+            
                 if from_segment not in graph:
                     graph[from_segment] = set()
                 if to_segment not in graph:
@@ -30,7 +30,7 @@ def parse_gfa_file(gfa, ref):
 
                 graph[from_segment].add(to_segment)
                 graph[to_segment].add(from_segment)
-
+                
             elif line_type == 'P' or line_type == 'W':
                 if not parts[1].startswith(ref):
                     continue
@@ -122,8 +122,56 @@ def bfs_find_position(graph, start_id, ref_positions, lenDict):
 
     return positions
 
+def bfs_find_subgraph(graph, start_id, ref_positions, lenDict):
+    queue = deque([start_id])
+    visited = set()
+    refset = set()
+
+    while queue:
+        current = queue.popleft()
+
+        if current in ref_positions:
+            refset.add(current)
+            continue
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+
+        for neighbor in graph[current]:
+            if neighbor not in visited:
+                queue.append(neighbor)
+
+    return refset, visited
+
+
 def calculate_inferred_positions(graph, ref_positions, lenDict):
-    ids = sorted(graph.keys(), key=int)
+    ids = sorted(graph.keys())
+
+    done = set()
+    for sid in ids:
+        if sid in ref_positions or sid in done:
+            continue
+
+        endpoints, subset = bfs_find_subgraph(graph, sid, ref_positions, lenDict)
+        for x in subset:
+            done.add(x)
+
+        if len(subset) < 2:
+            continue
+
+        subgraph = {"ends": endpoints, "graph": subset}
+        print(subgraph)
+        input()
+
+
+
+
+
+
+
+
 
 
     for sid in ids:
