@@ -17,33 +17,19 @@ def parse_gfa_file(gfa, ref):
                 lenDict[sid] = len(parts[2])
 
                 if sid not in graph:
-                    graph[sid] = {"to": set(), "from": set()}
+                    graph[sid] = set()
 
             elif line_type == 'L':
                 from_segment = parts[1]
                 to_segment = parts[3]
-                
-                from_strand = parts[2]
-                to_strand = parts[4]
-
-                if from_strand == "-" and to_strand == "-":
-                    to_segment, from_segment = from_segment, to_segment
-                    from_strand = "+"; to_strand = "+"
-                
+                                
                 if from_segment not in graph:
-                    graph[from_segment] = {"to": set(), "from": set()}
+                    graph[from_segment] = set()
                 if to_segment not in graph:
-                    graph[to_segment] = {"to": set(), "from": set()}
+                    graph[to_segment] = set()
 
-                graph[from_segment]["to"].add(to_segment)
-                graph[to_segment]["from"].add(from_segment)
-
-                if from_strand == "-" or to_strand == "-":
-                    print(from_segment, to_segment)
-                    graph[from_segment]["from"].add(to_segment)
-                    graph[to_segment]["to"].add(from_segment)
-
-
+                graph[from_segment].add(to_segment)
+                graph[to_segment].add(from_segment)
 
             elif line_type == 'P' or line_type == 'W':
                 if not parts[1].startswith(ref):
@@ -100,73 +86,97 @@ def calculate_path_positions(lenDict, paths):
 
     return positions
 
-def print_result(sid, genome, chrom, start, dist1, end, dist2):
+def print_result2(sid, genome, chrom, start, dist1, end, dist2):
     prefix = genome+"#"+chrom+":"
     print(sid + "\t" + prefix + str(start) + "\t" + str(dist1) +
                 "\t" + prefix + str(end)   + "\t" + str(dist2))
+def print_result(sid, genome, chrom, start, end):
+    prefix = genome+"#"+chrom+":"
+    print(sid + "\t" + prefix + str(start) + "\t" + prefix + str(end) )
 
-def bfs_find_position(graph, start_id, direction, ref_positions, lenDict):
-    queue = deque([(start_id, 0)])
+def bfs_find_position(graph, start_id, ref_positions, lenDict):
+    queue = deque([(start_id, 0, "")])
     visited = set()
-    tabs = ""
+    distance = {start_id: 0}
+    positions = []
+
     while queue:
-        current, dist = queue.popleft()
+        current, dist, tabs = queue.popleft()
         tabs = tabs + " "
-        print(tabs, current)
-        input()
+        #print(tabs, current)
 
         if current in visited:
             continue
         visited.add(current)
 
         if current in ref_positions:
-            return current, dist
+            positions.append([current, dist])
+            continue
 
-        if direction == "to" and current in graph and "to" in graph[current]:
-            for neighbor in graph[current]["to"]:
-                if neighbor in lenDict:
-                    queue.append((neighbor, dist + lenDict[neighbor]))
-        elif direction == "from" and current in graph and "from" in graph[current]:
-            for neighbor in graph[current]["from"]:
-                if neighbor in lenDict:
-                    queue.append((neighbor, dist - lenDict[neighbor]))
+        for neighbor in graph[current]:
+            new_dist = dist + lenDict[neighbor]
+            if neighbor not in distance or new_dist < distance[neighbor]:
+                distance[neighbor] = new_dist
+                if neighbor not in visited:
+                    queue.append((neighbor, new_dist, tabs))
 
-    return None, None
+    return positions
 
 def calculate_inferred_positions(graph, ref_positions, lenDict):
     ids = sorted(graph.keys(), key=int)
+
 
     for sid in ids:
         if sid in ref_positions:
             genome, chrom, start = ref_positions[sid][0]
             end = start + lenDict[sid]
-            print_result(sid, genome, chrom, start, 0, end, 0)
-        else:
-            closest_to, dist_to = bfs_find_position(graph, sid, "to", ref_positions, lenDict)
-            closest_from, dist_from = bfs_find_position(graph, sid, "from", ref_positions, lenDict)
+            print_result(sid, genome, chrom, start, end)
+    return
 
-            if closest_to is None and closest_from is None:
+    for sid in ids:
+        if sid in ref_positions:
+            genome, chrom, start = ref_positions[sid][0]
+            end = start + lenDict[sid]
+            print_result2(sid, genome, chrom, start, 0, end, 0)
+        else:
+            positions = bfs_find_position(graph, sid, ref_positions, lenDict)
+
+            if len(positions) == 0:
                 continue
 
-            elif closest_to is not None and closest_from is None:
-                genome, chrom, pos = ref_positions[closest_to][0]
-                print_result(sid, genome, chrom, pos, dist_to, pos, None)
+            max = None; maxdist = 0
+            min = None; mindist = 0
+            shortest = None; shortestdist = 0
 
-            elif closest_to is None and closest_from is not None:
-                genome, chrom, pos = ref_positions[closest_from][0]
-                pos = pos + lenDict[closest_from]
-                print_result(sid, genome, chrom, pos, None, pos, dist_from)
 
-            else:
-                genome, chrom, end = ref_positions[closest_to][0]
-                _, _, start = ref_positions[closest_from][0]
-                start = start + lenDict[closest_from]
-                if start > end:
-                    temp = start
-                    start = end
-                    end = temp
+            listy = []
+            for sid,dist in positions:
+                genome, chrom, refpos = ref_positions[sid][0]
 
-                print_result(sid, genome, chrom, start, dist_to, end, dist_from)
+                listy.append([genome, chrom, refpos, sid, dist, refpos-dist, refpos+dist])
+                if max is None or refpos > max:
+                    max = refpos
+                    maxdist = dist
+                if min is None or refpos < min:
+                    min = refpos
+                    mindist = dist
+                if shortest is None or refpos < min:
+                    min = refpos
+                    mindist = dist
+
+            
+            listy.sort(key=lambda x: x[2])
+            
+            print("------------")
+            for x in listy:
+                print(x)
+
+
+            for sid,dist in positions:
+                genome, chrom, refpos = ref_positions[sid][0]
+            
+            print_result2(sid, genome, chrom, min, mindist, max, maxdist)
+
 
 def main():
     parser = argparse.ArgumentParser(description='Parse a GFA file and store connections in a graph structure.')

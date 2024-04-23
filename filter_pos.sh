@@ -2,58 +2,30 @@ CHR=chr3
 START=198347210
 END=198855552
 
-# --- d9 --- 
-
-#wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.chroms/${CHR}.d9.vg
-PREFIX=./d9_subset${START}_${END}
+PREFIX=./subset_${START}_${END}
 mkdir -p $PREFIX
+OG=${PREFIX}/subset.og
+GFA=${PREFIX}/subset.gfa
 
-OG=${PREFIX}/subset.d9.og
-GFA=${PREFIX}/subset.d9.gfa
+#wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.chroms/${CHR}.full.og
 
-vg convert -W -f ${CHR}.d9.vg > ${PREFIX}/${CHR}.d9.gfa
-odgi build -t 8 -g ${PREFIX}/${CHR}.d9.gfa -s -O -o ${PREFIX}/${CHR}.d9.og
-odgi extract -t 8 -P -r CHM13#${CHR}:${START}-${END} -i ${PREFIX}/${CHR}.d9.og -o ${PREFIX}/${CHR}.extracted.d9.og
-
-PATHNAME=`odgi paths -L -i ${PREFIX}/${CHR}.extracted.d9.og | grep CHM13`
-PATHDETAILS=${PATHNAME#*:}
-PATHSTART=${PATHDETAILS%-*}
-PATHEND=${PATHDETAILS#*-}
-echo $PATHNAME > ${PREFIX}/_pathname
-rm ${PREFIX}/_pathname
-
-odgi paths -K ${PREFIX}/_pathname -i ${PREFIX}/${CHR}.extracted.d9.og -o ${PREFIX}/${CHR}.nopaths.d9.og
-
-odgi unchop -P -i ${PREFIX}/${CHR}.nopaths.d9.og -o ${PREFIX}/unchopped.d9.og
-odgi cover -t 15 -I -c 10 -i ${PREFIX}/unchopped.d9.og -o $OG
-
-# --- d9 --- 
-#python pangyplot.py add --db hprc_d9 --ref CHM13 --gfa static/data/hprc_chr3/d9_subset198347210_198855552/subset.d9.gfa --layout static/data/hprc_chr3/d9_subset198347210_198855552/subset.lay.tsv --positions static/data/hprc_chr3/d9_subset198347210_198855552/subset.positions.txt
-
-# --- full ---
-
-#PREFIX=./subset_${START}_${END}
-#mkdir -p $PREFIX
-#OG=${PREFIX}/subset.og
-#GFA=${PREFIX}/subset.gfa
-
-##wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-chm13/hprc-v1.1-mc-chm13.chroms/${CHR}.full.og
-
-#odgi extract -t 15 -P -r CHM13#${CHR}:${START}-${END} -i ${CHR}.full.og -o ${PREFIX}/extracted.og
-#odgi unchop -P -i ${PREFIX}/extracted.og -o ${PREFIX}/unchopped.og
+odgi extract -t 15 -P -r CHM13#${CHR}:${START}-${END} -i ${CHR}.full.og -o ${PREFIX}/extracted.og
+odgi unchop -P -i ${PREFIX}/extracted.og -o ${PREFIX}/unchopped.og
 
 #odgi view -g -i ${PREFIX}/unchopped.og > ${PREFIX}/unchopped.gfa
-#odgi build -t 15 -g ${PREFIX}/unchopped.gfa -s -O -o $OG
-#odgi view -g -i $OG > $GFA
+#odgi build -t 15 -g ${PREFIX}/unchopped.gfa -s -O -o ${PREFIX}/unchopped.og
 
-#PATHNAME=`cat $GFA | grep ^P | grep CHM13 | cut -f2`
-#PATHDETAILS=${PATHNAME#*:}
-#PATHSTART=${PATHDETAILS%-*}
-#PATHEND=${PATHDETAILS#*-}
+odgi flip -t 15 -i ${PREFIX}/unchopped.og -o ${PREFIX}/flipped.og
+#odgi groom -t 15 -i ${PREFIX}/flipped.og -o ${PREFIX}/groom.og
 
-# --- full --- 
+odgi sort -p Ygs -i flipped.og -o $OG
 
 odgi view -g -i $OG > $GFA
+
+PATHNAME=`cat $GFA | grep ^P | grep CHM13 | cut -f2`
+PATHDETAILS=${PATHNAME#*:}
+PATHSTART=${PATHDETAILS%-*}
+PATHEND=${PATHDETAILS#*-} 
 
 odgi layout -t 15 -i $OG --tsv ${PREFIX}/subset.lay.tsv -o ${PREFIX}/subset.lay
 

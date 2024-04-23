@@ -42,6 +42,10 @@ function renderGraph(graph){
         .nodeRelSize(HOVER_PRECISION)
         .autoPauseRedraw(false) // keep drawing after engine has stopped
         .d3VelocityDecay(0.1)
+        .onNodeDragEnd(node => {
+            node.fx = node.x;
+            node.fy = node.y;
+          })
         .d3AlphaDecay(0.0228)
         .nodeCanvasObject((node, ctx) => renderManagerPaintNode(ctx, node)) 
         .linkCanvasObject((link, ctx) => renderManagerPaintLink(ctx, link)) 
