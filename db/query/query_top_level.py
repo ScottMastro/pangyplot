@@ -14,25 +14,67 @@ def get_top_level_data(db, session, genome, chrom, start, end):
                     WHERE m.chrom = $chrom AND m.start <= $end AND m.end >= $start
             }
             OPTIONAL MATCH (n)-[r1:END]-(e:Segment)
-            OPTIONAL MATCH (n)-[r2:LINKS_TO]-(s:Segment)
-            OPTIONAL MATCH (n)-[r3:END]-(a:Chain|Bubble)
+            OPTIONAL MATCH (n:Segment)-[r2:LINKS_TO]-(s:Segment)
 
             RETURN n, labels(n) AS type,
-             a, labels(a) AS type2,
+            collect(e) as ends,
             collect(DISTINCT r1) AS endlinks,
             collect(DISTINCT r2) AS links
             """
     parameters = {"start": start, "end": end, "db": db, "genome": genome, "chrom": chrom}
     results = session.run(query, parameters)
 
+    ends = []
+
     for result in results:
         nodes.append( record.node_record(result["n"], result["type"][0]) )
-        if("a" in result):
-            print(result["type2"])
-            nodes.append( record.node_record(result["a"], result["type2"][0]) )
+
+        ends.extend([record.segment_record(r) for r in result["ends"]])
 
         links.extend( [record.link_record_simple(r) for r in result["endlinks"]] )
         links.extend( [record.link_record_simple(r) for r in result["links"]] )
+
+    for e in ends:
+        if ("start" in e and e["start"] > end) or ("end" in e and e["end"] < start):
+            continue
+
+        '''query = """
+        MATCH (n:Segment)
+        WHERE n.id = $id
+        MATCH (n)-[r:END]-(m)
+        WHERE NOT EXISTS {
+            MATCH (m)-[:INSIDE|PARENT]->(l)-[END]-(n)
+        }
+
+        RETURN n, r, m, labels(m) AS type
+        """
+        '''
+        
+        query = """
+                MATCH (n:Segment)
+                WHERE n.id = $id
+                MATCH (n)-[l:LINKS_TO]-(m)-[r:END]-(a)
+                WHERE m.start IS NULL AND NOT EXISTS {
+                    MATCH (a)-[:INSIDE|PARENT]->(a2)-[END]-(m)
+                }
+
+                RETURN m, l, r, a, labels(a) AS type
+                """
+        parameters = {"id": e["id"]}
+        results = session.run(query, parameters)
+
+        print("--------", e["id"])
+
+        for result in results:
+            print(record.node_record(result["a"], result["type"][0]) )
+            nodes.append( record.node_record(result["a"], result["type"][0]) )
+            nodes.append( record.segment_record(result["m"]) )
+            link = record.link_record_simple(result["r"])
+            print(link)
+            links.append( link )
+            #links.extend( [record.link_record_simple(r) for r in result["l"]] )
+
+
 
     return nodes, links
 

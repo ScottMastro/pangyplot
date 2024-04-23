@@ -104,6 +104,8 @@ function renderGraph(graph){
         }
     }
     
+    //todo: try force that keeps nodes apart by certain distance
+
     forceGraph.d3Force('centerEachNode', forceCenterEachNode);
 
     //forceGraph.d3Force('spreadX', d3.forceX().strength(0).x((d, i) => (i / forceGraph.graphData().nodes.length)));

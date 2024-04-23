@@ -11,7 +11,7 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
         lax = "WHERE n.db = $db AND ID(t) = $i AND NOT EXISTS {"
         query = """
                 MATCH (n)-[:PARENT|INSIDE]->(t)
-                """+strict+"""
+                """+lax+"""
                     MATCH (n)-[:PARENT|INSIDE]->(m)
                     WHERE ID(m) <> ID(t) AND (m)-[:PARENT|INSIDE*]->(t)
                 }
