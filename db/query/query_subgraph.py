@@ -10,10 +10,10 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
         strict = "WHERE n.chrom = $chrom AND n.start <= $end AND n.end >= $start AND ID(t) = $i AND NOT EXISTS {"
         lax = "WHERE n.db = $db AND ID(t) = $i AND NOT EXISTS {"
         query = """
-                MATCH (n)-[:PARENT|INSIDE]->(t)
+                MATCH (n)-[:INSIDE]->(t)
                 """+lax+"""
-                    MATCH (n)-[:PARENT|INSIDE]->(m)
-                    WHERE ID(m) <> ID(t) AND (m)-[:PARENT|INSIDE*]->(t)
+                    MATCH (n)-[:INSIDE]->(m)
+                    WHERE ID(m) <> ID(t) AND (m)-[:INSIDE*]->(t)
                 }
                 OPTIONAL MATCH (n)-[r1:END]-(s1:Segment)
                 OPTIONAL MATCH (n)-[r2:LINKS_TO]-(s2:Segment)
@@ -42,9 +42,9 @@ def get_subgraph_simple(nodeid):
     with get_session() as (db, session):
 
         query = """
-                MATCH (t)<-[:PARENT|INSIDE*]-(n)
+                MATCH (t)<-[:INSIDE*]-(n)
                 WHERE n.db = $db AND ID(t) = $i AND n.subtype <> "super" AND NOT EXISTS {
-                    MATCH (n)-[:PARENT|INSIDE]->(m)
+                    MATCH (n)-[:INSIDE]->(m)
                     WHERE m.subtype <> "super"
                 }
                 OPTIONAL MATCH (n)-[r:END]-(s:Segment)
@@ -89,10 +89,10 @@ def get_subgraph_nodes(session, type, nodeid, chrom, start, end):
     nodes,links = [],[]
 
     query = """
-            MATCH (n:"""+type+""")-[:PARENT|INSIDE]->(t)
+            MATCH (n:"""+type+""")-[:INSIDE]->(t)
             WHERE n.chrom = $chrom AND n.start <= $end AND n.end >= $start AND ID(t) = $i AND  NOT EXISTS {
-                MATCH (n)-[:PARENT|INSIDE]->(m)
-                WHERE ID(m) <> ID(t) AND (m)-[:PARENT|INSIDE*]->(t)                
+                MATCH (n)-[:INSIDE]->(m)
+                WHERE ID(m) <> ID(t) AND (m)-[:INSIDE*]->(t)                
             }
             OPTIONAL MATCH (n)-[r1:END]-(s1:Segment)
             OPTIONAL MATCH (n)-[r2:LINKS_TO]-(s2:Segment)
@@ -119,9 +119,9 @@ def get_subgraph_simple(nodeid, type):
     with get_session() as session:
 
         query = """
-                MATCH (t)<-[:PARENT|INSIDE*]-(n:"""+type+""")
+                MATCH (t)<-[:INSIDE*]-(n:"""+type+""")
                 WHERE ID(t) = $i AND n.subtype <> "super" AND NOT EXISTS {
-                    MATCH (n)-[:PARENT|INSIDE]->(m)
+                    MATCH (n)-[:INSIDE]->(m)
                     WHERE m.subtype <> "super"
                 }
                 OPTIONAL MATCH (n)-[r:END]-(s:Segment)

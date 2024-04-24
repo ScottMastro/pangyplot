@@ -10,12 +10,12 @@ def query_all_segments():
             query = """
                     MATCH (s:Segment)
                     WHERE s.db = $db
-                    RETURN s.id, s.length
+                    RETURN s.id, s.length, s.start
                     SKIP $skip
                     LIMIT $limit
                     """
             results = session.run(query, parameters={"db": db}, skip=skip, limit=batch_size)
-            batch = [(result['s.id'], result['s.length']) for result in results]
+            batch = [(result['s.id'], result['s.length'], result["s.start"] is not None) for result in results]
 
             if not batch:
                 break

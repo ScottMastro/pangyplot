@@ -22,6 +22,30 @@ def connect_bubble_ends_to_chain():
                 """
         session.run(query, {"db": db})
 
+def anchor_alternative_branches():
+    with get_session() as (db, session):
+
+        query = """
+                MATCH (s1:Segment)<-[:ANCHOR]-(s:Subgraph)<-[:SUBGRAPH]-(s2:Segment)-[:INSIDE*]->(a)
+                WHERE s.db = $db AND a.start IS NULL 
+                AND NOT EXISTS {
+                    MATCH (a)-[:INSIDE*]->(b)
+                    WHERE (b:Bubble OR b:Chain) AND b.start IS NULL
+                }
+                MERGE (a)-[:ANCHOR]->(s1)
+                """
+        session.run(query, {"db": db})
+    
+        query = """
+                MATCH (s1:Segment)<-[:ANCHOR]-(s:Subgraph)<-[:SUBGRAPH]-(s2:Segment)
+                WHERE s.db = $db AND s2.start IS NULL
+                AND NOT EXISTS {
+                    MATCH (s2)-[:INSIDE*]->(a)
+                }
+                MERGE (s2)-[:ANCHOR]->(s1)
+                """
+        session.run(query, {"db": db})
+
 def add_null_nodes():
     with get_session() as (db, session):
 
