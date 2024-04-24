@@ -122,6 +122,7 @@ def parse_args(app):
                 positions = parse_positions(args.positions)
 
             if args.gfa and args.ref and args.layout:
+
                 print("Parsing layout...")
                 layoutCoords = parse_layout(args.layout)
                 print("Parsing GFA...")
@@ -129,7 +130,7 @@ def parse_args(app):
                 
                 #drop.drop_bubbles()
                 print("Calculating bubbles...")
-                bubble_gun.shoot(args.compact)
+                bubble_gun.shoot(args.compact, True)
                 add_null_nodes()
                 connect_bubble_ends_to_chain()
                 add_chain_subtype()

@@ -10,7 +10,7 @@ def get_top_level_data(db, session, genome, chrom, start, end):
             MATCH (n:Segment|Chain|Bubble)
             WHERE n.db = $db AND n.genome = $genome AND n.chrom = $chrom 
                 AND n.start <= $end AND n.end >= $start AND NOT EXISTS {
-                    MATCH (n)-[:INSIDE|PARENT]->(m)
+                    MATCH (n)-[:INSIDE]->(m)
                     WHERE m.chrom = $chrom AND m.start <= $end AND m.end >= $start
             }
             OPTIONAL MATCH (n)-[r1:END]-(e:Segment)
@@ -43,7 +43,7 @@ def get_top_level_data(db, session, genome, chrom, start, end):
         WHERE n.id = $id
         MATCH (n)-[r:END]-(m)
         WHERE NOT EXISTS {
-            MATCH (m)-[:INSIDE|PARENT]->(l)-[END]-(n)
+            MATCH (m)-[:INSIDE]->(l)-[END]-(n)
         }
 
         RETURN n, r, m, labels(m) AS type
@@ -55,7 +55,7 @@ def get_top_level_data(db, session, genome, chrom, start, end):
                 WHERE n.id = $id
                 MATCH (n)-[l:LINKS_TO]-(m)-[r:END]-(a)
                 WHERE m.start IS NULL AND NOT EXISTS {
-                    MATCH (a)-[:INSIDE|PARENT]->(a2)-[END]-(m)
+                    MATCH (a)-[:INSIDE]->(a2)-[END]-(m)
                 }
 
                 RETURN m, l, r, a, labels(a) AS type

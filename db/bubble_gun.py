@@ -5,12 +5,17 @@ from BubbleGun.find_bubbles import find_bubbles
 from BubbleGun.connect_bubbles import connect_bubbles
 from BubbleGun.find_parents import find_parents
 
+
+import db.modify.drop_data as drop
 from db.query.query_all import query_all_segments, query_all_links
 from db.modify.compact_segment import compact_segment 
+from db.modify.graph_modify import anchor_alternative_branches
 
 from db.insert.insert_bubble import insert_bubbles, add_bubble_properties
 from db.insert.insert_chain import insert_chains, add_chain_properties
+from db.insert.insert_subgraph import insert_subgraph
 
+from collections import deque
 import time
 
 def read_from_db():
@@ -20,12 +25,12 @@ def read_from_db():
     segments = query_all_segments()
 
     for s in segments:
-        n_id, n_len = s
-        n_id = str(n_id)
-        nodes[n_id] = Node(n_id)
-        nodes[n_id].seq_len = n_len
-        #nodes[n_id].optional_info = ...
-        #nodes[n_id].seq = ...
+        nid, nlen, nref = s
+        nid = str(nid)
+        nodes[nid] = Node(nid)
+        nodes[nid].seq_len = nlen
+        nodes[nid].optional_info = {"ref": nref}
+        #nodes[nid].seq = ...
 
     print("Getting links...")
     edges = query_all_links()
@@ -78,8 +83,8 @@ def read_from_db():
     return nodes
 
 def compact_graph(graph):
-    list_of_nodes = list(graph.nodes.keys())
-    for n in list_of_nodes:
+    nodes = list(graph.nodes.keys())
+    for n in nodes:
         if n in graph.nodes:
             while True:
                 if len(graph.nodes[n].end) == 1: 
@@ -138,13 +143,56 @@ def insert_all(graph):
     add_chain_properties()
 
 
-def shoot(compact):
+def bfs_find_subgraph(graph, start_node):
+    queue = deque([start_node])
+    visited = set()
+    refset = set()
+
+    while queue:
+        current = queue.popleft()
+
+        if current.optional_info["ref"]:
+            refset.add(current.id)
+            continue
+
+        if current.id in visited:
+            continue
+
+        visited.add(current.id)
+
+        for neighbor in current.neighbors():
+            if neighbor not in visited:
+                queue.append(graph.nodes[neighbor])
+
+    return {"anchor": refset, "graph": visited}
+
+
+def create_alt_subgraphs(graph):
+    nodes = list(graph.nodes.keys())
+    visited = set()
+
+    for nid in nodes:
+        node = graph.nodes[nid]
+        if nid in visited:
+            continue
+        if node.optional_info["ref"]:
+            visited.add(nid)
+            continue
+        
+        subgraph = bfs_find_subgraph(graph, node)
+        for v in subgraph["graph"]:
+            visited.add(v)
+
+        if len(subgraph["graph"]) > 1:
+            insert_subgraph(subgraph)
+
+
+def shoot(compact, altgraphs):
 
     print("Fetching graph...")
     graph = Graph()
     graph.nodes = read_from_db()
 
-    
     if compact:
         print("Compacting graph...")
         before = len(graph.nodes)
@@ -181,3 +229,16 @@ def shoot(compact):
     insert_all(graph)
     end_time = time.time()
     print(f"Data inserted in {end_time - start_time} seconds.")
+
+    if altgraphs:
+        print("Building alt branches...")
+
+        #drop.drop_anchors()
+        #drop.drop_subgraphs()
+
+        print("Finding alt branches...")
+        create_alt_subgraphs(graph)
+        
+        print("Anchoring alt branches...")
+        anchor_alternative_branches()
+        drop.drop_subgraphs()

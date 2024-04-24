@@ -50,11 +50,11 @@ def insert_chain_links(db, session, chains, batch_size):
 
     for i in range(0, len(superBubbles), batch_size):
         batch = superBubbles[i:i + batch_size]
-        create_links(db, session, batch, "Bubble", "PARENT", "<-") #n<-c
+        create_links(db, session, batch, "Bubble", "INSIDE", "<-") #n<-c
 
     for i in range(0, len(parentChains), batch_size):
         batch = parentChains[i:i + batch_size]
-        create_links(db, session, batch, "Chain", "PARENT", "<-") #n<-c
+        create_links(db, session, batch, "Chain", "INSIDE", "<-") #n<-c
 
 def insert_chains(chains, batch_size=10000):
     if len(chains) == 0: return
