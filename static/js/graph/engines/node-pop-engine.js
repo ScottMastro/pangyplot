@@ -144,7 +144,8 @@ function processSubgraphData(subgraph, originNode, forceGraph){
     forceGraph.graphData(graphData)
 
     //todo: take number as input
-    forceGraph = simplifyGraph(forceGraph, 200);
+    forceGraph = simplifyGraph(forceGraph, 1);
+    //forceGraph = shrinkGraph(forceGraph, 1000); 
 
     document.dispatchEvent(new CustomEvent("updatedGraphData", { detail: { graph: forceGraph.graphData() } }));
 }

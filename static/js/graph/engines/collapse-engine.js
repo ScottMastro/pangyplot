@@ -141,6 +141,7 @@ function simplifyGraph(forceGraph, size) {
                         class: "edge",
                         type: "collapse",
                         isVisible: true,
+                        isDrawn: true,
                         length: EDGE_LENGTH,
                         width: EDGE_WIDTH                    
                     };

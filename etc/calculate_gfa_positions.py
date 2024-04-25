@@ -149,31 +149,6 @@ def bfs_find_subgraph(graph, start_id, ref_positions, lenDict):
 def calculate_inferred_positions(graph, ref_positions, lenDict):
     ids = sorted(graph.keys())
 
-    done = set()
-    for sid in ids:
-        if sid in ref_positions or sid in done:
-            continue
-
-        endpoints, subset = bfs_find_subgraph(graph, sid, ref_positions, lenDict)
-        for x in subset:
-            done.add(x)
-
-        if len(subset) < 2:
-            continue
-
-        subgraph = {"ends": endpoints, "graph": subset}
-        print(subgraph)
-        input()
-
-
-
-
-
-
-
-
-
-
     for sid in ids:
         if sid in ref_positions:
             genome, chrom, start = ref_positions[sid][0]

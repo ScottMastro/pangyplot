@@ -90,6 +90,7 @@ function getGradientColor(value, rangeStart, rangeEnd, colorStops) {
     factor = Math.min(Math.max(factor, 0), 1); // Clamp factor between 0 and 1
 
     let scaledFactor = factor * (numStops - 1);
+ 
     let index = Math.floor(scaledFactor);
     let remainder = scaledFactor - index;
 

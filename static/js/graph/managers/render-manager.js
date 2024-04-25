@@ -73,13 +73,14 @@ function renderManagerPostRender(ctx, forceGraph){
 }
 
 function renderManagerPaintNode(ctx, node) {
-    if (node.isVisible){
+
+    if (node.isVisible && node.isDrawn){
         basicRenderPaintNode(ctx, node);
     }
 }
 
 function renderManagerPaintLink(ctx, link){
-    if (link.isVisible){
+    if (link.isVisible && link.isDrawn){
         basicRenderPaintLink(ctx, link);
     }
 }

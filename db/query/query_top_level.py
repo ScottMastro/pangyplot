@@ -9,71 +9,50 @@ def get_top_level_data(db, session, genome, chrom, start, end):
     query = """
             MATCH (n:Segment|Chain|Bubble)
             WHERE n.db = $db AND n.genome = $genome AND n.chrom = $chrom 
-                AND n.start <= $end AND n.end >= $start AND NOT EXISTS {
+                AND n.start >= $start AND n.end <= $end AND NOT EXISTS {
                     MATCH (n)-[:INSIDE]->(m)
-                    WHERE m.chrom = $chrom AND m.start <= $end AND m.end >= $start
+                    WHERE m.chrom = $chrom AND m.start >= $start AND m.end <= $end
             }
             OPTIONAL MATCH (n)-[r1:END]-(e:Segment)
             OPTIONAL MATCH (n:Segment)-[r2:LINKS_TO]-(s:Segment)
 
             RETURN n, labels(n) AS type,
-            collect(e) as ends,
             collect(DISTINCT r1) AS endlinks,
             collect(DISTINCT r2) AS links
             """
     parameters = {"start": start, "end": end, "db": db, "genome": genome, "chrom": chrom}
     results = session.run(query, parameters)
 
-    ends = []
-
     for result in results:
         nodes.append( record.node_record(result["n"], result["type"][0]) )
-
-        ends.extend([record.segment_record(r) for r in result["ends"]])
 
         links.extend( [record.link_record_simple(r) for r in result["endlinks"]] )
         links.extend( [record.link_record_simple(r) for r in result["links"]] )
 
-    for e in ends:
-        if ("start" in e and e["start"] > end) or ("end" in e and e["end"] < start):
-            continue
-
-        '''query = """
-        MATCH (n:Segment)
-        WHERE n.id = $id
-        MATCH (n)-[r:END]-(m)
-        WHERE NOT EXISTS {
-            MATCH (m)-[:INSIDE]->(l)-[END]-(n)
-        }
-
-        RETURN n, r, m, labels(m) AS type
-        """
-        '''
         
-        query = """
-                MATCH (n:Segment)
-                WHERE n.id = $id
-                MATCH (n)-[l:LINKS_TO]-(m)-[r:END]-(a)
-                WHERE m.start IS NULL AND NOT EXISTS {
-                    MATCH (a)-[:INSIDE]->(a2)-[END]-(m)
-                }
+    alt_query = """
+            MATCH (n:Segment)
+            WHERE n.db = $db AND n.genome = $genome AND n.chrom = $chrom 
+                AND n.start <= $end AND n.end >= $start 
+            MATCH (n)<-[:ANCHOR]-(a)
+            WHERE NOT EXISTS {
+                    MATCH (a)-[:INSIDE*]->(m)
+                    WHERE m.start IS NOT NULL
+            }
+            OPTIONAL MATCH (a)-[r1:END]-(e:Segment)
+            OPTIONAL MATCH (a:Segment)-[r2:LINKS_TO]-(s:Segment)
 
-                RETURN m, l, r, a, labels(a) AS type
-                """
-        parameters = {"id": e["id"]}
-        results = session.run(query, parameters)
+            RETURN a, labels(a) AS type,
+            collect(DISTINCT r1) AS endlinks,
+            collect(DISTINCT r2) AS links
+            """
+    parameters = {"start": start, "end": end, "db": db, "genome": genome, "chrom": chrom}
+    results = session.run(alt_query, parameters)
 
-        print("--------", e["id"])
-
-        for result in results:
-            print(record.node_record(result["a"], result["type"][0]) )
-            nodes.append( record.node_record(result["a"], result["type"][0]) )
-            nodes.append( record.segment_record(result["m"]) )
-            link = record.link_record_simple(result["r"])
-            print(link)
-            links.append( link )
-            #links.extend( [record.link_record_simple(r) for r in result["l"]] )
-
+    for result in results:
+        nodes.append( record.node_record(result["a"], result["type"][0]) )
+        links.extend( [record.link_record_simple(r) for r in result["endlinks"]] )
+        links.extend( [record.link_record_simple(r) for r in result["links"]] )
 
 
     return nodes, links

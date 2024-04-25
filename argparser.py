@@ -10,7 +10,6 @@ from parser.parse_positions import parse_positions
 import db.bubble_gun as bubble_gun
 from db.utils.check_status import get_status
 
-from db.modify.graph_modify import add_null_nodes, connect_bubble_ends_to_chain, add_chain_subtype
 
 def parse_args(app):
 
@@ -131,8 +130,5 @@ def parse_args(app):
                 #drop.drop_bubbles()
                 print("Calculating bubbles...")
                 bubble_gun.shoot(args.compact, True)
-                add_null_nodes()
-                connect_bubble_ends_to_chain()
-                add_chain_subtype()
                 print("Done.")
           

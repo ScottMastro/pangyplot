@@ -81,7 +81,7 @@ function colorByGC(content){
 }
 
 function colorByPosition(start, end){
-    if (start == null || end == null){
+    if (start == null || isNaN(start) || end == null || isNaN(end)) {
         return NULL_COLOR;
     }
     const position = (start+end)/2;
@@ -114,6 +114,9 @@ function colorByRef(isRef){
 function colorByLength(length){
     const low = 1;
     const high = 10000;
+    if (length == null || isNaN(length)) {
+        return NULL_COLOR;
+    }
 
     const color = getGradientColor(length, low, high, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
     return color;

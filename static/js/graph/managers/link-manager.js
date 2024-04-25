@@ -8,6 +8,7 @@ function processLinks(rawLinks) {
         sourceid: String(rawLink["source"]),
         targetid: String(rawLink["target"]),
         isVisible: true,
+        isDrawn: true,
         class: "edge",
         length: EDGE_LENGTH,
         width: EDGE_WIDTH,
