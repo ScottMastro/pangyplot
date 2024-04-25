@@ -5,11 +5,10 @@ from BubbleGun.find_bubbles import find_bubbles
 from BubbleGun.connect_bubbles import connect_bubbles
 from BubbleGun.find_parents import find_parents
 
-
 import db.modify.drop_data as drop
 from db.query.query_all import query_all_segments, query_all_links
 from db.modify.compact_segment import compact_segment 
-from db.modify.graph_modify import anchor_alternative_branches
+import db.modify.graph_modify as modify
 
 from db.insert.insert_bubble import insert_bubbles, add_bubble_properties
 from db.insert.insert_chain import insert_chains, add_chain_properties
@@ -230,6 +229,10 @@ def shoot(compact, altgraphs):
     end_time = time.time()
     print(f"Data inserted in {end_time - start_time} seconds.")
 
+    modify.add_null_nodes()
+    modify.connect_bubble_ends_to_chain()
+    modify.add_chain_subtype()
+
     if altgraphs:
         print("Building alt branches...")
 
@@ -240,5 +243,5 @@ def shoot(compact, altgraphs):
         create_alt_subgraphs(graph)
         
         print("Anchoring alt branches...")
-        anchor_alternative_branches()
+        modify.anchor_alternative_branches()
         drop.drop_subgraphs()

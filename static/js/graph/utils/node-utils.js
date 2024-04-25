@@ -85,13 +85,15 @@ function findNearestNode(nodes, coordinates) {
     let minDistance = Infinity;
     
     nodes.forEach(node => {
-        const distance = Math.sqrt((coordinates.x - node.x) ** 2 + (coordinates.y - node.y) ** 2);
-        // give a boost to smaller nodes
-        const effectiveDistance = distance*(node.isSingleton ? 0.9 : 1);
+        if (node.isDrawn){
+            const distance = Math.sqrt((coordinates.x - node.x) ** 2 + (coordinates.y - node.y) ** 2);
+            // give a boost to smaller nodes
+            const effectiveDistance = distance*(node.isSingleton ? 0.9 : 1);
 
-        if (effectiveDistance < minDistance) {
-            minDistance = effectiveDistance;
-            nearestNode = node;
+            if (effectiveDistance < minDistance) {
+                minDistance = effectiveDistance;
+                nearestNode = node;
+            }
         }
     });
 

@@ -139,7 +139,7 @@ function nodesInSelectionBox(event, forceGraph){
     const br = forceGraph.screen2GraphCoords(right, bottom);
     const hitNodes = [];
     forceGraph.graphData().nodes.forEach(node => {
-        if (tl.x < node.x && node.x < br.x && br.y > node.y && node.y > tl.y) {
+        if (node.isDrawn && tl.x < node.x && node.x < br.x && br.y > node.y && node.y > tl.y) {
             hitNodes.push(node);
         }
     });

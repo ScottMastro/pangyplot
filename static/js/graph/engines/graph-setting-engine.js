@@ -70,7 +70,7 @@ function graphSettingEngineSetup(forceGraph){
     document.getElementById('spread-slider').addEventListener('input', function() {
                 
         const newValue = parseFloat(this.value);
-        forceGraph.d3Force('spreadX', d3.forceX().strength(newValue).x((d, i) => (i / forceGraph.graphData().nodes.length)));
+        GRAPH_SPREAD_X_FORCE=newValue;
         forceGraph.d3ReheatSimulation()
         console.log("spread", newValue)
 

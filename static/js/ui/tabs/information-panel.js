@@ -2,7 +2,6 @@ var fullSequence ="";
 function updateGraphInfo(nodeid) {
     //todo: avoid using this directly
     nodeInfo = getNodeInformation(nodeid);
-    console.log(nodeInfo);
     document.getElementById('info-node-id').textContent = nodeInfo.id || '';
     document.getElementById('info-node-type').textContent = nodeInfo.type || '';
     document.getElementById('info-chromosome').textContent = nodeInfo.chrom || '';

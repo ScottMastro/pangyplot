@@ -30,6 +30,13 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
             const box = findNodeBounds(nodes);
             forceGraph.centerAt(box.x + box.width/2, box.y + box.height/2, 1000);
         }
+        if (event.code === 'Delete') {
+            console.log("dle")
+
+            deleteHighlighted(forceGraph);
+        }
+
+
         if (event.code === 'ArrowUp') {
             forceGraph.centerAt(0, 0, 1000);
         }

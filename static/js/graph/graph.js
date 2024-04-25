@@ -10,6 +10,8 @@ const FORCE_GRAPH_WIDTH_PROPORTION = 0.8;
 DEBUG=true
 
 
+var GRAPH_SPREAD_X_FORCE=0
+
 function getGraphCoordinates(){
     return {genome: GRAPH_GENOME,
             chromosome:GRAPH_CHROM,
@@ -103,12 +105,36 @@ function renderGraph(graph){
             }
         }
     }
+
+
+    function forceSpreadX(alpha) {
+        const nodes = forceGraph.graphData().nodes;
+    
+        let minX = Infinity, maxX = -Infinity;
+        for (const node of nodes) {
+            if (node.x < minX) minX = node.x;
+            if (node.x > maxX) maxX = node.x;
+        }
+    
+        const midX = (minX + maxX) / 2;
+        const range = (maxX-minX)/2;
+        let i = 0; 
+        for (let node of nodes) {
+            const targetX = node.x < midX ? minX : maxX;
+            const strength = 1 - Math.abs(targetX - node.x)/range;
+
+            node.vx += (node.x < midX ? -1 : 1) * 1000* strength * alpha;
+
+        }
+    }
+    
     
     //todo: try force that keeps nodes apart by certain distance
+    //todo: local density check, spread along x axis
+
 
     forceGraph.d3Force('centerEachNode', forceCenterEachNode);
-
-    //forceGraph.d3Force('spreadX', d3.forceX().strength(0).x((d, i) => (i / forceGraph.graphData().nodes.length)));
+    //forceGraph.d3Force('spreadX', forceSpreadX);
     
     forceGraph.d3Force('center', null);
     forceGraph.d3Force('link').distance(100).strength(0.9);
@@ -203,10 +229,18 @@ document.addEventListener('DOMContentLoaded', function () {
     let start=198347210
     let end=198855552 // start+100000
     
+    // inversion region
+    start=198376687
+    end=198692934
+    
     // narrow muc4/20 region
     start=198543540;
     end=198660739;
     
+    // repeat region
+    start=198563043;
+    end=198595149;
+
     const data = { genome: "CHM13", chrom: "chr3", start: start, end: end,  source: "testing" };
     
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));

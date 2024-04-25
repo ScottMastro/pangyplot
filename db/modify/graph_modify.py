@@ -29,8 +29,8 @@ def anchor_alternative_branches():
                 MATCH (s1:Segment)<-[:ANCHOR]-(s:Subgraph)<-[:SUBGRAPH]-(s2:Segment)-[:INSIDE*]->(a)
                 WHERE s.db = $db AND a.start IS NULL 
                 AND NOT EXISTS {
-                    MATCH (a)-[:INSIDE*]->(b)
-                    WHERE (b:Bubble OR b:Chain) AND b.start IS NULL
+                    MATCH (a)-[:INSIDE]->(b)
+                    WHERE b.start IS NULL
                 }
                 MERGE (a)-[:ANCHOR]->(s1)
                 """
@@ -40,7 +40,7 @@ def anchor_alternative_branches():
                 MATCH (s1:Segment)<-[:ANCHOR]-(s:Subgraph)<-[:SUBGRAPH]-(s2:Segment)
                 WHERE s.db = $db AND s2.start IS NULL
                 AND NOT EXISTS {
-                    MATCH (s2)-[:INSIDE*]->(a)
+                    MATCH (s2)-[:INSIDE]->()
                 }
                 MERGE (s2)-[:ANCHOR]->(s1)
                 """
@@ -62,8 +62,6 @@ def add_null_nodes():
                     y1: s1.y2,
                     x2: s2.x1,
                     y2: s2.y1,
-                    start: CASE WHEN s1.start < s2.start THEN s1.start ELSE s2.start END,
-                    end: CASE WHEN s1.end < s2.end THEN s1.end ELSE s2.end END,
                     genome: COALESCE(s1.genome, s2.genome),
                     chrom: COALESCE(s1.chrom, s2.chrom),
                     tag: "null"
