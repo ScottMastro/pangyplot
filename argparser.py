@@ -14,6 +14,8 @@ from db.utils.check_status import get_status
 def parse_args(app):
 
     DEFAULT_DB = "default"
+    DEFAULT_PORT = 5700
+
     with app.app_context():
 
         parser = argparse.ArgumentParser(description="PangyPlot command line options.")
@@ -24,7 +26,8 @@ def parse_args(app):
 
         parser_run = subparsers.add_parser('run', help='Launch the software.')
         parser_run.add_argument('--db', help='Database name', default=DEFAULT_DB, required=True)
-
+        parser_run.add_argument('--port', help='Port to run the app on', default=DEFAULT_PORT, type=int, required=False)
+        
         parser_add = subparsers.add_parser('add', help='Add a dataset.')
         parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB, required=True)
         parser_add.add_argument('--ref', help='Reference name', default=None, required=True)
@@ -56,8 +59,10 @@ def parse_args(app):
 
         if args.command == 'run':
             db_init(args.db)
-            app.run()
-            exit
+            port = args.port if args.port else DEFAULT_PORT
+            print(f"Starting PangyPlot... http://127.0.0.1:{port}")
+            app.run(port=port)
+            exit()
 
         if args.command == 'drop':
             db_init(args.db)
