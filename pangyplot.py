@@ -1,3 +1,5 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, make_response
 from cytoband import get_cytoband 
 from db.neo4j_db import update_db
@@ -24,6 +26,13 @@ def get_db_options():
 
     return jsonify(dbs)
 '''
+
+@app.context_processor
+def inject_ga_tag_id():
+    load_dotenv()
+    # Get the Google Analytics tag ID from the environment variable
+    ga_tag_id = os.getenv('GA_TAG_ID', '')
+    return dict(ga_tag_id=ga_tag_id)
 
 @app.route('/select', methods=["GET"])
 def select():
