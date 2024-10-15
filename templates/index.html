@@ -56,14 +56,14 @@
         <div id="graph" class="flex-1" tabindex="0"></div>
         <div id="tabs-container" class="flex-1 flex-col">
             <div class="tabs">
+                <button class="tab" onclick="switchTab('keyboard-shortcuts-tab')"><i class="fa-solid fa-keyboard"></i></button>
                 <button class="tab" onclick="switchTab('graph-info-tab')"><i class="fa-solid fa-rectangle-list"></i></button>
                 <button class="tab" onclick="switchTab('graph-settings-tab')"><i class="fa-solid fa-gear"></i></button>
-                <button class="tab" onclick="switchTab('keyboard-shortcuts-tab')"><i class="fa-solid fa-keyboard"></i></button>
             </div>
 
-            <div id="graph-info-tab" class="tab-content active-tab-content flex-9"> {% include 'graph-info.html' %} </div>
+            <div id="keyboard-shortcuts-tab" class="tab-content active-tab-content flex-9"> {% include 'keyboard-shortcuts.html' %} </div>
+            <div id="graph-info-tab" class="tab-content flex-9"> {% include 'graph-info.html' %} </div>
             <div id="graph-settings-tab" class="tab-content flex-9"> {% include 'graph-settings.html' %} </div>
-            <div id="keyboard-shortcuts-tab" class="tab-content flex-9"> {% include 'keyboard-shortcuts.html' %} </div>
 
         </div>
         
@@ -95,10 +95,13 @@
     <div id="path-selection" class="container flex-1">
         <div class="container-title">Path Selection</div>
 
-        <select id="path-selector" name="path-selector">
+        <div style="display: flex; justify-content: center; padding:20px">
+            <i class="fa-solid fa-circle-exclamation"></i> UNDER CONSTRUCTION
+        </div>
+        <select style="display: none;" id="path-selector" name="path-selector">
             <!-- The options will be appended here by JavaScript -->
         </select>
-        <input type="submit" value="Submit">
+        <input style="display: none;" type="submit" value="Submit">
     
     </div>
 </div>
