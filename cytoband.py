@@ -1,4 +1,7 @@
-CYTOBAND_FILE="./static/annotations/cytoBand_hg38.txt"
+import os
+
+script_dir = os.path.dirname(os.path.realpath(__file__))
+CYTOBAND_FILE=os.path.join(script_dir, "static", "annotations", "cytoBand_hg38.txt")
 CHR_LIST = ["chr"+str(i) for i in range(1, 22)] + ["chrX", "chrY"]
 
 CHR="chr"
