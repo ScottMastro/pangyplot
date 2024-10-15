@@ -19,8 +19,7 @@ function graphInputStateUpdate(event, forceGraph, canvasElement){
 function shiftToSelectionMode(forceGraph, canvasElement){
     if (INPUT_STATE === SELECTION_MODE) { return; }
 
-    forceGraph.enablePanInteraction(false);
-    forceGraph.enableZoomInteraction(false);
+    forceGraph.enableZoomPanInteraction(false);
 
     canvasElement.style.cursor = "default";
     const data = {prevState:INPUT_STATE, state: SELECTION_MODE}
@@ -30,9 +29,8 @@ function shiftToSelectionMode(forceGraph, canvasElement){
 
 function shiftToPanZoomMode(forceGraph, canvasElement){
     if (INPUT_STATE === PAN_ZOOM_MODE) { return; }
-
-    forceGraph.enablePanInteraction(true);
-    forceGraph.enableZoomInteraction(true);
+    
+    forceGraph.enableZoomPanInteraction(true);
 
     const data = {prevState:INPUT_STATE, state: PAN_ZOOM_MODE}
     document.dispatchEvent(new CustomEvent("inputModeChange", { detail: data }));
@@ -43,8 +41,7 @@ function shiftToPanZoomMode(forceGraph, canvasElement){
 function shiftToNodePopMode(forceGraph, canvasElement){
     if (INPUT_STATE === NODE_POP_MODE) { return; }
 
-    forceGraph.enablePanInteraction(false);
-    forceGraph.enableZoomInteraction(false);
+    forceGraph.enableZoomPanInteraction(false);
 
     canvasElement.style.cursor = "crosshair";
     const data = {prevState:INPUT_STATE, state: NODE_POP_MODE}

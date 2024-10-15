@@ -4,6 +4,8 @@ var GRAPH_CHROM=null;
 var GRAPH_START_POS=null;
 var GRAPH_END_POS=null;
 
+let forceGraph = null;
+
 const FORCE_GRAPH_HEIGHT_PROPORTION = 0.8;
 const FORCE_GRAPH_WIDTH_PROPORTION = 0.8;
 
@@ -32,127 +34,134 @@ function getCanvasHeight(){
 
 function renderGraph(graph){
 
+    const canvasElement = document.getElementById("graph");
+
     console.log("forceGraph:", graph);
 
-    const canvasElement = document.getElementById("graph");
-    var forceGraph = ForceGraph()(canvasElement)
-        .graphData(graph)
-        .nodeId("__nodeid")
-        .height(getCanvasHeight())
-        .width(getCanvasWidth())
-        .nodeVal(NODE_SIZE)
-        .nodeRelSize(HOVER_PRECISION)
-        .autoPauseRedraw(false) // keep drawing after engine has stopped
-        .d3VelocityDecay(0.1)
-        .onNodeDragEnd(node => {
-            node.fx = node.x;
-            node.fy = node.y;
-          })
-        .d3AlphaDecay(0.0228)
-        .nodeCanvasObject((node, ctx) => renderManagerPaintNode(ctx, node)) 
-        .linkCanvasObject((link, ctx) => renderManagerPaintLink(ctx, link)) 
-        .nodeLabel("__nodeid")
-        .onNodeDrag((node, translate) => inputManagerNodeDragged(node, translate, forceGraph))
-        .onNodeClick((node, event) => inputManagerNodeClicked(node, event, forceGraph))
-        .minZoom(1e-6) //default = 0.01
-        .maxZoom(1000) //default = 1000
+    // Update the graph data without reinitializing the graph
+    if (forceGraph) {
+        forceGraph.graphData(graph);
 
-        //.linkDirectionalParticles(4)
+        console.log("Graph data updated.");
+    } else {
 
-
-    inputManagerSetupInputListeners(forceGraph, canvasElement);
-
-
-    window.addEventListener('resize', () => {
-        forceGraph
+        forceGraph = ForceGraph()(canvasElement)
+            .graphData(graph)
+            .nodeId("__nodeid")
             .height(getCanvasHeight())
-            .width(getCanvasWidth());
-    });
+            .width(getCanvasWidth())
+            .nodeVal(NODE_SIZE)
+            .nodeRelSize(HOVER_PRECISION)
+            .autoPauseRedraw(false) // keep drawing after engine has stopped
+            .d3VelocityDecay(0.1)
+            .onNodeDragEnd(node => {
+                node.fx = node.x;
+                node.fy = node.y;
+            })
+            .d3AlphaDecay(0.0228)
+            .nodeCanvasObject((node, ctx) => renderManagerPaintNode(ctx, node)) 
+            .linkCanvasObject((link, ctx) => renderManagerPaintLink(ctx, link)) 
+            .nodeLabel("__nodeid")
+            .onNodeDrag((node, translate) => inputManagerNodeDragged(node, translate, forceGraph))
+            .onNodeClick((node, event) => inputManagerNodeClicked(node, event, forceGraph))
+            .minZoom(1e-6) //default = 0.01
+            .maxZoom(1000) //default = 1000
+
+            //.linkDirectionalParticles(4)
 
 
-    console.log("forceGraph:", forceGraph);
+        inputManagerSetupInputListeners(forceGraph, canvasElement);
 
-    forceGraph.onEngineTick(() => {
-        forceGraph.backgroundColor(colorManagerBackgroundColor());
 
-        debugInformationUpdate(forceGraph.graphData());
-    })
+        window.addEventListener('resize', () => {
+            forceGraph
+                .height(getCanvasHeight())
+                .width(getCanvasWidth());
+        });
 
-    forceGraph.onRenderFramePre((ctx) => { renderManagerPreRender(ctx, forceGraph, getCanvasWidth(), getCanvasHeight()); })
-    forceGraph.onRenderFramePost((ctx) => { renderManagerPostRender(ctx, forceGraph); })
-    
-    
-    // --- FORCES ---
 
-    function link_force_distance(link) {
-        return (link.type === "edge") ? 10 : link.length ;
-    }
+        console.log("forceGraph:", forceGraph);
 
-    const nodes = graph.nodes;
-    // Create and add the custom force
+        forceGraph.onEngineTick(() => {
+            forceGraph.backgroundColor(colorManagerBackgroundColor());
 
-    function forceCenterEachNode(alpha) {
-        for (let node of forceGraph.graphData().nodes) {
-            if (node.isSingleton){
-                node.vx += (node.initX - node.x) * 0.01 * alpha;
-                node.vy += (node.initY - node.y) * 0.01 * alpha;
-            } else if (node.class = "end"){
-                node.vx += (node.initX - node.x) * 0.02 * alpha;
-                node.vy += (node.initY - node.y) * 0.02 * alpha;
-            } else{
-                node.vx += (node.initX - node.x) * 0.02 * alpha;
-                node.vy += (node.initY - node.y) * 0.02 * alpha;
+            debugInformationUpdate(forceGraph.graphData());
+        })
+
+        forceGraph.onRenderFramePre((ctx) => { renderManagerPreRender(ctx, forceGraph, getCanvasWidth(), getCanvasHeight()); })
+        forceGraph.onRenderFramePost((ctx) => { renderManagerPostRender(ctx, forceGraph); })
+        
+        
+        // --- FORCES ---
+
+        function link_force_distance(link) {
+            return (link.type === "edge") ? 10 : link.length ;
+        }
+
+        // Create and add the custom force
+        function forceCenterEachNode(alpha) {
+            for (let node of forceGraph.graphData().nodes) {
+                if (node.isSingleton){
+                    node.vx += (node.initX - node.x) * 0.01 * alpha;
+                    node.vy += (node.initY - node.y) * 0.01 * alpha;
+                } else if (node.class = "end"){
+                    node.vx += (node.initX - node.x) * 0.02 * alpha;
+                    node.vy += (node.initY - node.y) * 0.02 * alpha;
+                } else{
+                    node.vx += (node.initX - node.x) * 0.02 * alpha;
+                    node.vy += (node.initY - node.y) * 0.02 * alpha;
+                }
             }
         }
-    }
 
 
-    function forceSpreadX(alpha) {
-        const nodes = forceGraph.graphData().nodes;
-    
-        let minX = Infinity, maxX = -Infinity;
-        for (const node of nodes) {
-            if (node.x < minX) minX = node.x;
-            if (node.x > maxX) maxX = node.x;
+        function forceSpreadX(alpha) {
+            const nodes = forceGraph.graphData().nodes;
+        
+            let minX = Infinity, maxX = -Infinity;
+            for (const node of nodes) {
+                if (node.x < minX) minX = node.x;
+                if (node.x > maxX) maxX = node.x;
+            }
+        
+            const midX = (minX + maxX) / 2;
+            const range = (maxX-minX)/2;
+            let i = 0; 
+            for (let node of nodes) {
+                const targetX = node.x < midX ? minX : maxX;
+                const strength = 1 - Math.abs(targetX - node.x)/range;
+
+                node.vx += (node.x < midX ? -1 : 1) * 1000* strength * alpha;
+
+            }
         }
-    
-        const midX = (minX + maxX) / 2;
-        const range = (maxX-minX)/2;
-        let i = 0; 
-        for (let node of nodes) {
-            const targetX = node.x < midX ? minX : maxX;
-            const strength = 1 - Math.abs(targetX - node.x)/range;
+        
+        
+        //todo: try force that keeps nodes apart by certain distance
+        //todo: local density check, spread along x axis
 
-            node.vx += (node.x < midX ? -1 : 1) * 1000* strength * alpha;
 
+        forceGraph.d3Force('centerEachNode', forceCenterEachNode);
+        //forceGraph.d3Force('spreadX', forceSpreadX);
+        
+        forceGraph.d3Force('center', null);
+        forceGraph.d3Force('link').distance(100).strength(0.9);
+        //forceGraph.d3Force('link', null);   // Disable link force
+
+        forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
+        forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
+
+
+        const pause = true;
+        if(pause){
+            forceGraph.d3AlphaDecay(1)
+            forceGraph.d3Force('link', null);   // Disable link force
+            forceGraph.d3Force('charge', null); // Disable charge force
+            forceGraph.d3Force('collide', null); // Disable collide force
+            forceGraph.d3Force('center', null); // Disable center force
         }
+        graphSettingEngineSetup(forceGraph);
     }
-    
-    
-    //todo: try force that keeps nodes apart by certain distance
-    //todo: local density check, spread along x axis
-
-
-    forceGraph.d3Force('centerEachNode', forceCenterEachNode);
-    //forceGraph.d3Force('spreadX', forceSpreadX);
-    
-    forceGraph.d3Force('center', null);
-    forceGraph.d3Force('link').distance(100).strength(0.9);
-    //forceGraph.d3Force('link', null);   // Disable link force
-
-    forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
-    forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
-
-
-    const pause = false;
-    if(pause){
-        forceGraph.d3AlphaDecay(1)
-        forceGraph.d3Force('link', null);   // Disable link force
-        forceGraph.d3Force('charge', null); // Disable charge force
-        forceGraph.d3Force('collide', null); // Disable collide force
-        forceGraph.d3Force('center', null); // Disable center force
-    }
-    graphSettingEngineSetup(forceGraph);
 }
 
 
@@ -229,10 +238,6 @@ document.addEventListener('DOMContentLoaded', function () {
     let start=198347210
     let end=198855552 // start+100000
     
-    // inversion region
-    start=198376687
-    end=198692934
-    
     // narrow muc4/20 region
     start=198543540;
     end=198660739;
@@ -240,6 +245,12 @@ document.addEventListener('DOMContentLoaded', function () {
     // repeat region
     start=198563043;
     end=198595149;
+
+    // inversion region
+    start=198376687
+    end=198692934
+    
+
 
     const data = { genome: "CHM13", chrom: "chr3", start: start, end: end,  source: "testing" };
     

@@ -16,8 +16,7 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
         return { min: {x:tl.x, y:tl.y}, max: {x:br.x, y:br.y} };
     };
     
-    forceGraph.enableZoomInteraction(false);
-    forceGraph.enablePanInteraction(false);
+    forceGraph.enableZoomPanInteraction(false);
 
     // keyboard
 
@@ -26,9 +25,12 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
         event.preventDefault();
 
         if (event.code === 'Space' || event.key === ' ') {
-            const nodes = [forceGraph.graphData().nodes[0]]            
-            const box = findNodeBounds(nodes);
-            forceGraph.centerAt(box.x + box.width/2, box.y + box.height/2, 1000);
+            const nodes = forceGraph.graphData().nodes;
+    
+            if (nodes.length > 0) {
+                const box = findNodeBounds([nodes[0]]);
+                forceGraph.centerAt(box.x + box.width/2, box.y + box.height/2, 1000);
+            }
         }
         if (event.code === 'Delete') {
             console.log("dle")

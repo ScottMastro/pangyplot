@@ -25,11 +25,11 @@ def parse_args(app):
         parser_status = subparsers.add_parser('status', help='Check the database status.')
 
         parser_run = subparsers.add_parser('run', help='Launch the software.')
-        parser_run.add_argument('--db', help='Database name', default=DEFAULT_DB, required=True)
+        parser_run.add_argument('--db', help='Database name', default=DEFAULT_DB)
         parser_run.add_argument('--port', help='Port to run the app on', default=DEFAULT_PORT, type=int, required=False)
         
         parser_add = subparsers.add_parser('add', help='Add a dataset.')
-        parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB, required=True)
+        parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB)
         parser_add.add_argument('--ref', help='Reference name', default=None, required=True)
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
