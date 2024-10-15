@@ -29,7 +29,7 @@ document.getElementById("go-button").addEventListener("click", function () {
 
     //todo: get genome
     const data = {
-      genome: "CHM13",
+      genome: "GRCh38",
       chrom: chrom,
       start: start,
       end: end,
