@@ -10,6 +10,7 @@ from db.query.query_all import query_all_chromosomes, query_all_db
 from argparser import parse_args
 
 app = Flask(__name__)
+script_dir = os.path.dirname(os.path.realpath(__file__))
 
 '''
 @app.route('/dbset')
@@ -95,7 +96,8 @@ def chromosomes():
         chromosomes = [chrom for chrom in chromosomes if chrom.split("#")[-1] not in canonical]
     
     # TODO: make real
-    with open("./static/annotations/noncanonical.txt") as file:
+    noncanon_path = os.path.join(script_dir, "static", "annotations", "noncanonical.txt")
+    with open(noncanon_path) as file:
         for line in file.readlines():
             chromosomes.append(line)
     
