@@ -73,16 +73,29 @@ def restore_links(db, session, keepNode, removeNode, recoverLinks):
         if link["target"] == removeSegmentNodeId:
             link["target"] = keepSegmentNodeId
 
+    #query = """
+    #        UNWIND $links AS link
+    #        MATCH (a:Segment), (b:Segment)
+    #        WHERE a.db = $db AND ID(a) = link.source AND ID(b) = link.target
+    #        CREATE (a)-[:LINKS_TO {
+    #            from_strand: link.from_strand,
+    #            to_strand: link.to_strand,
+    #            haplotype: link.haplotype,
+    #            frequency: link.frequency}]->(b)
+    #        """
+    
     query = """
             UNWIND $links AS link
-            MATCH (a:Segment), (b:Segment)
-            WHERE a.db = $db AND ID(a) = link.source AND ID(b) = link.target
+            MATCH (a:Segment {id: link.source}), (b:Segment {id: link.target})
+            WHERE a.db = $db
             CREATE (a)-[:LINKS_TO {
                 from_strand: link.from_strand,
                 to_strand: link.to_strand,
                 haplotype: link.haplotype,
-                frequency: link.frequency}]->(b)
+                frequency: link.frequency
+            }]->(b)
             """
+
     result = session.run(query, {"db": db, "links": recoverLinks})
     #summary = result.consume()
     #relationships_created = summary.counters.relationships_created
