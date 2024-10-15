@@ -85,9 +85,8 @@ function selectionEnginePointerMove(event, forceGraph, canvasElement, canvas, co
 
 function selectionEngineMouseClick(event, forceGraph, canvasElement, canvas, coordinates, inputState){
     if (!BOX_SELECT && inputState==SELECTION_MODE && ! BLOCK_SINGLE_SELECTION){
-
         const nearestNode = findNearestNode(forceGraph.graphData().nodes, coordinates);
-        if (nearestNode["type"] == "null"){ return }
+        if (nearestNode == null || nearestNode["type"] == "null"){ return }
         const normDist = findNormalizedDistance(nearestNode, coordinates, canvas);
     
         forceGraph.graphData().nodes.forEach(node => node.isSelected = false);
