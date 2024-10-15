@@ -18,20 +18,21 @@
 
 <div id="citation-modal" class="modal">
     <div class="modal-content">
+
         <span id="citation-modal-close-button" class="modal-close">&times;</span>
-               
+
             {{ reference(
                 'PangyPlot',
                 'https://github.com/ScottMastro/pangyplot',
                 'Pangenome graph visualization software.',
                 'images/pangyplot_logo.svg',
                 'Mastromatteo, Scott',
-                'PangyPlot: a paper title',
+                'PangyPlot: Coming soon',
                 'Journal',
                 '2024 XXX;Y(ZZZ):N-M',
                 'DOI',
             ) }}
-                
+
         <details>
             <summary>Supporting work</summary>
 
@@ -60,5 +61,35 @@
             ) }}
 
         </details>
+    </div>
+</div>
+
+
+<div id="info-modal" class="modal">
+    <div class="modal-content">
+        <span id="info-modal-close-button" class="modal-close">&times;</span>
+        <h2>Welcome to PangyPlot</h2>
+
+        <div style="display: flex; align-items: center; margin-bottom: 10px;">
+            <i class="fa-solid fa-dna" style="font-size: 2em; color: #868686; margin-right: 10px;"></i>
+            <p style="margin: 0;">
+                PangyPlot is a tool designed for visualizing graph-based pangenome data. Currently, PangyPlot is set to visualize data from the <a href="https://www.nature.com/articles/s41586-023-05896-x" target="_blank">HPRC pangenome graph.</a>
+            </p>
+        </div>
+
+        <div style="display: flex; align-items: center;">
+            <i class="fa-solid fa-hammer" style="font-size: 2em; color: #868686; margin-right: 10px;"></i>
+            <p style="margin: 0;">
+                It is currently under active development and being prepared for publication. We plan to introduce additional features in the near future.
+            </p>
+        </div>
+
+
+        <div style="display: flex; align-items: center;">
+            <i class="fa-solid fa-hammer" style="font-size: 2em; color: #868686; margin-right: 10px;"></i>
+            <p style="margin: 0;">
+                To quickly run, select and "Example" button at the top of the page to view predefined regions. Or input your region of interest by dragging on the chromosome, choosing a gene or manually entering coordinates. Then click "Go". 
+            </p>
+        </div>
     </div>
 </div>

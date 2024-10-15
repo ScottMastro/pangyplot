@@ -1,8 +1,13 @@
-function setupModal(modalId, openButtonId, closeButtonId) {
+function setupModal(modalId, openButtonId, closeButtonId, onByDefault) {
     let modal = document.getElementById(modalId);
     let openModalButton = document.getElementById(openButtonId);
     let closeModalButton = document.getElementById(closeButtonId);
 
+    if (onByDefault){
+        modal.style.display = "block";
+    } else{
+        modal.style.display = "none";
+    }
     if (openModalButton) {
         openModalButton.onclick = function() {
             modal.style.display = "block";
