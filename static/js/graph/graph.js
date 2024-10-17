@@ -141,7 +141,7 @@ function renderGraph(graph){
         //todo: local density check, spread along x axis
 
 
-        forceGraph.d3Force('centerEachNode', forceCenterEachNode);
+        //forceGraph.d3Force('centerEachNode', forceCenterEachNode);
         //forceGraph.d3Force('spreadX', forceSpreadX);
         
         forceGraph.d3Force('center', null);
@@ -152,7 +152,7 @@ function renderGraph(graph){
         forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
 
 
-        const pause = true;
+        const pause = false;
         if(pause){
             forceGraph.d3AlphaDecay(1)
             forceGraph.d3Force('link', null);   // Disable link force
@@ -184,7 +184,8 @@ function processGraphData(rawGraph){
     const nodeResult = processNodes(rawGraph.nodes);
     const links = processLinks(rawGraph.links);
     
-    const graph = {"nodes": nodeResult.nodes, "links": links.concat(nodeResult.nodeLinks)}
+    let graph = {"nodes": nodeResult.nodes, "links": links.concat(nodeResult.nodeLinks)}
+    graph = reorientLinks(graph);
 
     const normalizedGraph = normalizeGraph(graph);
 
@@ -250,9 +251,11 @@ document.addEventListener('DOMContentLoaded', function () {
     start=198376687
     end=198692934
     
+    //chr18
+    start=47506000
+    end=47600000
 
-
-    const data = { genome: "CHM13", chrom: "chr3", start: start, end: end,  source: "testing" };
+    const data = { genome: "GRCh38", chrom: "chr18", start: start, end: end,  source: "testing" };
     
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));

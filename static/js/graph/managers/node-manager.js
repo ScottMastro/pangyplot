@@ -14,6 +14,10 @@ function nodeTargetId(nodeid){
     return NODEIDS[nodeid][0];
 }
 
+function filterBadLinks(rawLinks){
+    return rawLinks.filter(l => l.source in NODEIDS && l.target in NODEIDS )
+}
+
 function getNodeInformation(nodeid){
     return NODE_INFO[nodeid];
 }
@@ -107,7 +111,8 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         isDrawn: true,
         largestChild: largestChild,
         isSingleton: totalKinks === 1,
-        isRef: node.hasOwnProperty("chrom"),
+        isRef: node.isRef,
+        gcCount: node.gcCount,
         annotations: []
     };
 
@@ -136,6 +141,7 @@ function createNewNodeLink(node, nodeid, idx, totalKinks, nodeLength) {
         class: "node",
         type: node["type"],
         length: Math.min(nodeLength / totalKinks, 1000),
+        isRef: node.isRef,
         width: NODE_SEGMENT_WIDTH,
         annotations: []
     };

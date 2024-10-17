@@ -93,7 +93,12 @@ function selectionEngineMouseClick(event, forceGraph, canvasElement, canvas, coo
         if (normDist < CAN_CLICK_RANGE){
             destroySelectionBox();
             nearestNode.isSelected = true;
-            console.log(nearestNode);
+            console.log("clicked:", nearestNode);
+
+            const connectedEdges = forceGraph.graphData().links.filter(link => 
+                link.source === nearestNode || link.target === nearestNode
+            );
+            console.log("connected edges:", connectedEdges);
         }
     }
 }

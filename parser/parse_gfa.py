@@ -96,6 +96,7 @@ def parse_line_S(line, ref, positions):
     id = cols[1]
     result["id"] = id
     result["seq"] = cols[2]
+    result["gc_count"] = cols[2].count('G') + cols[2].count('C') + cols[2].count('g') + cols[2].count('c')
     result["length"] = len(cols[2])
 
     for key in ["genome", "chrom", "pos", "sr", "start", "end"]:
@@ -173,7 +174,7 @@ def parse_line_P(line):
     result["hap"] = None
 
     if "#" in result["sample"]:
-        parts = cols[1].split("#")[0]
+        parts = cols[1].split("#")
         result["sample"] = parts[0]
         if len(parts[1]) == 1:
             result["hap"] = parts[1] 
@@ -216,9 +217,10 @@ def get_path_positions(path, lenDict):
     path["position"] = positions
     return path
 
-def collapse_path(collapseDict, sampleIdDict, path):
+def collapse_path(collapseDict, sampleIdDict, path, ):
     suffix = "" if path["hap"] is None else "." + path["hap"]
     sampleId = path["sample"] + suffix
+
     if sampleId not in sampleIdDict:
         if len(sampleIdDict) == 0:
             sampleIdDict[sampleId] = 0
@@ -238,7 +240,6 @@ def collapse_path(collapseDict, sampleIdDict, path):
         
         collapseDict[key].append(sampleIdx)
     return collapseDict, sampleIdDict
-
    
 def collapse_binary(collapseDict, sampleIdDict):
     n = max([sampleIdDict[x] for x in sampleIdDict])+1
@@ -257,9 +258,28 @@ def parse_graph(gfa, ref, positions, layoutCoords):
     lenDict = dict()
     collapseDict = dict()
     sampleIdDict = dict()
+    refSet = set()
 
+    print("Finding paths...")
     with get_reader(gfa) as gfaFile:
-        
+        count = 0
+        for line in gfaFile:
+            if line[0] in "PW":
+                if line[0] == "P":
+                    path = parse_line_P(line)
+                else:
+                    path = parse_line_W(line)
+                #collapseDict, sampleIdDict = collapse_path(collapseDict, sampleIdDict, path)
+                if ref in path["sample"]:
+                    refSet.update(path["path"])
+            count += 1
+            if count % 10000 == 0:
+                print(".", end='', flush=True)
+
+    print("")
+    print("Finding segments & links...")
+    with get_reader(gfa) as gfaFile:
+        count = 0
         for line in gfaFile:
             count+=1
             if line[0] == "S":
@@ -267,14 +287,10 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 lenDict[segment["id"]] = segment["length"]
                 for c in ["x1", "y1", "x2", "y2"]:
                     segment[c] = layoutCoords[segmentCount][c]
+                segment["is_ref"] = segment["id"] in refSet
                 segments.append(segment)
+
                 segmentCount += 1
-            elif line[0] in "PW":
-                if line[0] == "P":
-                    path = parse_line_P(line)
-                else:
-                    path = parse_line_W(line)
-                collapseDict, sampleIdDict = collapse_path(collapseDict, sampleIdDict, path)
             elif line[0] == "L":
                 link = parse_line_L(line)
                 links.append(link)
@@ -285,11 +301,11 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 insert_segments(segments)
                 segments=[]
 
-
         if len(collapseDict) == 0:
             for link in links:
                 link["haplotype"] = []
                 link["frequency"] = 0
+                link["is_ref"] = link["from_id"] in refSet and link["to_id"] in refSet
 
         else:
 
@@ -298,6 +314,8 @@ def parse_graph(gfa, ref, positions, layoutCoords):
             for link in links:
                 key = (str(link["from_id"]) + link["from_strand"],
                         str(link["to_id"]) + link["to_strand"])
+                #todo: line below does not account for strand
+                link["is_ref"] = link["from_id"] in refSet and link["to_id"] in refSet
                 if key in collapseDict:
                     hap = collapseDict[key]
                     link["haplotype"] = hap
