@@ -56,7 +56,6 @@ function findNodeBounds(nodes) {
         minY: Infinity,
         maxY: -Infinity
     };
-    console.log("nnnoides:", nodes)
     nodes.forEach(node => {
         if (node.x < bounds.minX) bounds.minX = node.x;
         if (node.x > bounds.maxX) bounds.maxX = node.x;

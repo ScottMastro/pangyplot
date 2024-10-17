@@ -134,13 +134,14 @@ function processSubgraphData(subgraph, originNode, forceGraph){
     nodeResult = shiftSubgraph(nodeResult, originNode, forceGraph);
     
     graphData = deleteNode(graphData, originNode.nodeid);
-
-    let links = subgraph.links.filter(l => l.source in NODEIDS && l.target in NODEIDS )
-    
-    links = processLinks(links);
+       
+    links = processLinks(subgraph.links);
     
     graphData.nodes = graphData.nodes.concat(nodeResult.nodes);
     graphData.links = graphData.links.concat(links).concat(nodeResult.nodeLinks);
+
+    graphData = reorientLinks(graphData);
+
     forceGraph.graphData(graphData)
 
     //todo: take number as input

@@ -43,13 +43,13 @@ function colorManagerLinkColor(link){
         case "node_type":
             return colorByType(link.type);        
         case "bubble_size":
-            return colorBySize(null);
+            return colorBySize(link.source.largestChild);
         case "node_length":
             return colorByLength(link.source.seqLen);
         case "ref_alt":
-            return colorByRef(false);
+            return colorByRef(link.isRef);
         case "gc_content": 
-            return colorByGC(null);
+            return colorByGC(link.source.gcCount, link.source.seqLen);
         case "position": 
             return colorByPosition(link.source.start, link.source.end);  
         default:
@@ -62,13 +62,13 @@ function colorManagerNodeColor(node){
         case "node_type":
             return colorByType(node.type);
         case "bubble_size":
-            return colorBySize(null);
+            return colorBySize(node.largestChild);
         case "node_length":
             return colorByLength(node.seqLen);
         case "ref_alt":
             return colorByRef(node.isRef);
         case "gc_content": 
-            return colorByGC(null);
+            return colorByGC(node.gcCount, node.seqLen);
         case "position": 
             return colorByPosition(node.start, node.end);
         default:
@@ -76,8 +76,17 @@ function colorManagerNodeColor(node){
     }
 }
 
-function colorByGC(content){
-    return NULL_COLOR;
+function colorByGC(count, total){
+    if (count == null || isNaN(count) || count < 0) {
+        return NULL_COLOR;
+    } if (total == null || isNaN(total) || total <= 0) {
+        return NULL_COLOR;
+    }
+
+    const pcGC = count/total;
+    const color = getGradientColor(pcGC, 0, 1, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
+
+    return color;
 }
 
 function colorByPosition(start, end){
@@ -89,7 +98,16 @@ function colorByPosition(start, end){
 }
 
 function colorBySize(size){
-    return NULL_COLOR;
+    const low = 0;
+    const high = 12;
+
+    if (size == null || isNaN(size) || size <= 0) {
+        return NULL_COLOR;
+    }
+
+    const color = getGradientColor(size, low, high, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
+
+    return color;
 }
 
 function colorByType(type){
@@ -111,13 +129,16 @@ function colorByRef(isRef){
     return isRef ? NODE_COLOR1 : NODE_COLOR3;
 }
 
-function colorByLength(length){
-    const low = 1;
-    const high = 10000;
-    if (length == null || isNaN(length)) {
+function colorByLength(length) {
+    const low = 0;
+    const high = 5;
+
+    if (length == null || isNaN(length) || length <= 0) {
         return NULL_COLOR;
     }
 
-    const color = getGradientColor(length, low, high, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
+    const logLength = Math.log10(length);
+    const color = getGradientColor(logLength, low, high, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
+
     return color;
 }

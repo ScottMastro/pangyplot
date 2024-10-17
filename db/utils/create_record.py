@@ -34,6 +34,7 @@ def node_record(record, nodeType):
 def link_record_simple(record):
     link = {"source": record.start_node.id,
             "target": record.end_node.id,
+            "is_ref": record.get("isRef", False),
             "class": "edge"}
     return link
 

@@ -63,9 +63,11 @@ def add_bubble_properties():
         q5= MATCH + " WITH b, SUM(1) AS n SET b.n = n"
         q6= MATCH + " WITH b, COLLECT(DISTINCT s.chrom)[0] AS chrom SET b.chrom = chrom"
         q7= MATCH + " WITH b, COLLECT(DISTINCT s.genome)[0] AS genome SET b.genome = genome"
+        q8= MATCH + " WITH b, ANY(s IN COLLECT(s.isRef) WHERE s = true) AS hasRef SET b.isRef = hasRef"
+        q9= MATCH + " WITH b, SUM(s.gcCount) AS count SET b.gcCount = count"
 
         print("Calculating bubble properties...")
-        for query in [q1,q2,q3,q4,q5,q6,q7]:
+        for query in [q1,q2,q3,q4,q5,q6,q7,q8,q9]:
             print(query)
             session.run(query, {"db": db})
 
@@ -75,13 +77,13 @@ def add_bubble_properties():
             MATCH (x)-[:INSIDE]->(b:Bubble)<-[r:END]-(s:Segment)
             WHERE b.db = $db AND exists((x)-[]-(s))
         """
-        q7 = MATCH + " WITH b, avg(x.x1) AS avgX1 SET b.x1 = avgX1"
-        q8 = MATCH + " WITH b, avg(x.y1) AS avgY1 SET b.y1 = avgY1"
-        q9 = MATCH + " WITH b, avg(x.x2) AS avgX2 SET b.x2 = avgX2"
-        q10 = MATCH + " WITH b, avg(x.y2) AS avgY2 SET b.y2 = avgY2"
+        q1= MATCH + " WITH b, avg(x.x1) AS avgX1 SET b.x1 = avgX1"
+        q2= MATCH + " WITH b, avg(x.y1) AS avgY1 SET b.y1 = avgY1"
+        q3= MATCH + " WITH b, avg(x.x2) AS avgX2 SET b.x2 = avgX2"
+        q4= MATCH + " WITH b, avg(x.y2) AS avgY2 SET b.y2 = avgY2"
 
         print("Calculating bubble layout...")
-        for query in [q7,q8,q9,q10]:
+        for query in [q1,q2,q3,q4]:
             print(query)
             session.run(query, {"db": db})
 

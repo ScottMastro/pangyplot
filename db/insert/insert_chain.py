@@ -74,6 +74,8 @@ def add_chain_properties():
         q5= MATCH + " WITH c, SUM(b.n) AS n SET c.n = n"
         q6= MATCH + " WITH c, COLLECT(DISTINCT b.chrom)[0] AS chrom SET c.chrom = chrom"
         q7= MATCH + " WITH c, COLLECT(DISTINCT b.genome)[0] AS genome SET c.genome = genome"
+        q8= MATCH + " WITH c, ANY(b IN COLLECT(b.isRef) WHERE b = true) AS hasRef SET c.isRef = hasRef"
+        q9= MATCH + " WITH c, SUM(b.gcCount) AS count SET c.gcCount = count"
 
         #todo remove?
         #q7 = MATCH + """
@@ -89,7 +91,7 @@ def add_chain_properties():
         #"""
 
         print("Calculating chain properties...")
-        for query in [q1,q2,q3,q4,q5,q6,q7]:
+        for query in [q1,q2,q3,q4,q5,q6,q7,q8,q9]:
             print(query)
             session.run(query, {"db": db})
 
@@ -100,20 +102,20 @@ def add_chain_properties():
             WHERE c.db = $db AND exists((x)-[]-(s))
         """
 
-        q9 = MATCH + " WITH c, avg(x.x1) AS avgX1 SET c.x1 = avgX1"
-        q10 = MATCH + " WITH c, avg(x.y1) AS avgY1 SET c.y1 = avgY1"
+        q1 = MATCH + " WITH c, avg(x.x1) AS avgX1 SET c.x1 = avgX1"
+        q2 = MATCH + " WITH c, avg(x.y1) AS avgY1 SET c.y1 = avgY1"
 
         MATCH = """
             MATCH (x)-[:INSIDE]->(c:Chain)-[r:END]->(s:Segment)
             WHERE c.db = $db AND exists((x)-[]-(s))
         """
 
-        q11 = MATCH + " WITH c, avg(x.x2) AS avgX2 SET c.x2 = avgX2"
-        q12 = MATCH + " WITH c, avg(x.y2) AS avgY2 SET c.y2 = avgY2"
+        q3 = MATCH + " WITH c, avg(x.x2) AS avgX2 SET c.x2 = avgX2"
+        q4 = MATCH + " WITH c, avg(x.y2) AS avgY2 SET c.y2 = avgY2"
 
 
         print("Calculating chain layout...")
-        for query in [q9,q10,q11,q12]:
+        for query in [q1,q2,q3,q4]:
             print(query)
             session.run(query, {"db": db})
 
