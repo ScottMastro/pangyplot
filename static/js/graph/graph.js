@@ -89,7 +89,7 @@ function renderGraph(graph){
         })
 
         forceGraph.onRenderFramePre((ctx) => { renderManagerPreRender(ctx, forceGraph, getCanvasWidth(), getCanvasHeight()); })
-        forceGraph.onRenderFramePost((ctx) => { renderManagerPostRender(ctx, forceGraph); })
+        forceGraph.onRenderFramePost((ctx) => { renderManagerPostRender(ctx, forceGraph, getCanvasWidth(), getCanvasHeight()); })
         
         
         // --- FORCES ---
@@ -252,8 +252,8 @@ document.addEventListener('DOMContentLoaded', function () {
     end=198692934
     
     //chr18
-    start=47506000
-    end=47600000
+    start=47808957
+    end=47931146
 
     const data = { genome: "GRCh38", chrom: "chr18", start: start, end: end,  source: "testing" };
     

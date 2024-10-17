@@ -63,11 +63,12 @@ function renderManagerPreRender(ctx, forceGraph, canvasWidth, canvasHeight){
     ctx.restore();
 }
 
-function renderManagerPostRender(ctx, forceGraph){
+function renderManagerPostRender(ctx, forceGraph, canvasWidth, canvasHeight){
     ctx.save();
 
-    // TODO
-    //drawGeneName(ctx, forceGraph.graphData());
+    const viewport = getViewport(forceGraph, canvasWidth, canvasHeight, buffer=1)
+
+    drawGeneName(ctx, forceGraph.graphData(), viewport);
 
     ctx.restore();
 }
