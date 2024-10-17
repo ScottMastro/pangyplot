@@ -117,12 +117,22 @@ function outlineLink(link, ctx, shift, width, color) {
     ctx.strokeStyle = previousStrokeStyle;
 }
 
-function drawText(text, ctx, x, y, size, color, align="center", baseline="middle") {
+function drawText(text, ctx, x, y, size, color, outlineColor=null, outlineWidth=4, align="center", baseline="middle") {
     ctx.save();
+    
     ctx.textAlign = align;
     ctx.textBaseline = baseline;
-    ctx.fillStyle = color;
+    
     ctx.font = size.toString() + 'px Sans-Serif';
-    ctx.fillText(text, x, y);
+    
+    if (outlineColor) {
+        ctx.lineWidth = outlineWidth;
+        ctx.strokeStyle = outlineColor;
+        ctx.strokeText(text, x, y); 
+    }
+
+    ctx.fillStyle = color;
+    ctx.fillText(text, x, y); 
+    
     ctx.restore();
 }

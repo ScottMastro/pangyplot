@@ -1,4 +1,5 @@
 kbd {
+        font-size: 1.5em;
         align-items: center;
         border: 1px solid var(--dark-green);
         border-bottom-width: 2px;
@@ -17,7 +18,10 @@ kbd {
     justify-content: space-between;
 }
 .k-label{
-    font-size: small;
     color: var(--text-color);
+}
 
+.k-header{
+    font-size: large;
+    font-weight: bold;
 }

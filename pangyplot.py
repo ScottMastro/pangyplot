@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, jsonify, make_response
 from cytoband import get_cytoband 
 from db.neo4j_db import update_db
 from db.query.query_top_level import get_top_level
-from db.query.query_annotation import get_genes_in_range,text_search_gene
+from db.query.query_annotation import query_gene_range,text_search_gene
 from db.query.query_subgraph import get_subgraph
 from db.query.query_all import query_all_chromosomes, query_all_db
 from argparser import parse_args
@@ -56,13 +56,17 @@ def genes():
     chrom = request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
-    print(f"Getting genes in {genome}#{chrom}:{start}-{end}...")
     
     start = int(start)
     end = int(end)
     
     resultDict = {}
-    resultDict["genes"] = get_genes_in_range(genome, chrom, start, end)
+    genes = query_gene_range(genome, chrom, start, end)
+
+    print(f"Getting genes in: {genome}#{chrom}:{start}-{end}")
+    print(f"   Genes: {len(genes)}")
+
+    resultDict["genes"] = genes
     resultDict["annotations"] = []
 
     return resultDict, 200

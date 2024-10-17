@@ -22,6 +22,7 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/graph.css') }}">
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/tab.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/keyboard-shortcuts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/information-panel.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/graph-settings.css') }}">
@@ -61,9 +62,9 @@
                 <button class="tab" onclick="switchTab('graph-settings-tab')"><i class="fa-solid fa-gear"></i></button>
             </div>
 
-            <div id="keyboard-shortcuts-tab" class="tab-content active-tab-content flex-9"> {% include 'keyboard-shortcuts.html' %} </div>
-            <div id="graph-info-tab" class="tab-content flex-9"> {% include 'graph-info.html' %} </div>
-            <div id="graph-settings-tab" class="tab-content flex-9"> {% include 'graph-settings.html' %} </div>
+            <div id="keyboard-shortcuts-tab" class="tab-content active-tab-content flex-9"> {% include 'tabs/keyboard-shortcuts.html' %} </div>
+            <div id="graph-info-tab" class="tab-content flex-9"> {% include 'tabs/graph-info.html' %} </div>
+            <div id="graph-settings-tab" class="tab-content flex-9"> {% include 'tabs/graph-settings.html' %} </div>
 
         </div>
         

@@ -39,14 +39,6 @@ def query_gene_range(genome, chrom, start, end):
                                                                  not x.get('ensembl_canonical', False)))
     return list(geneData.values())
 
-def get_genes_in_range(genome, chrom, start, end):
-    genes = query_gene_range(genome, chrom, start, end)
-
-    print(f"GENE QUERY: {genome}#{chrom}:{start}-{end}")
-    print(f"   Genes: {len(genes)}")
-
-    return genes
-
 def text_search_gene_query(session, searchTerm, before, after, maxResults=20):
     genes = []
 

@@ -3,10 +3,8 @@ const NODE_ANNOTATION_DATA = {};
 
 function processAnnotationData(genes){
     genes.forEach(gene => {
-        if (gene.name == "MUC4" || gene.name == "MUC20"){
-            GENE_ANNOTATIONS.push(gene);
-            console.log(gene.name, gene)
-        }
+        GENE_ANNOTATIONS.push(gene);
+        console.log(gene.gene, gene)
     });
 }
 
@@ -21,16 +19,15 @@ function annotateNode(node) {
         const transcript = gene.transcripts[0];
 
         if(annotationOverlap(transcript, node)){
-            NODE_ANNOTATION_DATA[node.__nodeid].push(gene.id)
+            NODE_ANNOTATION_DATA[node.__nodeid].push(gene.gene)
         }
 
-        transcript.exons.forEach(exon => {
-
-            if(annotationOverlap(exon, node)){
-                NODE_ANNOTATION_DATA[node.__nodeid].push(exon.id)
-            }
-            
-        })
+        //todo
+        //transcript.exons.forEach(exon => {
+        //    if(annotationOverlap(exon, node)){
+        //        NODE_ANNOTATION_DATA[node.__nodeid].push(exon.id)
+        //    }  
+        //})
     });
 }
 
