@@ -55,7 +55,8 @@ function annotationManagerAnnotateGraph(graphData) {
         };
 
         geneTextNode = createNewTextNode(rawNode);
-        graphData.nodes.push(geneTextNode);
+        //todo?
+        //graphData.nodes.push(geneTextNode);
     });
         
 };
@@ -92,6 +93,8 @@ function annotationManagerFetch(genome, chromosome, start, end) {
 ANNOTATION_UPDATE_FRAME=0;
 
 function annotationManagerUpdate(ctx, forceGraph){
+    //todo?
+    return;
     if (ANNOTATION_UPDATE_FRAME > 0){
         ANNOTATION_UPDATE_FRAME-=1;
         return

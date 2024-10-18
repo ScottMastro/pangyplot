@@ -168,7 +168,37 @@ function renderGraph(graph){
                 }
             }
         }
-        forceGraph.d3Force('pullToAnchor', pullTextToAnchor);
+        //forceGraph.d3Force('pullToAnchor', pullTextToAnchor);
+
+
+        function textRepelForce(alpha) {
+            let strength = -1e9;
+            let distanceMin = 10;
+            let distanceMax = 10000;
+
+            const nodes = forceGraph.graphData().nodes;
+            for (let i = 0; i < nodes.length; i++) {
+                if (nodes[i].class != "text") continue;
+                let node = nodes[i];
+
+                for (let j = 0; j < nodes.length; j++) {
+                    if (i != j) continue;
+                    const other = nodes[j];
+                    const dx = other.x - node.x;
+                    const dy = other.y - node.y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+    
+                    if (distance > distanceMax) continue;
+
+                    if (distance < distanceMin) distance = distanceMin;
+    
+                    const force = (strength / (distance * distance));
+                    node.vx += dx  *strength;
+                    node.vy += dy * strength;
+                }
+            }
+        }
+        //forceGraph.d3Force('textRepel', textRepelForce);
 
         
         //todo: try force that keeps nodes apart by certain distance
@@ -183,7 +213,11 @@ function renderGraph(graph){
         //forceGraph.d3Force('link', null);   // Disable link force
 
         forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
+        
+        
         forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
+
+        
 
 
         const pause = false;
