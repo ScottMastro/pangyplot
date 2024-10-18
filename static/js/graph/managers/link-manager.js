@@ -10,7 +10,7 @@ function processLinks(rawLinks) {
         target: nodeTargetId(rawLink["target"]),
         sourceid: String(rawLink["source"]),
         targetid: String(rawLink["target"]),
-        isRef: rawLink["isRef"],
+        isRef: rawLink["is_ref"],
         isVisible: true,
         isDrawn: true,
         class: "edge",

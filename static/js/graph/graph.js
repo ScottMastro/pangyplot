@@ -41,6 +41,7 @@ function renderGraph(graph){
     // Update the graph data without reinitializing the graph
     if (forceGraph) {
         forceGraph.graphData(graph);
+        annotationManagerAnnotateGraph(forceGraph.graphData())
 
         console.log("Graph data updated.");
     } else {
@@ -54,6 +55,8 @@ function renderGraph(graph){
             .nodeRelSize(HOVER_PRECISION)
             .autoPauseRedraw(false) // keep drawing after engine has stopped
             .d3VelocityDecay(0.1)
+            .cooldownTicks(Infinity)
+            .cooldownTime(Infinity)
             .onNodeDragEnd(node => {
                 node.fx = node.x;
                 node.fy = node.y;
@@ -69,9 +72,8 @@ function renderGraph(graph){
 
             //.linkDirectionalParticles(4)
 
-
         inputManagerSetupInputListeners(forceGraph, canvasElement);
-
+        annotationManagerAnnotateGraph(forceGraph.graphData())
 
         window.addEventListener('resize', () => {
             forceGraph
@@ -136,6 +138,38 @@ function renderGraph(graph){
             }
         }
         
+        function pullTextToAnchor(alpha) {
+            const threshold = 5000; // Define the snapping threshold distance
+        
+            for (let node of forceGraph.graphData().nodes) {
+                if (node.class === "text") {
+                    let dx = node.anchorX - node.x;
+                    let dy = node.anchorY - node.y;
+        
+                    // Calculate the current distance between the node and the anchor
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+        
+                    if (distance > threshold) {
+                        // Calculate the ratio to snap the node exactly to the threshold distance
+                        let snapRatio = threshold / distance;
+        
+                        // Snap the node to the threshold distance from the anchor
+                        node.x = node.anchorX - dx * snapRatio;
+                        node.y = node.anchorY - dy * snapRatio;
+        
+                        // Now apply the velocity based on the new snapped position
+                        node.vx += (node.anchorX - node.x) * 0.01;
+                        node.vy += (node.anchorY - node.y) * 0.01;
+                    } else {
+                        // Apply the velocity normally if within the threshold
+                        node.vx += (dx * 0.01);
+                        node.vy += (dy * 0.01);
+                    }
+                }
+            }
+        }
+        forceGraph.d3Force('pullToAnchor', pullTextToAnchor);
+
         
         //todo: try force that keeps nodes apart by certain distance
         //todo: local density check, spread along x axis
@@ -215,7 +249,7 @@ function fetchAndConstructGraph(genome, chrom, start, end){
 
     console.log("CONSTRUCTING:", genome,chrom,start,end);
     
-    fetchGenes(genome, chrom, start, end);
+    annotationManagerFetch(genome, chrom, start, end);
     fetchGraph(genome, chrom, start, end);
 }
 

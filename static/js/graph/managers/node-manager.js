@@ -130,6 +130,7 @@ function createNewNode(node, nodeid, idx, totalKinks) {
     return newNode;
 }
 
+
 function createNewNodeLink(node, nodeid, idx, totalKinks, nodeLength) {
     //console.log(`${nodeid}#${idx - 1}`, `${nodeid}#${idx}`)
     return {
@@ -145,6 +146,23 @@ function createNewNodeLink(node, nodeid, idx, totalKinks, nodeLength) {
         width: NODE_SEGMENT_WIDTH,
         annotations: []
     };
+}
+
+function createNewTextNode(node) {
+    let newNode = {
+        __nodeid: node.nodeid,
+        x: node.x,
+        y: node.y,
+        class: "text",
+        type: node.type,
+        text: node.text,
+        anchorX: node.x,
+        anchorY: node.y,
+        isVisible: true,
+        isDrawn: true,
+    };
+
+    return newNode;
 }
 
 function processNodes(rawNodes) {

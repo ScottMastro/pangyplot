@@ -22,7 +22,7 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/graph.css') }}">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/tab.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/tab-container.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/keyboard-shortcuts.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/information-panel.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/graph-settings.css') }}">
@@ -55,19 +55,9 @@
     <div class="flex-row">
     
         <div id="graph" class="flex-1" tabindex="0"></div>
-        <div id="tabs-container" class="flex-1 flex-col">
-            <div class="tabs">
-                <button class="tab" onclick="switchTab('keyboard-shortcuts-tab')"><i class="fa-solid fa-keyboard"></i></button>
-                <button class="tab" onclick="switchTab('graph-info-tab')"><i class="fa-solid fa-rectangle-list"></i></button>
-                <button class="tab" onclick="switchTab('graph-settings-tab')"><i class="fa-solid fa-gear"></i></button>
-            </div>
+      
+        {% include 'tabs/tab-container.html' %}
 
-            <div id="keyboard-shortcuts-tab" class="tab-content active-tab-content flex-9"> {% include 'tabs/keyboard-shortcuts.html' %} </div>
-            <div id="graph-info-tab" class="tab-content flex-9"> {% include 'tabs/graph-info.html' %} </div>
-            <div id="graph-settings-tab" class="tab-content flex-9"> {% include 'tabs/graph-settings.html' %} </div>
-
-        </div>
-        
     </div>
 </div>
 
@@ -136,6 +126,7 @@
 <script src="{{url_for('static', filename='js/graph/managers/node-manager.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/managers/link-manager.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/managers/path-manager.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/managers/annotation-manager.js')}}"></script>
 
 
 <script src="{{url_for('static', filename='js/graph/engines/basic-render-engine.js')}}"></script>
@@ -145,7 +136,6 @@
 <script src="{{url_for('static', filename='js/graph/engines/gene-highlight-engine.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/engines/node-pop-engine.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/engines/graph-setting-engine.js')}}"></script>
-<script src="{{url_for('static', filename='js/graph/engines/annotation-engine.js')}}"></script>
 
 
 <script src="{{url_for('static', filename='js/graph/utils/color-utils.js')}}"></script>

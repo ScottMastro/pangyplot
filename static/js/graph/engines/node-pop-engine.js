@@ -188,7 +188,6 @@ document.addEventListener("nodesSelected", function(event) {
     });
 });
 
-
 function popNodeEngineMouseClick(event, forceGraph, canvasElement, canvas, coordinates, inputState){
     if (inputState===NODE_POP_MODE){
 

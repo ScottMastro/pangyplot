@@ -38,10 +38,12 @@ function findNodeBoundsInit(nodes) {
     };
 
     nodes.forEach(node => {
-        if (node.initX < bounds.minX) bounds.minX = node.initX;
-        if (node.initX > bounds.maxX) bounds.maxX = node.initX;
-        if (node.initY < bounds.minY) bounds.minY = node.initY;
-        if (node.initY > bounds.maxY) bounds.maxY = node.initY;
+        if (node.class != "text") {
+            if (node.initX < bounds.minX) bounds.minX = node.initX;
+            if (node.initX > bounds.maxX) bounds.maxX = node.initX;
+            if (node.initY < bounds.minY) bounds.minY = node.initY;
+            if (node.initY > bounds.maxY) bounds.maxY = node.initY;
+        }
     });
 
     return { x: bounds.minX, y: bounds.minY, 
@@ -57,10 +59,12 @@ function findNodeBounds(nodes) {
         maxY: -Infinity
     };
     nodes.forEach(node => {
-        if (node.x < bounds.minX) bounds.minX = node.x;
-        if (node.x > bounds.maxX) bounds.maxX = node.x;
-        if (node.y < bounds.minY) bounds.minY = node.y;
-        if (node.y > bounds.maxY) bounds.maxY = node.y;
+        if (node.class != "text") {
+            if (node.x < bounds.minX) bounds.minX = node.x;
+            if (node.x > bounds.maxX) bounds.maxX = node.x;
+            if (node.y < bounds.minY) bounds.minY = node.y;
+            if (node.y > bounds.maxY) bounds.maxY = node.y;
+        }
     });
 
     return { x: bounds.minX, y: bounds.minY, 
@@ -84,7 +88,7 @@ function findNearestNode(nodes, coordinates) {
     let minDistance = Infinity;
     
     nodes.forEach(node => {
-        if (node.isDrawn){
+        if ( node.isDrawn && node.class != "text"){
             const distance = Math.sqrt((coordinates.x - node.x) ** 2 + (coordinates.y - node.y) ** 2);
             // give a boost to smaller nodes
             const effectiveDistance = distance*(node.isSingleton ? 0.9 : 1);
