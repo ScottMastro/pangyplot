@@ -53,10 +53,12 @@ function renderManagerPreRender(ctx, forceGraph, canvasWidth, canvasHeight){
 
     const viewport = getViewport(forceGraph, canvasWidth, canvasHeight, buffer=1.1)
 
+    annotationManagerUpdate(ctx, forceGraph)
+
     updateRenderVisibility(forceGraph, viewport)
 
     ctx.save();
-
+    
     geneHighlightEngineDraw(ctx, forceGraph.graphData());
     selectionEngineDraw(ctx, forceGraph.graphData());
 

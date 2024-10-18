@@ -79,13 +79,52 @@ function adjustTextPositions(genePositions, minDistance) {
     }
 }
 
+
+function placeTextOutsideBoundingBox(bounds, viewport, allBounds) {
+    const viewportHeight = viewport.y2 - viewport.y1;
+    let x = bounds.x + bounds.width / 2;
+    let y = bounds.y < viewportHeight / 2 ? bounds.y + bounds.height : bounds.y - bounds.height;
+    let position = { x, y };
+
+    if (doesOverlapWithBoundingBox(position, allBounds)) {
+        let alternativePositions = [
+            { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height }, // Below
+            { x: bounds.x, y: bounds.y }, // Top left
+            { x: bounds.x + bounds.width, y: bounds.y }, // Top right
+        ];
+
+        for (let alt of alternativePositions) {
+            if (!doesOverlapWithBoundingBox(alt, allBounds)) {
+                position = alt;
+                break;
+            }
+        }
+    }
+
+    const paddingX = (viewport.x2 - viewport.x1) * 0.05; // 5% of viewport width
+    const paddingY = (viewport.y2 - viewport.y1) * 0.05; // 5% of viewport height
+
+    if (position.x < viewport.x1 + paddingX) position.x = viewport.x1 + paddingX;
+    if (position.x > viewport.x2 - paddingX) position.x = viewport.x2 - paddingX;
+    if (position.y < viewport.y1 + paddingY) position.y = viewport.y1 + paddingY;
+    if (position.y > viewport.y2 - paddingY) position.y = viewport.y2 - paddingY;
+
+    return position;
+}
+
+function doesOverlapWithBoundingBox(position, allBounds) {
+    return allBounds.some(bounds => (
+        position.x > bounds.x && position.x < bounds.x + bounds.width &&
+        position.y > bounds.y && position.y < bounds.y + bounds.height
+    ));
+}
+
 //potential speedup: skip frames
 function drawGeneName(ctx, graphData, viewport){
     const zoomFactor = ctx.canvas.__zoom["k"];
     const viewportHeight = viewport.y2 - viewport.y1;
     const geneNodes = {};
 
-    // Collect the nodes for each gene
     graphData.nodes.forEach(node => {
         if (node.isVisible && node.isDrawn) {
             const genes = getNodeAnnotations(node); 
@@ -101,18 +140,26 @@ function drawGeneName(ctx, graphData, viewport){
 
     const size = Math.max(FONT_SIZE, FONT_SIZE * (1 / zoomFactor / 10));
 
-    const genePositions = [];
+    const allBounds = [];
+
     Object.keys(geneNodes).forEach(geneId => {
         const nodes = geneNodes[geneId];
-
         const bounds = findNodeBounds(nodes);
+        allBounds.push(bounds); 
+    });
 
-        const centerX = bounds.x + bounds.width / 2;
-        const centerY = bounds.y + bounds.height / 2;
+    const genePositions = [];
+    
+    Object.keys(geneNodes).forEach(geneId => {
+        const nodes = geneNodes[geneId];
+        const bounds = findNodeBounds(nodes);
+            
+        const { x, y } = placeTextOutsideBoundingBox(bounds, viewport, allBounds);
+    
         genePositions.push({
             geneId: geneId,
-            x: centerX,
-            y: centerY - bounds.height*0.15,
+            x: x,
+            y: y,
             size: size,
             color: color
         });

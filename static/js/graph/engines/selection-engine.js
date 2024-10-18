@@ -160,7 +160,7 @@ function selectionEngineDraw(ctx, graphData) {
     count=0;
     graphData.nodes.forEach(node => {
 
-        if(node.isSelected){
+        if(node.class != "text" && node.isSelected){
             count+=1;
             const selectedNodeId = nodeidSplit(node.__nodeid);
             selectedNodeIds.add(selectedNodeId);
