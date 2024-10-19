@@ -1,5 +1,52 @@
-const GENE_ANNOTATIONS = [];
+const GENE_ANNOTATIONS = {};
 const NODE_ANNOTATION_DATA = {};
+
+const GENE_VISIBLE_BY_DEFAULT = true;
+
+function annotationManagerGetGene(geneId) {
+    if (GENE_ANNOTATIONS[geneId]) {
+        return GENE_ANNOTATIONS[geneId];
+    } else{
+        return null
+    }
+}
+function annotationManagerGetGeneColor(geneId) {
+    if (GENE_ANNOTATIONS[geneId]) {
+        return GENE_ANNOTATIONS[geneId].color;
+    } else{
+        return "#000000"
+    }
+}
+function annotationManagerGetGeneName(geneId) {
+    if (GENE_ANNOTATIONS[geneId]) {
+        return GENE_ANNOTATIONS[geneId].gene;
+    } else{
+        return "undefined"
+    }
+}
+function annotationManagerIsGeneVisible(geneId) {
+    if (GENE_ANNOTATIONS[geneId]) {
+        return GENE_ANNOTATIONS[geneId].is_visible;
+    } else{
+        return false;
+    }
+}
+
+function annotationManagerGetNodeAnnotations(node) {
+    const genes = NODE_ANNOTATION_DATA[node.__nodeid];
+    return genes ? genes : [] 
+}
+function annotationManagerGetLinkAnnotations(link) {
+    const source = NODE_ANNOTATION_DATA[link.source.__nodeid];
+    const target = NODE_ANNOTATION_DATA[link.target.__nodeid];
+
+    if (source && target){
+        const sourceSet = new Set(source);
+        return target.filter(item => sourceSet.has(item));
+    }
+    return [];
+}
+
 
 function annotationOverlap(annotation, node) {
     // TODO: check for chromosome name??
@@ -11,6 +58,43 @@ function annotationOverlap(annotation, node) {
     }
 }
 
+function annotationManagerUpdateGeneTable() {
+    
+    const tableData = [];
+    Object.values(GENE_ANNOTATIONS).forEach(gene => {
+
+        const hasTranscripts = gene.transcripts && gene.transcripts.length > 0;
+        const hasExons = hasTranscripts && gene.transcripts[0].exons && gene.transcripts[0].exons.length > 0;        
+        
+        tableData.push({
+            id: gene.id,
+            name: gene.gene,
+            hasExon: hasExons,
+            color: gene.color,
+            visible: gene.is_visible });
+    });
+
+    populateGeneAnnotationsTable(tableData);
+}
+
+function annotationManagerUpdatedSelectionFromTable(geneId, status) {
+    if (GENE_ANNOTATIONS[geneId]) {
+        GENE_ANNOTATIONS[geneId].is_visible = status;
+    }
+}
+
+function annotationManagerUpdatedColorFromTable(geneId, newColor) {
+    if (GENE_ANNOTATIONS[geneId]) {
+        GENE_ANNOTATIONS[geneId].color = newColor;
+    }
+}
+
+function annotationManagerUpdatedExonFromTable(geneId, status) {
+    console.log(GENE_ANNOTATIONS);
+
+}
+
+
 //possible todo:
 //speed up by sorting nodes and genes
 function annotationManagerAnnotateGraph(graphData) {
@@ -19,12 +103,12 @@ function annotationManagerAnnotateGraph(graphData) {
     graphData.nodes.forEach(node => {
         NODE_ANNOTATION_DATA[node.__nodeid] = []
 
-        GENE_ANNOTATIONS.forEach(gene => {
+        Object.values(GENE_ANNOTATIONS).forEach(gene => {
 
             const transcript = gene.transcripts[0];
 
             if(annotationOverlap(transcript, node)){
-                NODE_ANNOTATION_DATA[node.__nodeid].push(gene.gene)
+                NODE_ANNOTATION_DATA[node.__nodeid].push(gene.id)
                 
                 if (!nodeGroup[gene]) {
                     nodeGroup[gene] = [];
@@ -38,11 +122,11 @@ function annotationManagerAnnotateGraph(graphData) {
             //        NODE_ANNOTATION_DATA[node.__nodeid].push(exon.id)
             //    }  
             //})
+            
         });
     });
 
-
-    GENE_ANNOTATIONS.forEach(gene => {
+    Object.values(GENE_ANNOTATIONS).forEach(gene => {
         const nodes = nodeGroup[gene];
         const bounds = findNodeBounds(nodes);
         
@@ -58,32 +142,23 @@ function annotationManagerAnnotateGraph(graphData) {
         //todo?
         //graphData.nodes.push(geneTextNode);
     });
-        
+
+    annotationManagerUpdateGeneTable();
 };
 
-function getNodeAnnotations(node) {
-    const genes = NODE_ANNOTATION_DATA[node.__nodeid];
-    return genes ? genes : [] 
-}
-function getLinkAnnotations(link) {
-    const source = NODE_ANNOTATION_DATA[link.source.__nodeid];
-    const target = NODE_ANNOTATION_DATA[link.target.__nodeid];
-
-    if (source && target){
-        const sourceSet = new Set(source);
-        return target.filter(item => sourceSet.has(item));
-    }
-    return [];
-}
 
 function annotationManagerFetch(genome, chromosome, start, end) {
     const url = buildUrl('/genes', { genome, chromosome, start, end });
 
-    GENE_ANNOTATIONS.length = 0
+    Object.keys(GENE_ANNOTATIONS).forEach(key => delete GENE_ANNOTATIONS[key]);
 
     fetchData(url, 'genes').then(fetchedData => {
         fetchedData.genes.forEach(gene => {
-            GENE_ANNOTATIONS.push(gene);
+
+            gene.is_visible = GENE_VISIBLE_BY_DEFAULT;
+            gene.color = rgbStringToHex(stringToColor(gene.gene));
+
+            GENE_ANNOTATIONS[gene.id] = gene;
             console.log(gene.gene, gene)
         });
     

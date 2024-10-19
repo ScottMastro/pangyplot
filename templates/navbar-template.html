@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ui/navbar-style.css') }}">   
+
 {% macro navbar_item(id, text, icon_class, href, target) %}
 <a id="{{ id }}" tabindex="0" class="navbar-button button-style flex-col flex-1" href="{{ href }}" target="{{ target }}">
     <i class="{{ icon_class }}"></i>
@@ -37,3 +39,5 @@
         setupModal("info-modal", "navbar-button-information", "info-modal-close-button", false);
     });
 </script>
+
+<script src="{{url_for('static', filename='js/ui/navbar.js')}}"></script>

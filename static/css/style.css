@@ -177,38 +177,10 @@ hr {
     animation-iteration-count: 2;
 }
 
+.hidden{
+    display: none;
+ }
+
 .error-input {
     border-color: var(--error) !important;
-}
-
-
-.tab {
-    background-color: var(--tab-box);
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 10px;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-
-    i{
-        font-size: large;
-    }
-}
-
-.tab:hover {
-    background-color: #ddd;
-}
-
-.tab-content {
-    display: none; 
-    background-color: var(--tab-box);
-    max-width: 20vw;
-    padding: 10px;
-    border-radius: 5px;
-
-}
-
-.active-tab-content {
-    display: block !important;
 }

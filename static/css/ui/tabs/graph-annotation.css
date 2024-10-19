@@ -1,0 +1,58 @@
+#no-annotations-text {
+    font-style: italic;
+    color: #888;
+}
+
+/* Add spacing between rows */
+#gene-annotations-table {
+    width: 98%;
+}
+
+#gene-annotations-body button {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+.gene-toggle-annotation-row {
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+}
+
+/* Hidden if no exons are available */
+button.exon-toggle-annotation-row[disabled] {
+    visibility: hidden;
+}
+
+.color-picker-annotation-row {
+    width: 100%;
+}
+
+#gene-annotations-control-container {
+    margin-top: 10px;
+}
+
+#gene-annotations-control-container button {
+    margin-right: 5px;
+}
+
+/* Add scrollable container */
+#gene-annotations-table-container {
+    max-height: 50vh; 
+    overflow-y: auto; 
+}
+
+#set-all-colors-gene-annotations {
+    padding: 5px;
+    margin: 5px;
+} #deselect-all-gene-annotations {
+    padding: 5px;
+    margin: 5px;
+} #select-all-gene-annotations {
+    padding: 5px;
+    margin: 5px;
+} #set-color-picker-gene-annotations {
+    height: auto;
+}

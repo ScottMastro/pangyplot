@@ -3,7 +3,7 @@ const FONT_SIZE = 180;
 const LIGHTNESS_SCALE=0.0;
 const GENE_LOCATION = {};
 
-function geneHighlightEngineDraw(ctx, graphData){
+function geneRenderEngineDraw(ctx, graphData){
     const zoomFactor = ctx.canvas.__zoom["k"];
     ctx.save();
 
@@ -11,14 +11,17 @@ function geneHighlightEngineDraw(ctx, graphData){
 
     var hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE*(1/zoomFactor/10));
     
+    //todo: don't loop if no genes are visible
     graphData.nodes.forEach(node => {
         if (node.isVisible && node.isDrawn) {
-            const genes = getNodeAnnotations(node); 
+            const genes = annotationManagerGetNodeAnnotations(node); 
             let n = genes.length; 
             
             genes.forEach(geneId => {
-                let color = stringToColor(geneId, LIGHTNESS_SCALE);
-                
+                const visible = annotationManagerIsGeneVisible(geneId);      
+                if (! visible) return;
+
+                const color = annotationManagerGetGeneColor(geneId);
                 renderQueue.push({
                     type: 'node', 
                     element: node, 
@@ -31,15 +34,17 @@ function geneHighlightEngineDraw(ctx, graphData){
         }
     });
 
-
     hsize = Math.max(HIGHLIGHT_SIZE+40, (HIGHLIGHT_SIZE+40)*(1/zoomFactor/10));
     graphData.links.forEach(link => {
         if (link.isVisible && link.isDrawn) {
-            const genes = getLinkAnnotations(link);
+            const genes = annotationManagerGetLinkAnnotations(link);
             let n = genes.length;
             
             genes.forEach(geneId => {
-                let color = stringToColor(geneId, LIGHTNESS_SCALE);
+                const visible = annotationManagerIsGeneVisible(geneId);      
+                if (! visible) return;
+                        
+                const color = annotationManagerGetGeneColor(geneId);
                 renderQueue.push({
                     type: 'link', 
                     element: link, 
@@ -63,7 +68,6 @@ function geneHighlightEngineDraw(ctx, graphData){
     });
 
     ctx.restore();
-
 }
 
 function adjustTextPositions(genePositions, minDistance) {
@@ -78,7 +82,6 @@ function adjustTextPositions(genePositions, minDistance) {
         }
     }
 }
-
 
 function placeTextOutsideBoundingBox(bounds, viewport, allBounds) {
     const viewportHeight = viewport.y2 - viewport.y1;
@@ -127,7 +130,7 @@ function drawGeneName(ctx, graphData, viewport){
 
     graphData.nodes.forEach(node => {
         if (node.isVisible && node.isDrawn) {
-            const genes = getNodeAnnotations(node); 
+            const genes = annotationManagerGetNodeAnnotations(node); 
             
             genes.forEach(geneId => {                
                 if (!geneNodes[geneId]) {
@@ -143,14 +146,21 @@ function drawGeneName(ctx, graphData, viewport){
     const allBounds = [];
 
     Object.keys(geneNodes).forEach(geneId => {
+
+        const visible = annotationManagerIsGeneVisible(geneId);      
+        if (! visible) return;
+
         const nodes = geneNodes[geneId];
         const bounds = findNodeBounds(nodes);
-        allBounds.push(bounds); 
+        allBounds.push(bounds);
     });
 
     const genePositions = [];
     
     Object.keys(geneNodes).forEach(geneId => {
+        const visible = annotationManagerIsGeneVisible(geneId);      
+        if (! visible) return;
+
         const nodes = geneNodes[geneId];
         const bounds = findNodeBounds(nodes);
             
@@ -171,8 +181,9 @@ function drawGeneName(ctx, graphData, viewport){
 
     genePositions.forEach(position => {
         const { geneId, x, y, size } = position;
-        const color = stringToColor(geneId, LIGHTNESS_SCALE);
-        drawText(geneId, ctx, x, y, size, color, bgColor, size/8);
+        const geneName = annotationManagerGetGeneName(geneId);
+        const color = annotationManagerGetGeneColor(geneId);
+        drawText(geneName, ctx, x, y, size, color, bgColor, size/8);
 
     });
 }

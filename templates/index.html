@@ -7,25 +7,12 @@
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.svg') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">   
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/navbar-style.css') }}">   
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/modal-style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/cytoband/cytoband-style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/gene-search-style.css') }}">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/coordinates-style.css') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/option-button.css') }}">   
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/color-picker.css') }}">
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/graph/graph.css') }}">
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/tab-container.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/keyboard-shortcuts.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/information-panel.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/graph-settings.css') }}">
 
     {% include 'google-analytics.html' %}
 
@@ -83,6 +70,9 @@
         </div>
     </div>
 
+    <script src="{{url_for('static', filename='js/ui/download-image.js')}}"></script>
+
+
     <div id="path-selection" class="container flex-1">
         <div class="container-title">Path Selection</div>
 
@@ -97,28 +87,13 @@
     </div>
 </div>
 
+<script src="{{url_for('static', filename='js/ui/option-button.js')}}"></script>
 
 <script src="{{url_for('static', filename='js/d3/d3.js')}}"></script>
 <script src="{{url_for('static', filename='js/d3/d3-annotation.min.js')}}"></script>
 <script src="{{url_for('static', filename='js/d3/force-graph.min.js')}}"></script>
 
-<script src="{{url_for('static', filename='js/ui/navbar.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/modal.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/option-button.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/color-picker.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/gene-search.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/coordinates.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/download-image.js')}}"></script>
-
-<script src="{{url_for('static', filename='js/cytoband/other-chromosomes.js')}}"></script>
-<script src="{{url_for('static', filename='js/cytoband/cytoband.js')}}"></script>
-<script src="{{url_for('static', filename='js/cytoband/cytoband-genome.js')}}"></script>
-<script src="{{url_for('static', filename='js/cytoband/cytoband-genome-drawer.js')}}"></script>
-<script src="{{url_for('static', filename='js/cytoband/cytoband-chromosome.js')}}"></script>
-<script src="{{url_for('static', filename='js/cytoband/cytoband-chromosome-drawer.js')}}"></script>
-
 <script src="{{url_for('static', filename='js/graph/graph.js')}}"></script>
-
 <script src="{{url_for('static', filename='js/graph/graph-input-state.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/managers/input-manager.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/managers/render-manager.js')}}"></script>
@@ -130,10 +105,10 @@
 
 
 <script src="{{url_for('static', filename='js/graph/engines/basic-render-engine.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/engines/gene-render-engine.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/engines/collapse-engine.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/engines/shrink-engine.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/engines/selection-engine.js')}}"></script>
-<script src="{{url_for('static', filename='js/graph/engines/gene-highlight-engine.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/engines/node-pop-engine.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/engines/graph-setting-engine.js')}}"></script>
 
@@ -142,11 +117,6 @@
 <script src="{{url_for('static', filename='js/graph/utils/draw-utils.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/utils/node-utils.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/utils/network-utils.js')}}"></script>
-
-
-<script src="{{url_for('static', filename='js/ui/tabs/tabs.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/tabs/information-panel.js')}}"></script>
-<script src="{{url_for('static', filename='js/ui/tabs/graph-settings.js')}}"></script>
 
 
 </body>
