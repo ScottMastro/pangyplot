@@ -162,7 +162,7 @@ function processSearchItemTemplate(template, data) {
 })();
 
 
-(function() { // selection logic
+(function() {
 
     const geneSearchBar = document.getElementById("gene-search-bar");
     const geneSearchSuggestions = document.getElementById("gene-search-suggestions");
@@ -237,6 +237,7 @@ function processSearchItemTemplate(template, data) {
         }
         
         if (item) {
+            console.log(item)
             updateSelectedGenePlaceholders(item);
             geneSearchBar.value = "";
             geneSearchSuggestions.classList.remove('active');
@@ -250,8 +251,6 @@ function processSearchItemTemplate(template, data) {
             selectSuggestionItem(document.activeElement);
         }
     });
-
-
 
     function getCoordinateData(element){
         function getTextContent(suffix){
@@ -302,3 +301,21 @@ function processSearchItemTemplate(template, data) {
 
 })();
 
+
+var gene1Test = document.getElementById('gene-search-result-1');
+const selectedTemplateTest = `
+<div class="gene-search-selection-item">
+    ${geneSearchItemTemplate}
+</div>`;
+
+gene1Test.innerHTML = processSearchItemTemplate(selectedTemplateTest, {
+    chrom: "chr18",
+    start: "63476958",
+    end: "63505085",
+    name: "SERPINB5",
+    id: "ENSG00000206075.14",
+    type: "protein coding"
+});
+gene1Test.classList.remove('placeholder-blank');
+gene1Test.classList.add('option-button-selected');
+gene1Test.classList.remove('option-button-unselected');

@@ -14,22 +14,18 @@ function geneRenderEngineDraw(ctx, graphData){
     //todo: don't loop if no genes are visible
     graphData.nodes.forEach(node => {
         if (node.isVisible && node.isDrawn) {
-            const genes = annotationManagerGetNodeAnnotations(node); 
-            let n = genes.length; 
+            const annotations = annotationManagerGetNodeAnnotations(node); 
+            let n = 1; 
             
-            genes.forEach(geneId => {
-                const visible = annotationManagerIsGeneVisible(geneId);      
-                if (! visible) return;
-
-                const color = annotationManagerGetGeneColor(geneId);
+            annotations.forEach(annotation => {
                 renderQueue.push({
                     type: 'node', 
                     element: node, 
-                    color: color, 
+                    color: annotation.color, 
                     size: hsize * n, 
                     zIndex: n
                 });
-                n -= 1;
+                n += 1;
             });
         }
     });
@@ -37,22 +33,18 @@ function geneRenderEngineDraw(ctx, graphData){
     hsize = Math.max(HIGHLIGHT_SIZE+40, (HIGHLIGHT_SIZE+40)*(1/zoomFactor/10));
     graphData.links.forEach(link => {
         if (link.isVisible && link.isDrawn) {
-            const genes = annotationManagerGetLinkAnnotations(link);
-            let n = genes.length;
+            const annotations = annotationManagerGetLinkAnnotations(link);
+            let n = 1;
             
-            genes.forEach(geneId => {
-                const visible = annotationManagerIsGeneVisible(geneId);      
-                if (! visible) return;
-                        
-                const color = annotationManagerGetGeneColor(geneId);
+            annotations.forEach(annotation => {
                 renderQueue.push({
                     type: 'link', 
                     element: link, 
-                    color: color, 
+                    color: annotation.color, 
                     size: hsize * n, 
                     zIndex: n
                 });
-                n -= 1;
+                n += 1;
             });
         }
     });
@@ -83,26 +75,11 @@ function adjustTextPositions(genePositions, minDistance) {
     }
 }
 
-function placeTextOutsideBoundingBox(bounds, viewport, allBounds) {
+function placeTextOutsideBoundingBox(bounds, viewport) {
     const viewportHeight = viewport.y2 - viewport.y1;
     let x = bounds.x + bounds.width / 2;
     let y = bounds.y < viewportHeight / 2 ? bounds.y + bounds.height : bounds.y - bounds.height;
     let position = { x, y };
-
-    if (doesOverlapWithBoundingBox(position, allBounds)) {
-        let alternativePositions = [
-            { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height }, // Below
-            { x: bounds.x, y: bounds.y }, // Top left
-            { x: bounds.x + bounds.width, y: bounds.y }, // Top right
-        ];
-
-        for (let alt of alternativePositions) {
-            if (!doesOverlapWithBoundingBox(alt, allBounds)) {
-                position = alt;
-                break;
-            }
-        }
-    }
 
     const paddingX = (viewport.x2 - viewport.x1) * 0.05; // 5% of viewport width
     const paddingY = (viewport.y2 - viewport.y1) * 0.05; // 5% of viewport height
@@ -115,64 +92,75 @@ function placeTextOutsideBoundingBox(bounds, viewport, allBounds) {
     return position;
 }
 
-function doesOverlapWithBoundingBox(position, allBounds) {
-    return allBounds.some(bounds => (
-        position.x > bounds.x && position.x < bounds.x + bounds.width &&
-        position.y > bounds.y && position.y < bounds.y + bounds.height
-    ));
-}
-
 //potential speedup: skip frames
 function drawGeneName(ctx, graphData, viewport){
     const zoomFactor = ctx.canvas.__zoom["k"];
     const viewportHeight = viewport.y2 - viewport.y1;
-    const geneNodes = {};
+    const annotationNodes = {};
 
     graphData.nodes.forEach(node => {
         if (node.isVisible && node.isDrawn) {
-            const genes = annotationManagerGetNodeAnnotations(node); 
+            const annotations = annotationManagerGetNodeAnnotations(node); 
             
-            genes.forEach(geneId => {                
-                if (!geneNodes[geneId]) {
-                    geneNodes[geneId] = [];
+            annotations.forEach(annotation => {                
+                if (!annotationNodes[annotation.id]) {
+                    annotationNodes[annotation.id] = [];
                 }
-                geneNodes[geneId].push(node);
+                annotationNodes[annotation.id].push({
+                    node: node,
+                    exon_number: annotation.exon_number
+                });
             });
         }
     });
 
     const size = Math.max(FONT_SIZE, FONT_SIZE * (1 / zoomFactor / 10));
 
-    const allBounds = [];
-
-    Object.keys(geneNodes).forEach(geneId => {
-
-        const visible = annotationManagerIsGeneVisible(geneId);      
-        if (! visible) return;
-
-        const nodes = geneNodes[geneId];
-        const bounds = findNodeBounds(nodes);
-        allBounds.push(bounds);
-    });
-
     const genePositions = [];
     
-    Object.keys(geneNodes).forEach(geneId => {
-        const visible = annotationManagerIsGeneVisible(geneId);      
-        if (! visible) return;
+    Object.keys(annotationNodes).forEach(id => {
+        const nodes = annotationNodes[id];
 
-        const nodes = geneNodes[geneId];
-        const bounds = findNodeBounds(nodes);
+        if (annotationManagerShouldShowExon(id)) {
+            const exonGroups = {};
+            nodes.forEach(({ node, exon_number }) => {
+                if (exon_number) {
+                    if (!exonGroups[exon_number]) {
+                        exonGroups[exon_number] = [];
+                    }
+                    exonGroups[exon_number].push(node);
+                }
+            });
             
-        const { x, y } = placeTextOutsideBoundingBox(bounds, viewport, allBounds);
-    
-        genePositions.push({
-            geneId: geneId,
-            x: x,
-            y: y,
-            size: size,
-            color: color
-        });
+            Object.keys(exonGroups).forEach(exon => {
+                const exonNodes = exonGroups[exon];
+                const bounds = findNodeBounds(exonNodes);
+                
+                const { x, y } = placeTextOutsideBoundingBox(bounds, viewport);
+
+                genePositions.push({
+                    id: id,
+                    exon_number: exon,
+                    x: x,
+                    y: y,
+                    size: size/2
+                });
+            });
+        } else {
+
+            const nodesOnly = nodes.map(({ node }) => node);
+            const bounds = findNodeBounds(nodesOnly);
+            
+            const { x, y } = placeTextOutsideBoundingBox(bounds, viewport);
+
+            genePositions.push({
+                id: id,
+                exon_number: null,
+                x: x,
+                y: y,
+                size: size
+            });
+        }
     });
 
     adjustTextPositions(genePositions, viewportHeight* zoomFactor*0.9);
@@ -180,12 +168,11 @@ function drawGeneName(ctx, graphData, viewport){
     const bgColor = colorManagerBackgroundColor();
 
     genePositions.forEach(position => {
-        const { geneId, x, y, size } = position;
-        const geneName = annotationManagerGetGeneName(geneId);
-        const color = annotationManagerGetGeneColor(geneId);
-        drawText(geneName, ctx, x, y, size, color, bgColor, size/8);
+        const { id, x, y, size, exon_number } = position;
+        const geneName = annotationManagerGetGeneName(id);
+        const displayName = exon_number ? `${geneName}:exon${exon_number}` : geneName;
+        const color = annotationManagerGetGeneColor(id);
+        drawText(displayName, ctx, x, y, size, color, bgColor, size/8);
 
     });
 }
-
-

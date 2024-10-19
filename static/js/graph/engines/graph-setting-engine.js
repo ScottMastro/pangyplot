@@ -21,11 +21,11 @@ function graphSettingEngineSetup(forceGraph){
         };
     }
     
-    document.getElementById('collapse-slider').addEventListener('input', throttleDebounceSlider(function() {
-        const newValue = parseFloat(this.value);
-        console.log("collapse", newValue);
-        forceGraph = simplifyGraph(forceGraph, newValue);        
-    }, 1000)); 
+    //document.getElementById('collapse-slider').addEventListener('input', throttleDebounceSlider(function() {
+    //    const newValue = parseFloat(this.value);
+    //    console.log("collapse", newValue);
+    //    forceGraph = simplifyGraph(forceGraph, newValue);        
+    //}, 1000)); 
     
 
     document.getElementById('friction-slider').addEventListener('input', function() {
@@ -33,7 +33,6 @@ function graphSettingEngineSetup(forceGraph){
         forceGraph.d3VelocityDecay(newValue);
         forceGraph.d3ReheatSimulation()
         console.log("friction", newValue)
-
     });
 
     document.getElementById('alpha-slider').addEventListener('input', function() {

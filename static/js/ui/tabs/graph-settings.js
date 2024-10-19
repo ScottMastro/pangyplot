@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const sliders = [
-        { id: "collapse-slider", defaultValue: 250 },
+        //{ id: "collapse-slider", defaultValue: 250 },
         { id: "alpha-slider", defaultValue: 0.0228 },
         { id: "friction-slider", defaultValue: 0.1 },
         { id: "attraction-slider", defaultValue: -500 },
