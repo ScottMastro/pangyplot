@@ -69,7 +69,7 @@ function renderGraph(graph){
             .onNodeClick((node, event) => inputManagerNodeClicked(node, event, forceGraph))
             .minZoom(1e-6) //default = 0.01
             .maxZoom(1000) //default = 1000
-
+            .warmupTicks(4)
             //.linkDirectionalParticles(4)
 
         inputManagerSetupInputListeners(forceGraph, canvasElement);
@@ -230,6 +230,11 @@ function renderGraph(graph){
         }
         graphSettingEngineSetup(forceGraph);
     }
+
+    setTimeout(() => {
+        forceGraph.zoomToFit(200, 10, node => true);
+    }, 500); // wait 0.5 seconds 
+    
 }
 
 
@@ -320,8 +325,8 @@ document.addEventListener('DOMContentLoaded', function () {
     end=198692934
     
     //chr18
-    start=47808957
-    end=47931146
+    start=63466958
+    end=63515085
 
     const data = { genome: "GRCh38", chrom: "chr18", start: start, end: end,  source: "testing" };
     

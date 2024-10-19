@@ -26,8 +26,6 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
 
         if (event.code === 'Space' || event.key === ' ') {
             forceGraph.zoomToFit(200, 10, node => true); //todo: selected only?
-
-
         }
         if (event.code === 'Delete') {
             console.log("dle")

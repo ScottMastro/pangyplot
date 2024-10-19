@@ -10,6 +10,7 @@ function annotationManagerGetGene(geneId) {
         return null
     }
 }
+
 function annotationManagerGetGeneColor(geneId) {
     if (GENE_ANNOTATIONS[geneId]) {
         return GENE_ANNOTATIONS[geneId].color;
@@ -17,6 +18,7 @@ function annotationManagerGetGeneColor(geneId) {
         return "#000000"
     }
 }
+
 function annotationManagerGetGeneName(geneId) {
     if (GENE_ANNOTATIONS[geneId]) {
         return GENE_ANNOTATIONS[geneId].gene;
@@ -24,6 +26,15 @@ function annotationManagerGetGeneName(geneId) {
         return "undefined"
     }
 }
+
+function annotationManagerShouldShowExon(geneId) {
+    if (GENE_ANNOTATIONS[geneId]) {
+        return GENE_ANNOTATIONS[geneId].show_exons;
+    } else{
+        return false
+    }
+}
+
 function annotationManagerIsGeneVisible(geneId) {
     if (GENE_ANNOTATIONS[geneId]) {
         return GENE_ANNOTATIONS[geneId].is_visible;
@@ -33,18 +44,67 @@ function annotationManagerIsGeneVisible(geneId) {
 }
 
 function annotationManagerGetNodeAnnotations(node) {
-    const genes = NODE_ANNOTATION_DATA[node.__nodeid];
-    return genes ? genes : [] 
-}
-function annotationManagerGetLinkAnnotations(link) {
-    const source = NODE_ANNOTATION_DATA[link.source.__nodeid];
-    const target = NODE_ANNOTATION_DATA[link.target.__nodeid];
+    const annotations = NODE_ANNOTATION_DATA[node.__nodeid];
 
-    if (source && target){
-        const sourceSet = new Set(source);
-        return target.filter(item => sourceSet.has(item));
-    }
-    return [];
+    if (!annotations) return [];
+    const result = [];
+
+    Object.keys(annotations).forEach(geneId => {
+        const annotation = annotations[geneId];
+        const gene = GENE_ANNOTATIONS[geneId];
+        
+        if (!gene.is_visible) {
+            return;
+        } if (gene.show_exons && !annotation.exon_number) {
+            return;
+        }            
+
+        result.push({
+            id: geneId,
+            exon_number: annotation.exon_number,
+            color: gene.color
+        });
+    });
+
+    return result;
+}
+
+//todo: speedup by saving link data like we do with node?
+function annotationManagerGetLinkAnnotations(link) {
+    const sourceAnnotations = NODE_ANNOTATION_DATA[link.source.__nodeid];
+    const targetAnnotations = NODE_ANNOTATION_DATA[link.target.__nodeid];
+
+    if (!sourceAnnotations || !targetAnnotations) return [];
+    const result = [];
+    const sourceSet = new Set(Object.keys(sourceAnnotations));
+
+    Object.keys(targetAnnotations).forEach(geneId => {
+        if (sourceSet.has(geneId)) {
+            const gene = GENE_ANNOTATIONS[geneId];
+            const targetAnnotation = targetAnnotations[geneId];
+            const sourceAnnotation = sourceAnnotations[geneId];
+
+            if (! gene.is_visible) {
+                return;
+            }
+            if (gene.show_exons){
+                if(!targetAnnotation.exon_number || !sourceAnnotation.exon_number) {
+                    return;
+                }
+                if(targetAnnotation.exon_number != sourceAnnotation.exon_number) {
+                    return;
+                }
+            }
+
+            result.push({
+                id: geneId,
+                exon_number: targetAnnotation.exon_number,
+                color: gene.color
+            });
+        }
+    });
+
+    return result;
 }
 
 
@@ -90,72 +150,86 @@ function annotationManagerUpdatedColorFromTable(geneId, newColor) {
 }
 
 function annotationManagerUpdatedExonFromTable(geneId, status) {
-    console.log(GENE_ANNOTATIONS);
-
+    if (GENE_ANNOTATIONS[geneId]) {
+        GENE_ANNOTATIONS[geneId].show_exons = status;
+    }
 }
 
-
 //possible todo:
-//speed up by sorting nodes and genes
-function annotationManagerAnnotateGraph(graphData) {
-    const nodeGroup = {};
-
+//speed up by sorting nodes?
+function annotateTranscript(graphData, gene, transcriptIndex = 0) {
     graphData.nodes.forEach(node => {
-        NODE_ANNOTATION_DATA[node.__nodeid] = []
 
-        Object.values(GENE_ANNOTATIONS).forEach(gene => {
+        if (!NODE_ANNOTATION_DATA[node.__nodeid]){
+            NODE_ANNOTATION_DATA[node.__nodeid] = {};
+        }
+        if (NODE_ANNOTATION_DATA[node.__nodeid][gene.id]) {
+            delete NODE_ANNOTATION_DATA[node.__nodeid][gene.id];
+        }
 
-            const transcript = gene.transcripts[0];
+        const transcript = gene.transcripts[transcriptIndex];
 
-            if(annotationOverlap(transcript, node)){
-                NODE_ANNOTATION_DATA[node.__nodeid].push(gene.id)
-                
-                if (!nodeGroup[gene]) {
-                    nodeGroup[gene] = [];
+        if (annotationOverlap(transcript, node)) {
+            let exonNumber = null;
+
+            transcript.exons.forEach((exon, index) => {
+                if (annotationOverlap(exon, node)) {
+                    exonNumber = exon.exon;
                 }
-                nodeGroup[gene].push(node);
-            }
+            });
 
-            //todo
-            //transcript.exons.forEach(exon => {
-            //    if(annotationOverlap(exon, node)){
-            //        NODE_ANNOTATION_DATA[node.__nodeid].push(exon.id)
-            //    }  
-            //})
-            
-        });
+            NODE_ANNOTATION_DATA[node.__nodeid][gene.id] = {
+                gene_id: gene.id,
+                exon_number: exonNumber
+            };
+        }
     });
+}
+
+function annotationManagerAnnotateGraph(graphData) {
 
     Object.values(GENE_ANNOTATIONS).forEach(gene => {
-        const nodes = nodeGroup[gene];
-        const bounds = findNodeBounds(nodes);
-        
-        const rawNode = {
-            nodeid: gene.id,
-            type: "gene",
-            text: gene.gene,
-            x: bounds.x + bounds.width / 2,
-            y: bounds.y + bounds.height / 2,
-        };
 
-        geneTextNode = createNewTextNode(rawNode);
-        //todo?
-        //graphData.nodes.push(geneTextNode);
+        annotateTranscript(graphData, gene);
+
     });
+
+    //todo?
+
+    //Object.values(GENE_ANNOTATIONS).forEach(gene => {
+
+    //    const nodes = nodeGroup[gene.id];
+    //    if (nodes) {
+    //        const bounds = findNodeBounds(nodes);
+    //        const rawNode = {
+    //            nodeid: gene.id,
+    //            type: "gene",
+    //            text: gene.gene,
+    //            x: bounds.x + bounds.width / 2,
+    //            y: bounds.y + bounds.height / 2,
+    //        };
+    //        geneTextNode = createNewTextNode(rawNode);
+    //        graphData.nodes.push(geneTextNode);
+    //    }
+    //});
 
     annotationManagerUpdateGeneTable();
 };
 
+function annotationManagerClear() {
+    Object.keys(GENE_ANNOTATIONS).forEach(key => delete GENE_ANNOTATIONS[key]);
+    Object.keys(NODE_ANNOTATION_DATA).forEach(key => delete NODE_ANNOTATION_DATA[key]);
+}
 
 function annotationManagerFetch(genome, chromosome, start, end) {
     const url = buildUrl('/genes', { genome, chromosome, start, end });
 
-    Object.keys(GENE_ANNOTATIONS).forEach(key => delete GENE_ANNOTATIONS[key]);
-
+    annotationManagerClear();
     fetchData(url, 'genes').then(fetchedData => {
         fetchedData.genes.forEach(gene => {
 
             gene.is_visible = GENE_VISIBLE_BY_DEFAULT;
+            gene.show_exons = false;
             gene.color = rgbStringToHex(stringToColor(gene.gene));
 
             GENE_ANNOTATIONS[gene.id] = gene;
