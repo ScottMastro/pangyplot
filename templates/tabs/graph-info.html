@@ -1,11 +1,12 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/information-panel.css') }}">
+<div class="tab-header">Graph Information</div>
+<hr>
+
 {% macro info_label(label, id) %}
 <div class="info-label flex-1">
     {{ label }}:<span id="{{ id }}" class="info-value"></span>
 </div>
 {% endmacro %}
-
-<div class="tab-header">Graph Information</div>
-<hr>
 
 <div id="graph-info" class="flex-1">
     <div id="info-debug-container">
@@ -33,3 +34,5 @@
       {{ info_label('Number Inside', 'info-number-inside') }}
 
 </div>
+
+<script src="{{url_for('static', filename='js/ui/tabs/information-panel.js')}}"></script>

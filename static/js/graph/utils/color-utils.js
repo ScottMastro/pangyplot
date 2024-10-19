@@ -17,6 +17,24 @@ function hexToRgb(hex) {
 function rgbToHex(r, g, b) {
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
 }
+function rgbStringToHex(rgba) {
+    const rgbaValues = rgba.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+),?\s*([\d\.]+)?\)$/);
+
+    if (!rgbaValues) {
+        return "#000000"
+    }
+
+    const r = parseInt(rgbaValues[1]);
+    const g = parseInt(rgbaValues[2]);
+    const b = parseInt(rgbaValues[3]);
+
+    const hexR = r.toString(16).padStart(2, '0');
+    const hexG = g.toString(16).padStart(2, '0');
+    const hexB = b.toString(16).padStart(2, '0');
+
+    return `#${hexR}${hexG}${hexB}`;
+}
+
 
 function interpolateColor(color1, color2, factor) {
     let result = color1.slice();
