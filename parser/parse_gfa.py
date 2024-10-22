@@ -2,6 +2,7 @@ import gzip,re
 import parser.parse_utils as utils
 from statistics import mean
 from db.insert.insert_segment import insert_segments, insert_segment_links
+from db.insert.insert_sample import insert_samples
 
 def get_reader(gfa):
     if gfa.endswith(".gz"):
@@ -133,16 +134,25 @@ def get_path_positions(path, lenDict):
     path["position"] = positions
     return path
 
-def collapse_path(collapseDict, sampleIdDict, path, ):
+def path_id(path):
     suffix = "" if path["hap"] is None else "." + path["hap"]
-    sampleId = path["sample"] + suffix
+    return path["sample"] + suffix
 
-    if sampleId not in sampleIdDict:
-        if len(sampleIdDict) == 0:
-            sampleIdDict[sampleId] = 0
-        else:
-            sampleIdDict[sampleId] = max([sampleIdDict[x] for x in sampleIdDict])+1
-    sampleIdx = sampleIdDict[sampleId]
+def code_samples(paths):
+    sampleIdDict = dict()
+
+    for path in paths:
+        sampleId = path_id(path)
+        if sampleId not in sampleIdDict:
+            if len(sampleIdDict) == 0:
+                sampleIdDict[sampleId] = 0
+            else:
+                sampleIdDict[sampleId] = max([sampleIdDict[x] for x in sampleIdDict])+1
+        sampleIdx = sampleIdDict[sampleId]
+    return sampleIdDict
+
+def collapse_path(path, collapseDict, sampleIdDict):
+    sampleIdx = sampleIdDict[path_id(path)]
 
     for i,fromId in enumerate(path["path"][:-1]):
         toId = path["path"][i+1]
@@ -155,7 +165,7 @@ def collapse_path(collapseDict, sampleIdDict, path, ):
             collapseDict[key] = []
         
         collapseDict[key].append(sampleIdx)
-    return collapseDict, sampleIdDict
+    return collapseDict
    
 def collapse_binary(collapseDict, sampleIdDict):
     n = max([sampleIdDict[x] for x in sampleIdDict])+1
@@ -172,25 +182,34 @@ def parse_graph(gfa, ref, positions, layoutCoords):
     segmentCount = 0
     segments, links = [],[]
     lenDict = dict()
-    collapseDict = dict()
-    sampleIdDict = dict()
-    refSet = set()
+
+    paths = []
 
     print("Finding paths...")
     with get_reader(gfa) as gfaFile:
-        count = 0
         for line in gfaFile:
             if line[0] in "PW":
                 if line[0] == "P":
-                    path = parse_line_P(line)
+                    paths.append(parse_line_P(line))
                 else:
-                    path = parse_line_W(line)
-                #collapseDict, sampleIdDict = collapse_path(collapseDict, sampleIdDict, path)
-                if ref in path["sample"]:
-                    refSet.update(path["path"])
-            count += 1
-            if count % 10000 == 0:
+                    paths.append(parse_line_W(line))
+            if len(paths) > 0 and len(paths) % 10000 == 0:
                 print(".", end='', flush=True)
+
+    sampleIdDict = code_samples(paths)
+    samples = [{"id": sample_name, "idx": sample_idx} for sample_name, sample_idx in sampleIdDict.items()]
+    insert_samples(samples)
+    
+    collapseDict = dict()
+    refSet = set()
+
+    for path in paths:
+        collapseDict = collapse_path(path, collapseDict, sampleIdDict)
+
+        if ref in path["sample"]:
+            refSet.update(path["path"])
+
+    collapseDict = collapse_binary(collapseDict, sampleIdDict)
 
     print("")
     print("Finding segments & links...")
@@ -222,11 +241,7 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 link["haplotype"] = []
                 link["frequency"] = 0
                 link["is_ref"] = link["from_id"] in refSet and link["to_id"] in refSet
-
         else:
-
-            collapseDict = collapse_binary(collapseDict, sampleIdDict)
-
             for link in links:
                 key = (str(link["from_id"]) + link["from_strand"],
                         str(link["to_id"]) + link["to_strand"])

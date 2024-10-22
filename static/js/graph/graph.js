@@ -21,7 +21,6 @@ function getGraphCoordinates(){
             end:GRAPH_END_POS};
 }
 
-
 // todo https://github.com/vasturiano/d3-force-registry
 
 function getCanvasWidth(){
@@ -31,12 +30,9 @@ function getCanvasHeight(){
     return window.innerHeight*FORCE_GRAPH_HEIGHT_PROPORTION;
 }
 
-
 function renderGraph(graph){
 
     const canvasElement = document.getElementById("graph");
-
-    console.log("forceGraph:", graph);
 
     // Update the graph data without reinitializing the graph
     if (forceGraph) {
@@ -302,11 +298,6 @@ document.addEventListener('constructGraph', function(event) {
 
 
 document.addEventListener('DOMContentLoaded', function () {
-    //PRSS region
-    //const data = { chrom: "chr7", start: "144084904", end: "144140209", source: "testing"  };
-    // chr18 region
-    //const data = { genome: "CHM13", chrom: "chr18", start: "47506000", end: "47600000",  source: "testing" };
-
 
     // wide muc4/20 region
     let start=198347210
@@ -324,11 +315,12 @@ document.addEventListener('DOMContentLoaded', function () {
     start=198376687
     end=198692934
     
-    //chr18
-    start=63466958
-    end=63515085
 
-    const data = { genome: "GRCh38", chrom: "chr18", start: start, end: end,  source: "testing" };
+    // SERPINB5
+    let data = {genome: "GRCh38", chrom:"chr18", start:63466958, end:63515085, genome: "GRCh38"};
+
+    // PRSS1-PRSS2
+    data = {genome: "GRCh38", chrom:"chr7", start:142760398-15000, end:142774564+1000, genome: "GRCh38"};
     
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
