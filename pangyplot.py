@@ -6,7 +6,7 @@ from db.neo4j_db import update_db
 from db.query.query_top_level import get_top_level
 from db.query.query_annotation import query_gene_range,text_search_gene
 from db.query.query_subgraph import get_subgraph
-from db.query.query_all import query_all_chromosomes, query_all_db
+from db.query.query_all import query_all_chromosomes, query_all_db, query_all_samples
 from argparser import parse_args
 
 app = Flask(__name__)
@@ -49,6 +49,11 @@ def select():
     resultDict = get_top_level(genome, chrom, start, end)
     
     return resultDict, 200
+
+@app.route('/samples', methods=["GET"])
+def get_samples():
+    samples = query_all_samples()    
+    return samples, 200
 
 @app.route('/genes', methods=["GET"])
 def genes():
