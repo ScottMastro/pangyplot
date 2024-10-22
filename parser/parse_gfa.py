@@ -14,80 +14,6 @@ def extract_chrom(s):
         return match.group()
     return None
 
-def parse_line(line):
-
-    result = {"type" : "."}
-
-    if line[0] == "L":
-        result["type"] = "L"
-        cols = line.strip().split("\t")
-        result["from_id"]=cols[1]
-        result["from_strand"]=cols[2]
-        result["to_id"]=cols[3]
-        result["to_strand"]=cols[4]
-    
-    if line[0] == "S":
-        result["type"] = "S"
-        result["chrom"] = None
-        result["pos"] = None
-
-        cols = line.strip().split("\t")
-        
-        result["id"] = cols[1]
-        result["seq"] = cols[2]
-
-        for col in cols[3:]:
-            if col.startswith("SN:"):
-                result["chrom"] = extract_chrom(col.split(":")[-1])
-            elif col.startswith("SO:"):
-                # add 1 to position
-                result["pos"] = int(col.split(":")[-1]) +1
-            elif col.startswith("SR:"):
-                result["sr"] = col.split(":")[-1]
-        result["ref"] = result["pos"] is not None
-
-    if line[0] == "P":
-        cols = line.strip().split("\t")
-        result["type"] = "P"
-        result["sample"] = cols[1]
-        result["hap"] = None
-        result["start"] = None
-        result["end"] = None
-        result["path"], result["strand"] = path_to_lists(P_to_W(cols[2]))
-
-    if line[0] == "W":
-        cols = line.strip().split("\t")
-        result["type"] = "W"
-        result["sample"] = cols[1]
-        result["hap"] = cols[2]
-        result["start"] = cols[4]
-        result["end"] = cols[5]
-        result["path"], result["strand"] = path_to_lists(cols[6])
-
-    return result
-
-def collect_position_data(gfa):
-
-    toLinkData = dict()
-    fromLinkData = dict()
-    segmentData = dict()
-
-    with get_reader(gfa) as file:
-        for line in file:
-            row = parse_line(line)
-            if row["type"] == "L":
-                from_id, to_id = row["from_id"], row["to_id"]
-                if from_id not in toLinkData:
-                    toLinkData[from_id] = []
-                toLinkData[from_id].append(to_id)
-                if to_id not in fromLinkData:
-                    fromLinkData[to_id] = []
-                fromLinkData[to_id].append(from_id)
-            elif row["type"] == "S":
-                segmentData[row["id"]] = (row["chrom"],row["pos"], len(row["seq"]))
-
-    return fromLinkData, toLinkData, segmentData
-
 def parse_line_S(line, ref, positions):
 
     result = {"type" : "S"}   
@@ -170,23 +96,13 @@ def parse_line_P(line):
     cols = line.strip().split("\t")
 
     result["type"] = "P"
-    result["sample"] = cols[1]
-    result["hap"] = None
 
-    if "#" in result["sample"]:
-        parts = cols[1].split("#")
-        result["sample"] = parts[0]
-        if len(parts[1]) == 1:
-            result["hap"] = parts[1] 
-        #todo: can maybe find [start-end]
+    sampleInfo = utils.parse_id_string(cols[1])
+    result["sample"] = sampleInfo["genome"]
+    result["contig"] = sampleInfo["chrom"]
+    result["hap"] = sampleInfo["hap"]
+    result["start"] = sampleInfo["start"]
 
-    elif ":" in result["sample"] and "-" in result["sample"]:
-        result["sample"] = cols[1].split(":")[0]
-        result["start"] = int(cols[1].split(":")[1].split("-")[0])
-        result["end"] = int(cols[1].split(":")[1].split("-")[1])
-    else:
-        result["start"] = None
-        result["end"] = None
     result["path"], result["strand"] = path_to_lists(P_to_W(cols[2]))
 
     return result

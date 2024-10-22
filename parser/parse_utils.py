@@ -14,3 +14,57 @@ def parse_reference_string(str, ref=None):
         chrom = str
 
     return {"chrom": chrom, "genome": genome}
+
+import re
+
+# 2 elements example:
+# CHM13#chr7
+
+# >2 elements example:
+# GRCh38#0#chr5[10000-626046]
+# GENOME#HAP#CHR[START-END]
+
+def pound_separated(reference_str, ref):
+    chrom = None
+    genome = None
+    start = None
+    hap = None
+
+    parts = reference_str.split("#")
+    
+    bracket_match = re.search(r"\[(\d+)-(\d+)\]$", parts[-1])
+    if bracket_match:
+        start = int(bracket_match.group(1))
+        parts[-1] = re.sub(r"\[\d+-\d+\]$", "", parts[-1])
+
+    genome = parts[0]
+
+    if len(parts) == 2:
+        hap = None
+        chrom = parts[1]
+
+    elif len(parts) > 2:
+        hap = parts[1]
+        chrom = parts[2]
+
+    return {"chrom": chrom, "genome": genome, "hap":hap, "start": start}
+
+def parse_id_string(reference_str, ref=None):
+    chrom = None
+    genome = None
+    hap = None
+    start = None
+
+    if "#" in reference_str:
+        return pound_separated(reference_str, ref)
+    else:
+        if "|" in reference_str:
+            chrom = reference_str.split("|")[-1]
+            genome = reference_str.split("|")[0]
+            if genome.startswith("id="):
+                genome = genome[3:]
+        else:
+            genome = ref
+            chrom = reference_str
+
+    return {"chrom": chrom, "genome": genome, "hap":hap, "start": start}
