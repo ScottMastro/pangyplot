@@ -14,8 +14,11 @@ def parse_line(line):
     startPath, startPos = startCol.split(":")
     endPath, endPos = endCol.split(":")
     
-    start = utils.parse_reference_string(startPath)
-    end = utils.parse_reference_string(endPath)
+    start = utils.parse_id_string(startPath)
+    end = utils.parse_id_string(endPath)
+
+    startPos = int(startPos) + start["start"]
+    endPos = int(endPos) + start["start"]
 
     if start["genome"] != end["genome"]:
         return None
@@ -24,7 +27,7 @@ def parse_line(line):
         return None
 
     result = {"genome": start["genome"], "chrom": start["chrom"],
-                "start":int(startPos), "end":int(endPos) }
+                "start":startPos, "end":endPos }
     return (nodeId, result)
 
 def parse_positions(positions_file):
