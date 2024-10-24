@@ -147,6 +147,8 @@ function processSubgraphData(subgraph, originNode, forceGraph){
     //todo: take number as input
     forceGraph = simplifyGraph(forceGraph, 1);
     //forceGraph = shrinkGraph(forceGraph, 1000); 
+    
+    annotationManagerAnnotateGraph(forceGraph.graphData())
 
     document.dispatchEvent(new CustomEvent("updatedGraphData", { detail: { graph: forceGraph.graphData() } }));
 }
@@ -179,15 +181,6 @@ function fetchSubgraph(originNode, forceGraph) {
     });
 }
 
-document.addEventListener("nodesSelected", function(event) {
-    //todo:batch request instead?
-    event.detail.nodes.forEach(node => {
-        if (node.type != "segment" && node.type != "null"){
-            fetchSubgraph(node);
-        }
-    });
-});
-
 function popNodeEngineMouseClick(event, forceGraph, canvasElement, canvas, coordinates, inputState){
     if (inputState===NODE_POP_MODE){
 
@@ -201,4 +194,14 @@ function popNodeEngineMouseClick(event, forceGraph, canvasElement, canvas, coord
             fetchSubgraph(nearestNode, forceGraph);
         }
     }
+}
+
+function popNodeEnginePopAll(nodes, forceGraph){
+    //todo:batch request instead?
+
+    nodes.forEach(node => {
+        if (node.type != "segment" && node.type != "null"){
+            fetchSubgraph(node,forceGraph);
+        }
+    });
 }

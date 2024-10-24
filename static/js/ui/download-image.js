@@ -9,7 +9,7 @@ function getFormattedDateTime() {
     return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
 }
 
-document.getElementById('download-image-button').addEventListener('click', function() {
+function downloadGraphImage(){
     const canvas = document.querySelector('.force-graph-container canvas');
     if (!canvas) {
         console.error('Canvas element not found');
@@ -24,4 +24,8 @@ document.getElementById('download-image-button').addEventListener('click', funct
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+}
+
+document.getElementById('download-image-button').addEventListener('click', function() {
+    downloadGraphImage()
 });

@@ -10,7 +10,7 @@ function updateGraphInfo(nodeid) {
     document.getElementById('info-length').textContent = nodeInfo.length || '';
 
     fullSequence = nodeInfo.sequence || '';
-    const truncatedSequence = fullSequence.substr(0, 10);
+    const truncatedSequence = fullSequence.slice(0, 10);
     let seq = truncatedSequence + (fullSequence.length > 10 ? '...' : '');
     document.getElementById('info-sequence').textContent = seq;
 

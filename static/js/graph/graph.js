@@ -77,7 +77,6 @@ function renderGraph(graph){
                 .width(getCanvasWidth());
         });
 
-
         console.log("forceGraph:", forceGraph);
 
         forceGraph.onEngineTick(() => {
@@ -88,7 +87,6 @@ function renderGraph(graph){
 
         forceGraph.onRenderFramePre((ctx) => { renderManagerPreRender(ctx, forceGraph, getCanvasWidth(), getCanvasHeight()); })
         forceGraph.onRenderFramePost((ctx) => { renderManagerPostRender(ctx, forceGraph, getCanvasWidth(), getCanvasHeight()); })
-        
         
         // --- FORCES ---
 
@@ -111,7 +109,6 @@ function renderGraph(graph){
                 }
             }
         }
-
 
         function forceSpreadX(alpha) {
             const nodes = forceGraph.graphData().nodes;
@@ -166,7 +163,6 @@ function renderGraph(graph){
         }
         //forceGraph.d3Force('pullToAnchor', pullTextToAnchor);
 
-
         function textRepelForce(alpha) {
             let strength = -1e9;
             let distanceMin = 10;
@@ -196,7 +192,6 @@ function renderGraph(graph){
         }
         //forceGraph.d3Force('textRepel', textRepelForce);
 
-        
         //todo: try force that keeps nodes apart by certain distance
         //todo: local density check, spread along x axis
 
@@ -209,12 +204,7 @@ function renderGraph(graph){
         //forceGraph.d3Force('link', null);   // Disable link force
 
         forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
-        
-        
         forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
-
-        
-
 
         const pause = false;
         if(pause){
@@ -320,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let data = {genome: "GRCh38", chrom:"chr18", start:63466958, end:63515085, genome: "GRCh38"};
 
     // PRSS1-PRSS2
-    data = {genome: "GRCh38", chrom:"chr7", start:142760398-15000, end:142774564+1000, genome: "GRCh38"};
+    //data = {genome: "GRCh38", chrom:"chr7", start:142760398-15000, end:142774564+1000, genome: "GRCh38"};
     
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
