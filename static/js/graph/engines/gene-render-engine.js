@@ -3,7 +3,7 @@ const FONT_SIZE = 180;
 const LIGHTNESS_SCALE=0.0;
 const GENE_LOCATION = {};
 
-function geneRenderEngineDraw(ctx, graphData){
+function geneRenderEngineDraw(ctx, graphData, svg=false){
     const zoomFactor = ctx.canvas.__zoom["k"];
     ctx.save();
 
@@ -21,8 +21,9 @@ function geneRenderEngineDraw(ctx, graphData){
                 renderQueue.push({
                     type: 'node', 
                     element: node, 
-                    color: annotation.color, 
-                    size: hsize * n, 
+                    color: annotation.color,
+                    size: (HIGHLIGHT_SIZE+40) * n,
+                    zoomSize: hsize * n, 
                     zIndex: n
                 });
                 n += 1;
@@ -41,7 +42,8 @@ function geneRenderEngineDraw(ctx, graphData){
                     type: 'link', 
                     element: link, 
                     color: annotation.color, 
-                    size: hsize * n, 
+                    size: (HIGHLIGHT_SIZE+40) * n,
+                    zoomSize: hsize * n, 
                     zIndex: n
                 });
                 n += 1;
@@ -51,13 +53,17 @@ function geneRenderEngineDraw(ctx, graphData){
     
     renderQueue.sort((a, b) => b.zIndex - a.zIndex);
 
-    renderQueue.forEach(item => {
-        if (item.type === 'node') {
-            outlineNode(item.element, ctx, 0, item.size, item.color);
-        } else if (item.type === 'link') {
-            outlineLink(item.element, ctx, 0, item.size, item.color);
-        }
-    });
+    if (svg){
+        return renderQueue;
+    } else; {
+        renderQueue.forEach(item => {
+            if (item.type === 'node') {
+                outlineNode(item.element, ctx, 0, item.zoomSize, item.color);
+            } else if (item.type === 'link') {
+                outlineLink(item.element, ctx, 0, item.zoomSize, item.color);
+            }
+        });
+    }
 
     ctx.restore();
 }
@@ -93,7 +99,7 @@ function placeTextOutsideBoundingBox(bounds, viewport) {
 }
 
 //potential speedup: skip frames
-function drawGeneName(ctx, graphData, viewport){
+function drawGeneName(ctx, graphData, viewport, svg=false){
     const zoomFactor = ctx.canvas.__zoom["k"];
     const viewportHeight = viewport.y2 - viewport.y1;
     const annotationNodes = {};
@@ -167,12 +173,30 @@ function drawGeneName(ctx, graphData, viewport){
 
     const bgColor = colorManagerBackgroundColor();
 
+    const properties = [];
+
     genePositions.forEach(position => {
         const { id, x, y, size, exon_number } = position;
         const geneName = annotationManagerGetGeneName(id);
         const displayName = exon_number ? `${geneName}:exon${exon_number}` : geneName;
         const color = annotationManagerGetGeneColor(id);
-        drawText(displayName, ctx, x, y, size, color, bgColor, size/8);
-
+       
+        if (svg){
+            properties.push(
+            {
+                id: id,
+                text: displayName,
+                x: x,
+                y: y,
+                fontSize: exon_number ? FONT_SIZE/2 : FONT_SIZE,
+                strokeWidth: exon_number ? 4 : 1,
+                stroke: bgColor,
+                color: color
+            });
+        } else{
+            drawText(displayName, ctx, x, y, size, color, bgColor, size/8);
+        }
     });
+    
+    return properties;
 }

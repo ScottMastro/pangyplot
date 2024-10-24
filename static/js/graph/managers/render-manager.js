@@ -51,7 +51,7 @@ function renderManagerPreRender(ctx, forceGraph, canvasWidth, canvasHeight){
     const relSize = Math.max(10, (HOVER_PRECISION/zoomFactor));
     forceGraph.nodeRelSize(relSize);
 
-    const viewport = getViewport(forceGraph, canvasWidth, canvasHeight, buffer=1.1)
+    const viewport = getViewport(forceGraph, canvasWidth, canvasHeight, buffer=1.01)
 
     annotationManagerUpdate(ctx, forceGraph)
 

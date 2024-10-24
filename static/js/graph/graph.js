@@ -68,6 +68,7 @@ function renderGraph(graph){
             .warmupTicks(4)
             //.linkDirectionalParticles(4)
 
+        setUpImageDownloadButtons(forceGraph);
         inputManagerSetupInputListeners(forceGraph, canvasElement);
         annotationManagerAnnotateGraph(forceGraph.graphData())
 
