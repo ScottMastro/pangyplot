@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
         { id: "friction-slider", defaultValue: 0.1 },
         { id: "attraction-slider", defaultValue: -500 },
         { id: "collision-slider", defaultValue: 50 },
-        { id: "spread-slider", defaultValue: 0 },
+        //{ id: "spread-slider", defaultValue: 0 },
         { id: "pull-slider", defaultValue: 100 }
     ];
 

@@ -53,13 +53,24 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
 
     // mouse
 
+    rightClickManager = rightClickManagerSetup(forceGraph);
+
+    canvasElement.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const x = e.pageX;
+        const y = e.pageY;
+        rightClickManager.showMenu(x, y);
+      });
+
+      canvasElement.addEventListener('click', () => {
+        rightClickManager.hideMenu();
+      });
+
     canvasElement.addEventListener('wheel', (event) => {
         if (!forceGraph){ return; }
         event.preventDefault();
 
     });
-
-    // pointer
 
     canvasElement.addEventListener('pointermove', (event) => {
         if (!forceGraph){ return; }
@@ -78,6 +89,7 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
 
     canvasElement.addEventListener('pointerdown', (event) => {
         if (!forceGraph){ return; }
+        if (event.button !== 0) return;  // left-click only
         const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
         const canvas = getCanvasBox(canvasElement);
         const coordinates = getCoordinates(canvasElement, event);
@@ -88,6 +100,7 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
     
     document.addEventListener('pointerup', (event) => {
         if (!forceGraph){ return; }
+        if (event.button !== 0) return;  // left-click only
         const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
         const canvas = getCanvasBox(canvasElement);
         const coordinates = getCoordinates(canvasElement, event);
@@ -96,8 +109,10 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
     });
 
 
+
     canvasElement.addEventListener('click', (event) => {
         if (!forceGraph){ return; }
+        if (event.button !== 0) return;  // left-click only
         const inputState = graphInputStateUpdate(event, forceGraph, canvasElement);
         const canvas = getCanvasBox(canvasElement);
         const coordinates = getCoordinates(canvasElement, event);
