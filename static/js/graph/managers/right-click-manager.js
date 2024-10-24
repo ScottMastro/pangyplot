@@ -96,6 +96,7 @@ class RightClickManager {
       }
 }
 
+//todo: rerun when graph is redrawn???
 function rightClickManagerSetup(forceGraph){
     RIGHT_CLICK_MANAGER = new RightClickManager(forceGraph);
 
@@ -142,11 +143,13 @@ function rightClickManagerSetup(forceGraph){
         forceGraph.zoomToFit(200, 10, node => true);
       });
       
-      RIGHT_CLICK_MANAGER.addOption('download', 'Download Image', 'general', () => {
-        downloadGraphImage()
+      RIGHT_CLICK_MANAGER.addOption('download', 'Download PNG', 'general', () => {
+        downloadGraphImage();
       });
       
-
+      RIGHT_CLICK_MANAGER.addOption('download', 'Download SVG', 'general', () => {
+        exportForceGraphToSVG(forceGraph);
+      });
     
     return RIGHT_CLICK_MANAGER;
 
