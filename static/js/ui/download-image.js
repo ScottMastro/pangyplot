@@ -9,15 +9,6 @@ function getFormattedDateTime() {
     return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
 }
 
-function setUpImageDownloadButtons(forceGraph){
-    document.getElementById('download-image-png-button').addEventListener('click', function() {
-        downloadGraphImage();
-    });
-    document.getElementById('download-image-svg-button').addEventListener('click', function() {
-        exportForceGraphToSVG(forceGraph);
-    });
-}
-
 function downloadGraphImage(){
     const canvas = document.querySelector('.force-graph-container canvas');
     if (!canvas) {

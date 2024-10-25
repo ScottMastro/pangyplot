@@ -26,8 +26,8 @@ def get_top_level_data(db, session, genome, chrom, start, end):
     for result in results:
         nodes.append( record.node_record(result["n"], result["type"][0]) )
 
-        links.extend( [record.link_record_simple(r) for r in result["endlinks"]] )
-        links.extend( [record.link_record_simple(r) for r in result["links"]] )
+        links.extend( [record.link_record(r) for r in result["endlinks"]] )
+        links.extend( [record.link_record(r) for r in result["links"]] )
 
         
     alt_query = """

@@ -112,13 +112,6 @@ def chromosomes():
     
     return chromosomes, 200
 
-
-@app.route('/haplotypes', methods=["GET"])
-def haplotypes():
-
-    resultDict={}
-    return resultDict, 200
-
 @app.route('/search')
 def search():
     type = request.args.get('type')
