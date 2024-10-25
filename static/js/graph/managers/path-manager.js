@@ -1,47 +1,49 @@
 PATH_SELECTER="path-selector";
-var selectedPath = null;
+CURRENTLY_SELECTED_PATH = null;
 var pathData = null;
 
-function update_path_selector(paths) {
-    
-    pathData = paths;
-    var pathList = Object.keys(paths);
-    var select = document.getElementById(PATH_SELECTER);
-
-    pathList.forEach(function(option) {
-        var opt = document.createElement("option");
-        opt.value = option;
-        opt.textContent = option;
-
-        select.appendChild(opt);
+function fetchSamples() {
+    const url = '/samples';
+    return fetchData(url, 'samples').then(fetchedData => {
+        return fetchedData;
     });
-
 }
 
-function should_highlight_link(link){
-    if (selectedPath == null || pathData == null){
+function pathManagerInitialize() {
+    
+    fetchSamples().then(fetchedSamples => {
+        samples = fetchedSamples;
+        
+        var select = document.getElementById(PATH_SELECTER);
+
+        samples.forEach(function(sample) {
+            var opt = document.createElement("option");
+            opt.value = sample.id; 
+            opt.textContent = sample.id;
+            opt.setAttribute('data-index', sample.index);
+            select.appendChild(opt);
+        });
+    });
+}
+
+function pathManagerShouldHighlightLink(link){
+    if (!CURRENTLY_SELECTED_PATH || ! link.haplotype){
         return false;
     }
-
-    for (let i = 0, n = link.pairs.length, pair=null; i < n; ++i) {
-        pair = link.pairs[i];
-        if (selectedPath.hasOwnProperty(pair[0])) {
-            if(selectedPath[pair[0]].includes(pair[1])){
-                return true;
-            }
-        }
-    }
-
-    return false;    
+    console.log(link.haplotype, link.haplotype[CURRENTLY_SELECTED_PATH])
+    return link.haplotype[CURRENTLY_SELECTED_PATH];
 }
 
 document.getElementById(PATH_SELECTER).addEventListener('change', function() {
-    var selectedOption = this.value;
-    console.log("Path selected: ", selectedOption, pathData);
-    selectedPath = pathData[selectedOption];
+    var selectedOption = this.options[this.selectedIndex];
+    var selectedId = selectedOption.value; 
+    var selectedIndex = selectedOption.getAttribute('data-index');
+
+    console.log("Selected ID: ", selectedId);
+    console.log("Selected Index: ", selectedIndex);
+
+    CURRENTLY_SELECTED_PATH = selectedIndex; 
 });
 
-function fetchHaps(genome, chromosome, start, end) {
-    const url = buildUrl('/haplotypes', { genome, chromosome, start, end });
-    return fetchData(url, data => console.log(data), 'haplotypes');
-}
+
+

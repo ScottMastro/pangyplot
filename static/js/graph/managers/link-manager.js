@@ -2,7 +2,7 @@ const EDGE_LENGTH = 10
 const EDGE_WIDTH = 2
 
 function processLinks(rawLinks) {
-
+    console.log(rawLinks)
     rawLinks = filterBadLinks(rawLinks);
     
     return rawLinks.map(rawLink => ({
@@ -10,6 +10,7 @@ function processLinks(rawLinks) {
         target: nodeTargetId(rawLink["target"]),
         sourceid: String(rawLink["source"]),
         targetid: String(rawLink["target"]),
+        haplotype: rawLink["haplotype"],
         isRef: rawLink["is_ref"],
         isVisible: true,
         isDrawn: true,

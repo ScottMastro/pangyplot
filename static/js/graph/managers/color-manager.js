@@ -31,7 +31,7 @@ function colorManagerBackgroundColor(){
 function colorManagerLinkColor(link){
 
     //todo: move logic elsewhere
-    if(should_highlight_link(link)){
+    if(pathManagerShouldHighlightLink(link)){
         return HIGHLIGHT_LINK_COLOR;
     }
 

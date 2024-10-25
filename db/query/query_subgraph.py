@@ -26,8 +26,8 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
         for result in results:
             nodes.append( record.node_record(result["n"], result["type"][0]) )
             lastType = result["type"][0]
-            links.extend( [record.link_record_simple(r) for r in result["ends"]] )
-            links.extend( [record.link_record_simple(r) for r in result["links"]] )
+            links.extend( [record.link_record(r) for r in result["ends"]] )
+            links.extend( [record.link_record(r) for r in result["links"]] )
 
     # trivial case where bubble chain has only one bubble
     # pop the bubble immediately
