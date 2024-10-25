@@ -310,8 +310,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // SERPINB5
     let data = {genome: "GRCh38", chrom:"chr18", start:63466958, end:63515085, genome: "GRCh38"};
 
-    // PRSS1-PRSS2
-    //data = {genome: "GRCh38", chrom:"chr7", start:142760398-15000, end:142774564+1000, genome: "GRCh38"};
+    // PRSS1-PRSS2 chr7:142745398-142775564
+    data = {genome: "GRCh38", chrom:"chr7", start:142760398-15000, end:142774564+1000, genome: "GRCh38"};
     
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
