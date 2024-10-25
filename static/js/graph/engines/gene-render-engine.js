@@ -1,7 +1,8 @@
 const HIGHLIGHT_SIZE=60;
 const FONT_SIZE = 180;
 const LIGHTNESS_SCALE=0.0;
-const GENE_LOCATION = {};
+const LABEL_POSITION_CACHE = {};
+const LABEL_SPEED = 0.05;
 
 function geneRenderEngineDraw(ctx, graphData, svg=false){
     const zoomFactor = ctx.canvas.__zoom["k"];
@@ -68,44 +69,114 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
     ctx.restore();
 }
 
-function adjustTextPositions(genePositions, minDistance) {
-    genePositions.sort((a, b) => a.y - b.y);
+function splitScreenIntoGrid(viewport, N) {
+    const grid = [];
+    const sectionWidth = (viewport.x2 - viewport.x1) / N;
+    const sectionHeight = (viewport.y2 - viewport.y1) / N;
 
-    for (let i = 1; i < genePositions.length; i++) {
-        const prev = genePositions[i - 1];
-        const curr = genePositions[i];
-
-        if (Math.abs(curr.y - prev.y) < minDistance) {
-            curr.y = prev.y + minDistance;
+    // Initialize NxN grid
+    for (let i = 0; i < N; i++) {
+        grid[i] = [];
+        for (let j = 0; j < N; j++) {
+            grid[i][j] = {
+                nodes: [], // Will hold nodes in this section
+                x1: viewport.x1 + i * sectionWidth,
+                y1: viewport.y1 + j * sectionHeight,
+                x2: viewport.x1 + (i + 1) * sectionWidth,
+                y2: viewport.y1 + (j + 1) * sectionHeight,
+                centerX: viewport.x1 + (i + 0.5) * sectionWidth,
+                centerY: viewport.y1 + (j + 0.5) * sectionHeight
+            };
         }
     }
+
+    return grid;
 }
 
-function placeTextOutsideBoundingBox(bounds, viewport) {
-    const viewportHeight = viewport.y2 - viewport.y1;
-    let x = bounds.x + bounds.width / 2;
-    let y = bounds.y < viewportHeight / 2 ? bounds.y + bounds.height : bounds.y - bounds.height;
-    let position = { x, y };
+function findGroupCentroid(groupNodes) {
+    let sumX = 0, sumY = 0;
 
-    const paddingX = (viewport.x2 - viewport.x1) * 0.05; // 5% of viewport width
-    const paddingY = (viewport.y2 - viewport.y1) * 0.05; // 5% of viewport height
+    groupNodes.forEach(node => {
+        sumX += node.x;
+        sumY += node.y;
+    });
 
-    if (position.x < viewport.x1 + paddingX) position.x = viewport.x1 + paddingX;
-    if (position.x > viewport.x2 - paddingX) position.x = viewport.x2 - paddingX;
-    if (position.y < viewport.y1 + paddingY) position.y = viewport.y1 + paddingY;
-    if (position.y > viewport.y2 - paddingY) position.y = viewport.y2 - paddingY;
+    return {
+        x: sumX / groupNodes.length,
+        y: sumY / groupNodes.length
+    };
+}
 
-    return position;
+function placeNodesInGrid(nodes, grid, N) {
+    const sectionWidth = (grid[0][0].x2 - grid[0][0].x1);
+    const sectionHeight = (grid[0][0].y2 - grid[0][0].y1);
+
+    nodes.forEach(node => {
+        const gridX = Math.floor((node.x - grid[0][0].x1) / sectionWidth);
+        const gridY = Math.floor((node.y - grid[0][0].y1) / sectionHeight);
+
+        if (gridX >= 0 && gridX < N && gridY >= 0 && gridY < N) {
+            grid[gridX][gridY].nodes.push(node);
+        }
+    });
+}
+
+function findBestLabelPosition(grid, centroid, hintPosition) {
+    let minCombinedDist = Infinity;
+    let bestSection = null;
+
+    if (!hintPosition) {
+        hintPosition = centroid;
+    }
+
+    const { x: hintX, y: hintY } = hintPosition;
+    const { x: centroidX, y: centroidY } = centroid;
+
+    for (let i = 0; i < grid.length; i++) {
+        for (let j = 0; j < grid[i].length; j++) {
+            const section = grid[i][j];
+
+            if (section.nodes.length === 0) {
+                const dxCentroid = centroidX - section.centerX;
+                const dyCentroid = centroidY - section.centerY;
+                const distToCentroid = Math.sqrt(dxCentroid * dxCentroid + dyCentroid * dyCentroid);
+
+                const dxHint = hintX - section.centerX;
+                const dyHint = hintY - section.centerY;
+                const distToHint = Math.sqrt(dxHint * dxHint + dyHint * dyHint);
+
+                // Minimize the sum of both distances
+                const combinedDist = distToCentroid + distToHint;
+
+                if (combinedDist < minCombinedDist) {
+                    minCombinedDist = combinedDist;
+                    bestSection = section;
+                }
+            }
+        }
+    }
+
+    if (bestSection) {
+        return { x: bestSection.centerX, y: bestSection.centerY };
+    }
+
+    return centroid;
+}
+
+function interpolate(current, target, speed) {
+    return current + (target - current) * speed;
 }
 
 //potential speedup: skip frames
-function drawGeneName(ctx, graphData, viewport, svg=false){
+function drawGeneName(ctx, graphData, viewport, svg=false) {
     const zoomFactor = ctx.canvas.__zoom["k"];
-    const viewportHeight = viewport.y2 - viewport.y1;
     const annotationNodes = {};
+    const visibleNodes = [];
+    const gridN = 30;
 
     graphData.nodes.forEach(node => {
         if (node.isVisible && node.isDrawn) {
+            visibleNodes.push(node);
             const annotations = annotationManagerGetNodeAnnotations(node); 
             
             annotations.forEach(annotation => {                
@@ -120,9 +191,12 @@ function drawGeneName(ctx, graphData, viewport, svg=false){
         }
     });
 
+    const grid = splitScreenIntoGrid(viewport, gridN);
+    placeNodesInGrid(visibleNodes, grid, gridN);
+
     const size = Math.max(FONT_SIZE, FONT_SIZE * (1 / zoomFactor / 10));
 
-    const genePositions = [];
+    const labels = [];
     
     Object.keys(annotationNodes).forEach(id => {
         const nodes = annotationNodes[id];
@@ -139,43 +213,61 @@ function drawGeneName(ctx, graphData, viewport, svg=false){
             });
             
             Object.keys(exonGroups).forEach(exon => {
-                const exonNodes = exonGroups[exon];
-                const bounds = findNodeBounds(exonNodes);
-                
-                const { x, y } = placeTextOutsideBoundingBox(bounds, viewport);
 
-                genePositions.push({
+                let cachedPosition = LABEL_POSITION_CACHE[id + "#" + exon] || null;
+                const exonNodes = exonGroups[exon];
+                
+                const centroid = findGroupCentroid(exonNodes);
+                //let {x, y} = findBestLabelPosition(grid, centroid, cachedPosition);
+
+                if (!cachedPosition){
+                    cachedPosition = {x : centroid.x, y : centroid.y};
+                } else{
+                    cachedPosition.x = interpolate(cachedPosition.x, centroid.x, LABEL_SPEED); 
+                    cachedPosition.y = interpolate(cachedPosition.y, centroid.y, LABEL_SPEED);
+                }
+
+                labels.push({
                     id: id,
                     exon_number: exon,
-                    x: x,
-                    y: y,
+                    x: cachedPosition.x,
+                    y: cachedPosition.y,
                     size: size/2
                 });
+
+                LABEL_POSITION_CACHE[id + "#" + exon] = cachedPosition;
             });
         } else {
-
+            let cachedPosition = LABEL_POSITION_CACHE[id] || null;
             const nodesOnly = nodes.map(({ node }) => node);
-            const bounds = findNodeBounds(nodesOnly);
-            
-            const { x, y } = placeTextOutsideBoundingBox(bounds, viewport);
+            const centroid = findGroupCentroid(nodesOnly);
+            let {x, y} = findBestLabelPosition(grid, centroid, cachedPosition);
 
-            genePositions.push({
+            if (!cachedPosition){
+                cachedPosition = {x:x, y:y};
+            } else{
+                cachedPosition.x = interpolate(cachedPosition.x, x, LABEL_SPEED); 
+                cachedPosition.y = interpolate(cachedPosition.y, y, LABEL_SPEED);
+            }
+
+            labels.push({
                 id: id,
                 exon_number: null,
-                x: x,
-                y: y,
+                x: cachedPosition.x,
+                y: cachedPosition.y,
                 size: size
             });
+
+            LABEL_POSITION_CACHE[id] = cachedPosition;
+
         }
     });
-
-    adjustTextPositions(genePositions, viewportHeight* zoomFactor*0.9);
-
+    
     const bgColor = colorManagerBackgroundColor();
 
     const properties = [];
 
-    genePositions.forEach(position => {
+    labels.forEach(position => {
         const { id, x, y, size, exon_number } = position;
         const geneName = annotationManagerGetGeneName(id);
         const displayName = exon_number ? `${geneName}:exon${exon_number}` : geneName;
@@ -188,7 +280,7 @@ function drawGeneName(ctx, graphData, viewport, svg=false){
                 text: displayName,
                 x: x,
                 y: y,
-                fontSize: exon_number ? FONT_SIZE/2 : FONT_SIZE,
+                fontSize: exon_number ? FONT_SIZE : 2*FONT_SIZE,
                 strokeWidth: exon_number ? 4 : 1,
                 stroke: bgColor,
                 color: color
