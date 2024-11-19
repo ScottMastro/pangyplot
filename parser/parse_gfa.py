@@ -138,19 +138,6 @@ def path_id(path):
     suffix = "" if path["hap"] is None else "." + path["hap"]
     return path["sample"] + suffix
 
-def code_samples(paths):
-    sampleIdDict = dict()
-
-    for path in paths:
-        sampleId = path_id(path)
-        if sampleId not in sampleIdDict:
-            if len(sampleIdDict) == 0:
-                sampleIdDict[sampleId] = 0
-            else:
-                sampleIdDict[sampleId] = max([sampleIdDict[x] for x in sampleIdDict])+1
-        sampleIdx = sampleIdDict[sampleId]
-    return sampleIdDict
-
 def collapse_path(path, collapseDict, sampleIdDict):
     sampleIdx = sampleIdDict[path_id(path)]
 
@@ -177,46 +164,55 @@ def collapse_binary(collapseDict, sampleIdDict):
         collapseDict[key] = boolList
     return collapseDict
 
-def parse_graph(gfa, ref, positions, layoutCoords):
-    count = 0
-    segmentCount = 0
-    segments, links = [],[]
-    lenDict = dict()
+def update_sample_codes(path, sampleIdDict):
 
-    paths = []
+    sampleId = path_id(path)
+    if sampleId not in sampleIdDict:
+        if len(sampleIdDict) == 0:
+            sampleIdDict[sampleId] = 0
+        else:
+            sampleIdDict[sampleId] = max([sampleIdDict[x] for x in sampleIdDict])+1
+
+    return sampleIdDict
+
+def parse_graph(gfa, ref, positions, layoutCoords):
+    lenDict = dict()
+    sampleIdDict = dict()
+    collapseDict = dict()
+    refSet = set()
+
+    pathCount = 0
 
     print("Finding paths...")
     with get_reader(gfa) as gfaFile:
         for line in gfaFile:
             if line[0] in "PW":
                 if line[0] == "P":
-                    paths.append(parse_line_P(line))
+                    path = parse_line_P(line)
                 else:
-                    paths.append(parse_line_W(line))
-            if len(paths) > 0 and len(paths) % 10000 == 0:
-                print(".", end='', flush=True)
+                    path = parse_line_W(line)
 
-    sampleIdDict = code_samples(paths)
+                pathCount += 1
+                if ref in path["sample"]:
+                    refSet.update(path["path"])
+
+                sampleIdDict = update_sample_codes(path, sampleIdDict)
+                collapseDict = collapse_path(path, collapseDict, sampleIdDict)
+
+            if pathCount > 0 and pathCount % 10000 == 0:
+                print(path["sample"], path["hap"], path["start"])
+                #print(".", end='', flush=True)
+
     samples = [{"id": sample_name, "idx": sample_idx} for sample_name, sample_idx in sampleIdDict.items()]
     insert_samples(samples)
     
-    collapseDict = dict()
-    refSet = set()
-
-    for path in paths:
-        collapseDict = collapse_path(path, collapseDict, sampleIdDict)
-
-        if ref in path["sample"]:
-            refSet.update(path["path"])
-
     collapseDict = collapse_binary(collapseDict, sampleIdDict)
 
-    print("")
-    print("Finding segments & links...")
+    print("\nFinding segments...")
+    segments = []
+    segmentCount = 0
     with get_reader(gfa) as gfaFile:
-        count = 0
         for line in gfaFile:
-            count+=1
             if line[0] == "S":
                 segment = parse_line_S(line, ref, positions)
                 lenDict[segment["id"]] = segment["length"]
@@ -226,16 +222,17 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 segments.append(segment)
 
                 segmentCount += 1
-            elif line[0] == "L":
-                link = parse_line_L(line)
-                links.append(link)
 
-            if count % 100000 == 0:
+            if segmentCount % 100000 == 0:
                 print(".", end='', flush=True)
             if len(segments) > 100000:
                 insert_segments(segments)
-                segments=[]
+                segments = []
 
+    # Insert remaining segments after loop
+    insert_segments(segments)
+
+    def process_links(links):
         if len(collapseDict) == 0:
             for link in links:
                 link["haplotype"] = []
@@ -244,17 +241,36 @@ def parse_graph(gfa, ref, positions, layoutCoords):
         else:
             for link in links:
                 key = (str(link["from_id"]) + link["from_strand"],
-                        str(link["to_id"]) + link["to_strand"])
+                    str(link["to_id"]) + link["to_strand"])
                 #todo: line below does not account for strand
                 link["is_ref"] = link["from_id"] in refSet and link["to_id"] in refSet
                 if key in collapseDict:
                     hap = collapseDict[key]
                     link["haplotype"] = hap
-                    link["frequency"] = sum(hap)/len(hap)
+                    link["frequency"] = sum(hap) / len(hap)
                 else:
-                    n = max([sampleIdDict[x] for x in sampleIdDict])+1
+                    n = max([sampleIdDict[x] for x in sampleIdDict]) + 1
                     link["haplotype"] = [False] * n
                     link["frequency"] = 0
+        return links
 
-        insert_segments(segments)
-        insert_segment_links(links)
+    print("\nFinding links...")
+    links = []
+    linkCount = 0
+    with get_reader(gfa) as gfaFile:
+        for line in gfaFile:
+            if line[0] == "L":
+                link = parse_line_L(line)
+                links.append(link)
+
+                linkCount += 1
+
+            if linkCount % 100000 == 0:
+                print(".", end='', flush=True)
+                links = process_links(links)
+                insert_segment_links(links)
+                links = []
+
+    # Insert remaining links after loop
+    links = process_links(links)
+    insert_segment_links(links)

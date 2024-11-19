@@ -2,7 +2,7 @@ let RIGHT_CLICK_MANAGER = null;
 
 class RightClickManager {
     constructor(forceGraph) {
-      this.graphData = forceGraph.graphData();
+      this.forceGraph = forceGraph;
       this.options = [];
       this.menuElement = this.createMenuElement();
     }
@@ -22,7 +22,8 @@ class RightClickManager {
         this.menuElement.innerHTML = '';
         const targetNodes = [];
 
-        this.graphData.nodes.forEach(node => {
+        let graphData = this.forceGraph.graphData()
+        graphData.nodes.forEach(node => {
             if (node.isSelected){
                 targetNodes.push(node);
             }
@@ -96,7 +97,6 @@ class RightClickManager {
       }
 }
 
-//todo: rerun when graph is redrawn???
 function rightClickManagerSetup(forceGraph){
     RIGHT_CLICK_MANAGER = new RightClickManager(forceGraph);
 

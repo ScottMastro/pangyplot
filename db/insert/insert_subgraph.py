@@ -1,31 +1,40 @@
 from db.neo4j_db import get_session
 import uuid
 
-def insert_subgraph(subgraph):
+def insert_subgraph(subgraph, batch_size=1000):
     if not subgraph:
         return
 
     subgraph_id = str(uuid.uuid4())
+    with get_session() as (db, session):
 
-    with get_session() as (db,session):
-
+        # Create the Subgraph node
         query = """
                 CREATE (:Subgraph { 
                 db: $db,
                 id: $id })
                 """
-        session.run(query, parameters={"db": db, "id":subgraph_id})
+        session.run(query, parameters={"db": db, "id": subgraph_id})
 
-        query = """
-                UNWIND $graph AS node
-                MATCH (s:Subgraph {id: $id, db: $db}), (n:Segment {db: $db, id: node})
+        # Insert graph nodes in batches
+        graph_nodes = list(subgraph["graph"])
+        for i in range(0, len(graph_nodes), batch_size):
+            batch = graph_nodes[i:i + batch_size]
+
+            session.run("""
+                UNWIND $batch AS node
+                MATCH (s:Subgraph {db: $db, id: $id}),
+                      (n:Segment {db: $db, id: node})
                 CREATE (n)-[:SUBGRAPH]->(s)
-                """
-        session.run(query, {"graph": list(subgraph["graph"]), "db": db,  "id":subgraph_id})
+            """, parameters={"batch": batch, "id": subgraph_id, "db": db})
 
-        query = """
-                UNWIND $anchors AS anchor
-                MATCH (s:Subgraph {id: $id, db: $db}), (n:Segment {db: $db, id: anchor})
+        # Insert anchor nodes in batches
+        anchor_nodes = list(subgraph["anchor"])
+        for i in range(0, len(anchor_nodes), batch_size):
+            batch = anchor_nodes[i:i + batch_size]
+            session.run("""
+                UNWIND $batch AS anchor
+                MATCH (s:Subgraph {db: $db, id: $id}),
+                      (n:Segment {db: $db, id: anchor})
                 CREATE (s)-[:ANCHOR]->(n)
-                """
-        session.run(query, {"anchors": list(subgraph["anchor"]), "db": db,  "id":subgraph_id})
+            """, parameters={"batch": batch, "id": subgraph_id, "db": db})
