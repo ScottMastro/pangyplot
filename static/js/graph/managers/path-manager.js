@@ -30,7 +30,6 @@ function pathManagerShouldHighlightLink(link){
     if (!CURRENTLY_SELECTED_PATH || ! link.haplotype){
         return false;
     }
-    console.log(link.haplotype, link.haplotype[CURRENTLY_SELECTED_PATH])
     return link.haplotype[CURRENTLY_SELECTED_PATH];
 }
 

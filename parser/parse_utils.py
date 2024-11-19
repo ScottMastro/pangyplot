@@ -25,8 +25,8 @@ import re
 # GENOME#HAP#CHR[START-END]
 
 def pound_separated(reference_str, ref):
-    chrom = None
     genome = None
+    chrom = None
     start = None
     hap = None
 
@@ -36,7 +36,9 @@ def pound_separated(reference_str, ref):
     if bracket_match:
         start = int(bracket_match.group(1))
         parts[-1] = re.sub(r"\[\d+-\d+\]$", "", parts[-1])
-
+    else:
+        start = 0
+        
     genome = parts[0]
 
     if len(parts) == 2:
