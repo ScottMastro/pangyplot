@@ -204,7 +204,7 @@ def shoot(compact, altgraphs):
     end_time = time.time()
     print(f"Data inserted in {end_time - start_time} seconds.")
 
-    modify.add_null_nodes()
+    modify.annotate_deletions()
     modify.connect_bubble_ends_to_chain()
     modify.add_chain_subtype()
 

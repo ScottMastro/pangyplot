@@ -3,8 +3,8 @@ var NODE_INFO = {};
 
 const KINK_SIZE = 100;
 const MAX_KINKS = 20;
+const NODE_WIDTH=50;
 
-const NODE_SEGMENT_WIDTH = 21;
 const SINGLE_NODE_THRESH = 6;
 
 function nodeSourceId(nodeid){
@@ -109,6 +109,7 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         isSelected: false,
         isVisible: true,
         isDrawn: true,
+        size: NODE_WIDTH,
         largestChild: largestChild,
         isSingleton: totalKinks === 1,
         isRef: node.isRef,
@@ -141,9 +142,10 @@ function createNewNodeLink(node, nodeid, idx, totalKinks, nodeLength) {
         isDrawn: true,
         class: "node",
         type: node["type"],
+        width: NODE_WIDTH,
         length: Math.min(nodeLength / totalKinks, 1000),
+        force: LINK_FORCE,
         isRef: node.isRef,
-        width: NODE_SEGMENT_WIDTH,
         annotations: []
     };
 }

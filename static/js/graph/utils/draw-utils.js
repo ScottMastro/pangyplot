@@ -91,6 +91,38 @@ function drawCross(ctx, x, y, size, color){
     ctx.restore();
 }
 
+function drawCross(ctx, x, y, size, width, color){
+    ctx.save(); 
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+
+    ctx.moveTo(x - size, y - size);
+    ctx.lineTo(x + size, y + size);
+    ctx.moveTo(x + size, y - size);
+    ctx.lineTo(x - size, y + size);
+
+    ctx.stroke();
+    ctx.restore();
+}
+function drawRotatedCross(ctx, x, y, size, width, color, angle) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+
+    ctx.moveTo(-size, -size);
+    ctx.lineTo(size, size);
+    ctx.moveTo(size, -size);
+    ctx.lineTo(-size, size);
+
+    ctx.stroke();
+
+    ctx.restore(); 
+}
+
 function outlineNode(node, ctx, shift, size, color) {
     ctx.beginPath();
     ctx.arc(node.x+shift, node.y+shift, size, 0, 2 * Math.PI, false);

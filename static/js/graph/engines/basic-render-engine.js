@@ -1,5 +1,3 @@
-const NODE_SIZE=50;
-const LINK_SIZE=10;
 
 function basicRenderPaintNode(ctx, node, svg=false) {
 
@@ -10,21 +8,21 @@ function basicRenderPaintNode(ctx, node, svg=false) {
         return node.type === "null" ? {
             cx: node.x,
             cy: node.y,
-            size: NODE_SIZE,
+            size: node.size,
             stroke: color,
             fill: BACKGROUND_COLOR,
             strokeWidth: 5
         } : {
             cx: node.x,
             cy: node.y,
-            size: NODE_SIZE,
+            size: node.size,
             fill: color
         };
     } else {
         if (node.type === "null") {
-            drawCircleOutline(ctx, node.x, node.y, NODE_SIZE, color, lineWidth=5);
+            drawCircleOutline(ctx, node.x, node.y, node.size, color, lineWidth=5);
         } else {
-            drawCircle(ctx, node.x, node.y, NODE_SIZE + 3/zoomFactor, color);
+            drawCircle(ctx, node.x, node.y, node.size + 3/zoomFactor, color);
         }
     }
     
@@ -37,30 +35,39 @@ function basicRenderPaintLink(ctx, link, svg=false){
 
     const color = colorManagerLinkColor(link);
 
-    let width = LINK_SIZE;
     let zoomAdjust = 0;
 
     if (link.class === "node"){
         zoomAdjust = 3/(ctx.canvas.__zoom["k"]);
-        width = NODE_SIZE;
     }
 
     const x1 = link.source.x;
     const y1 = link.source.y;
     const x2 = link.target.x;
     const y2 = link.target.y;
-
+    
+    //todo: add del cross to svg
     if (svg){
         return({
             x1:x1,
             x2:x2,
             y1:y1,
             y2:y2,
-            width:width,
+            width:link.width,
             color:color
         })
     } else{
-        drawLine(ctx, x1, y1, x2, y2, width+zoomAdjust, color);
+
+        drawLine(ctx, x1, y1, x2, y2, link.width+zoomAdjust, color);
+        if (link.isDel){
+        
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            const crossSize = (link.width+zoomAdjust)*2; 
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            
+            drawRotatedCross(ctx, midX, midY, crossSize, link.width + zoomAdjust, color, angle);
+        }
     }
 }
 

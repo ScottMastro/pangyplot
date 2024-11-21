@@ -45,6 +45,7 @@ def link_record(record):
             "frequency": record["frequency"],
             "haplotype": record["haplotype"],
             "is_ref": record["isRef"],
+            "is_del": record["isDel"],
             "class": "edge"}
     return link
 

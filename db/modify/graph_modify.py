@@ -46,29 +46,12 @@ def anchor_alternative_branches():
                 """
         session.run(query, {"db": db})
 
-def add_null_nodes():
+def annotate_deletions():
     with get_session() as (db, session):
-
         query = """
-                MATCH (s1:Segment)-[l:LINKS_TO]->(s2:Segment)
-                WHERE s1.db = $db
-                MATCH (s1)-[e1:END]->(b:Bubble)-[e2:END]->(s2)
-                CREATE (s3:Segment {
-                    db: $db,
-                    id: s1.id + '_' + s2.id,
-                    sequence: "",
-                    length: 0,
-                    x1: s1.x2,
-                    y1: s1.y2,
-                    x2: s2.x1,
-                    y2: s2.y1,
-                    genome: COALESCE(s1.genome, s2.genome),
-                    chrom: COALESCE(s1.chrom, s2.chrom),
-                    tag: "null"
-                })
-                CREATE (s1)-[:LINKS_TO]->(s3)-[:LINKS_TO]->(s2)
-                CREATE (s3)-[:INSIDE]->(b)
-                DELETE l
-                """
-
+        MATCH (s1:Segment)-[l:LINKS_TO]->(s2:Segment)
+        WHERE s1.db = $db AND s2.db = $db
+        MATCH (s1)-[e1:END]->(b:Bubble)-[e2:END]->(s2)
+        SET l.isDel = true
+        """
         session.run(query, {"db": db})

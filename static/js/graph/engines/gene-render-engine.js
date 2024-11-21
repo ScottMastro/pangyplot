@@ -10,11 +10,12 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
 
     let renderQueue = [];
 
-    var hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE*(1/zoomFactor/10));
     
     //todo: don't loop if no genes are visible
     graphData.nodes.forEach(node => {
         if (node.isVisible && node.isDrawn) {
+            let hsize = Math.max(node.size+10, node.size+10*(1/zoomFactor/10));
+
             const annotations = annotationManagerGetNodeAnnotations(node); 
             let n = 1; 
             
@@ -23,7 +24,6 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
                     type: 'node', 
                     element: node, 
                     color: annotation.color,
-                    size: (HIGHLIGHT_SIZE+40) * n,
                     zoomSize: hsize * n, 
                     zIndex: n
                 });
@@ -32,18 +32,18 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
         }
     });
 
-    hsize = Math.max(HIGHLIGHT_SIZE+40, (HIGHLIGHT_SIZE+40)*(1/zoomFactor/10));
     graphData.links.forEach(link => {
         if (link.isVisible && link.isDrawn) {
             const annotations = annotationManagerGetLinkAnnotations(link);
             let n = 1;
             
+            hsize = Math.max(link.width+100, (link.width+100)*(1/zoomFactor/10));
+
             annotations.forEach(annotation => {
                 renderQueue.push({
                     type: 'link', 
                     element: link, 
                     color: annotation.color, 
-                    size: (HIGHLIGHT_SIZE+40) * n,
                     zoomSize: hsize * n, 
                     zIndex: n
                 });
