@@ -1,24 +1,32 @@
-const EDGE_LENGTH = 10
-const EDGE_WIDTH = 2
+const LINK_LENGTH = 10
+const LINK_WIDTH = 10
+const LINK_FORCE = 10
 
 function processLinks(rawLinks) {
-    console.log(rawLinks)
+    console.log("rawLinks", rawLinks)
     rawLinks = filterBadLinks(rawLinks);
     
-    return rawLinks.map(rawLink => ({
+    let links = rawLinks.map(rawLink => ({
         source: nodeSourceId(rawLink["source"]),
         target: nodeTargetId(rawLink["target"]),
         sourceid: String(rawLink["source"]),
         targetid: String(rawLink["target"]),
         haplotype: rawLink["haplotype"],
-        isRef: rawLink["is_ref"],
+        isRef: rawLink.is_ref,
+        isDel: rawLink.is_del,
         isVisible: true,
         isDrawn: true,
         class: "edge",
-        length: EDGE_LENGTH,
-        width: EDGE_WIDTH,
+        length: rawLink.is_del ? LINK_LENGTH*2 : LINK_LENGTH,
+        force: LINK_FORCE,
+        width: LINK_WIDTH,
         annotations: []
     }));
+
+    const delLinks = links.filter(link => link.isDel === true);
+    console.log("Links where is_del is true:", delLinks);
+    return links;
+
 }
 
 function flipLink(link) {

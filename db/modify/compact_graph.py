@@ -227,7 +227,7 @@ def compact_graph(graph):
             
             if len(cluster) > 1:
                 count+=1
-                if count % 10000 == 0:
+                if count % 1000 == 0:
                     print(".", end='', flush=True)
                 compact_segment(cluster, n)
 

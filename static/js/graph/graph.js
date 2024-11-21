@@ -47,8 +47,8 @@ function renderGraph(graph){
             .nodeId("__nodeid")
             .height(getCanvasHeight())
             .width(getCanvasWidth())
-            .nodeVal(NODE_SIZE)
             .nodeRelSize(HOVER_PRECISION)
+            .nodeVal(NODE_WIDTH)
             .autoPauseRedraw(false) // keep drawing after engine has stopped
             .d3VelocityDecay(0.1)
             .cooldownTicks(Infinity)
@@ -201,11 +201,20 @@ function renderGraph(graph){
         //forceGraph.d3Force('spreadX', forceSpreadX);
         
         forceGraph.d3Force('center', null);
-        forceGraph.d3Force('link').distance(100).strength(0.9);
+
+        function link_force_distance(link) {
+            return link.force*10;
+        }
+        
+        forceGraph.d3Force('link').distance(link_force_distance).strength(0.9)
+        //forceGraph.d3Force('link').distance(100).strength(0.9); //equal force
         //forceGraph.d3Force('link', null);   // Disable link force
 
         forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
         forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
+
+        
+        forceGraph.d3Force('repelFromDeletedLinks', repelFromDelLinksDegree);
 
         const pause = false;
         if(pause){
@@ -228,13 +237,6 @@ function renderGraph(graph){
 // ==================================================
 
 /*
-function link_force_distance(link) {
-    return (link.type === "edge") ? 10 : link.length ;
-}
-
-
-
-FORCE_GRAPH.d3Force('link').distance(link_force_distance).strength(0.5).iterations(1)
 FORCE_GRAPH.d3Force('collide', d3.forceCollide(50).radius(50))    
 FORCE_GRAPH.d3Force('charge').strength(-500).distanceMax(1000)
 */
@@ -291,6 +293,7 @@ document.addEventListener('constructGraph', function(event) {
 document.addEventListener('DOMContentLoaded', function () {
 
     // wide muc4/20 region
+    let chrom="chr3"
     let start=198347210
     let end=198855552 // start+100000
     
@@ -313,6 +316,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // PRSS1-PRSS2 chr7:142745398-142775564
     data = {genome: "GRCh38", chrom:"chr7", start:142760398-15000, end:142774564+1000, genome: "GRCh38"};
     
+    // SLC9A3
+    data = {genome: "GRCh38", chrom:"chr5", start:470456, end:524449, genome: "GRCh38"};
+
+
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
 
