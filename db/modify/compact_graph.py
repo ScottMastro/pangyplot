@@ -196,6 +196,7 @@ def compact_segment(segments, mainId):
 
 
 def compact_graph(graph):
+    count = 0
     nodes = list(graph.nodes.keys())
     for n in nodes:
         cluster = []
@@ -225,6 +226,8 @@ def compact_graph(graph):
             cluster.reverse()
             
             if len(cluster) > 1:
-                print(cluster)
+                count+=1
+                if count % 10000 == 0:
+                    print(".", end='', flush=True)
                 compact_segment(cluster, n)
 
