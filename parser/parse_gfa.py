@@ -200,8 +200,8 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 collapseDict = collapse_path(path, collapseDict, sampleIdDict)
 
             if pathCount > 0 and pathCount % 10000 == 0:
-                print(path["sample"], path["hap"], path["start"])
-                #print(".", end='', flush=True)
+                #print(path["sample"], path["hap"], path["start"])
+                print(".", end='', flush=True)
 
     samples = [{"id": sample_name, "idx": sample_idx} for sample_name, sample_idx in sampleIdDict.items()]
     insert_samples(samples)
