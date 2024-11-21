@@ -1,13 +1,12 @@
 from BubbleGun.Graph import Graph
 from BubbleGun.Node import Node
-from BubbleGun.compact_graph import merge_start,merge_end
 from BubbleGun.find_bubbles import find_bubbles
 from BubbleGun.connect_bubbles import connect_bubbles
 from BubbleGun.find_parents import find_parents
 
 import db.modify.drop_data as drop
 from db.query.query_all import query_all_segments, query_all_links
-from db.modify.compact_segment import compact_segment 
+import db.modify.compact_graph as compacter 
 import db.modify.graph_modify as modify
 
 from db.insert.insert_bubble import insert_bubbles, add_bubble_properties
@@ -81,31 +80,7 @@ def read_from_db():
 
     return nodes
 
-def compact_graph(graph):
-    nodes = list(graph.nodes.keys())
-    for n in nodes:
-        if n in graph.nodes:
-            while True:
-                if len(graph.nodes[n].end) == 1: 
-                    other = graph.nodes[n].end[0][0]
-                    merge = merge_end(graph, n)
-                    if merge:
-                        compact_segment(n, other)
-                    else:
-                        break
-                else:
-                    break
 
-            while True:
-                if len(graph.nodes[n].start) == 1:
-                    other = graph.nodes[n].start[0][0]
-                    merge = merge_start(graph, n)
-                    if merge:
-                        compact_segment(n, other)
-                    else:
-                        break
-                else:
-                    break
 
 def insert_all(graph):
     chains,bubbles = [], []
@@ -195,7 +170,7 @@ def shoot(compact, altgraphs):
     if compact:
         print("Compacting graph...")
         before = len(graph.nodes)
-        compact_graph(graph)
+        compacter.compact_graph(graph)
         after = len(graph.nodes)
         print(f"{after}/{before} segments retained.")
     
