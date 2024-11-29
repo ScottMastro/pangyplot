@@ -124,7 +124,7 @@ function exportForceGraphToSVG(forceGraph) {
     });
     
     const labelGroup = document.createElementNS(svgNS, "g");
-    labels = LabelEngineUpdate(ctx, forceGraph, true);
+    labels = labelEngineUpdate(ctx, forceGraph, true);
     labels.forEach(label => {
         const textElement = document.createElementNS(svgNS, "text");
         textElement.setAttribute("x", label.x);

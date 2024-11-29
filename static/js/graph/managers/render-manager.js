@@ -72,7 +72,9 @@ function renderManagerPostRender(ctx, forceGraph, canvasWidth, canvasHeight){
 
     drawGeneName(ctx, forceGraph.graphData(), viewport);
 
-    LabelEngineUpdate(ctx, forceGraph)
+    labelEngineUpdate(ctx, forceGraph);
+
+    searchSequenceEngineUpdate(ctx, forceGraph, viewport);
 
     ctx.restore();
 }

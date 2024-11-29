@@ -37,6 +37,25 @@ function drawLine(ctx, x1, y1, x2, y2, width, color){
     ctx.strokeStyle = previousStrokeStyle;
 }
 
+function drawPath(ctx, path, width, color) {
+    ctx.save();
+
+    if (path.length < 2) return;
+
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+
+    for (let i = 1; i < path.length; i++) {
+        ctx.lineTo(path[i].x, path[i].y);
+    }
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+    ctx.restore();
+
+}
+
 
 function drawCircleOutline2(ctx, x, y, size, color, lineWidth=3, fill=null){
     ctx.save();
