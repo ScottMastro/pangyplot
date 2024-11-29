@@ -23,8 +23,6 @@ function processLinks(rawLinks) {
         annotations: []
     }));
 
-    const delLinks = links.filter(link => link.isDel === true);
-    console.log("Links where is_del is true:", delLinks);
     return links;
 
 }

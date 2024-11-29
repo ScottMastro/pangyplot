@@ -38,9 +38,6 @@ document.getElementById(PATH_SELECTER).addEventListener('change', function() {
     var selectedId = selectedOption.value; 
     var selectedIndex = selectedOption.getAttribute('data-index');
 
-    console.log("Selected ID: ", selectedId);
-    console.log("Selected Index: ", selectedIndex);
-
     CURRENTLY_SELECTED_PATH = selectedIndex; 
 });
 
