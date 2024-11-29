@@ -36,6 +36,16 @@ function exportForceGraphToSVG(forceGraph) {
 
     const svgNS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(svgNS, "svg");
+
+    const style = document.createElementNS(svgNS, "style");
+    style.textContent = `
+        text {
+            font-family: sans-serif;
+            font-weight: bold;
+        }
+    `;
+    svg.appendChild(style);
+
     
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     function updateBoundingBox(x, y) {
@@ -48,12 +58,13 @@ function exportForceGraphToSVG(forceGraph) {
     const geneGroup = document.createElementNS(svgNS, "g");
 
     genes = geneRenderEngineDraw(ctx, graphData, true)
+    console.log(genes)
     genes.forEach(item => {
         if (item.type === 'node') {
             const circle = document.createElementNS(svgNS, "circle");
             circle.setAttribute("cx", item.element.x);
             circle.setAttribute("cy", item.element.y);
-            circle.setAttribute("r", item.size/2);
+            circle.setAttribute("r", item.size);
             circle.setAttribute("fill", item.color);
             geneGroup.appendChild(circle);
         } else if (item.type === 'link') {
@@ -63,7 +74,7 @@ function exportForceGraphToSVG(forceGraph) {
             line.setAttribute("x2", item.element.target.x);
             line.setAttribute("y2", item.element.target.y);
             line.setAttribute("stroke", item.color);
-            line.setAttribute("stroke-width", item.size); 
+            line.setAttribute("stroke-width", item.width); 
             geneGroup.appendChild(line);
         }
     });
@@ -107,6 +118,32 @@ function exportForceGraphToSVG(forceGraph) {
         updateBoundingBox(n.cx, n.cy);
     });
 
+    const sequenceSearchGroup = document.createElementNS(svgNS, "g");
+    sequenceSearch = searchSequenceEngineUpdate(ctx, forceGraph, true);
+    sequenceSearch.forEach(element => {
+        if (element.type === 'square') {
+            const rect = document.createElementNS(svgNS, "rect");
+            rect.setAttribute("x", element.x - element.size / 2);
+            rect.setAttribute("y", element.y - element.size / 2);
+            rect.setAttribute("width", element.size);
+            rect.setAttribute("height", element.size);
+            rect.setAttribute("fill", element.fill);
+            sequenceSearchGroup.appendChild(rect);
+        } else if (element.type === 'path') {
+            const pathElement = document.createElementNS(svgNS, "path");
+            const d = element.path
+                .map((point, index) =>
+                    index === 0 ? `M ${point.x} ${point.y}` : `L ${point.x} ${point.y}`
+                )
+                .join(" ");
+            pathElement.setAttribute("d", d);
+            pathElement.setAttribute("stroke", element.stroke);
+            pathElement.setAttribute("stroke-width", element.width);
+            pathElement.setAttribute("fill", "none");
+            sequenceSearchGroup.appendChild(pathElement);
+        }
+    });
+
     const geneLabelGroup = document.createElementNS(svgNS, "g");
     geneLabels = drawGeneName(ctx, graphData, viewport, true);
     geneLabels.forEach(label => {
@@ -120,7 +157,15 @@ function exportForceGraphToSVG(forceGraph) {
         textElement.textContent = label.text;
 
         geneLabelGroup.appendChild(textElement);
-        updateBoundingBox(label.x, label.y);
+
+        const bbox = textElement.getBBox(); // Measure text dimensions
+        const adjustedX = label.x - bbox.width / 2;
+        const adjustedY = label.y + bbox.height / 2;
+    
+        textElement.setAttribute("x", adjustedX);
+        textElement.setAttribute("y", adjustedY);
+
+        updateBoundingBox(adjustedX, adjustedY);
     });
     
     const labelGroup = document.createElementNS(svgNS, "g");
@@ -142,9 +187,10 @@ function exportForceGraphToSVG(forceGraph) {
     svg.appendChild(geneGroup);
     svg.appendChild(linkGroup);
     svg.appendChild(nodeGroup);
+    svg.appendChild(sequenceSearchGroup);
     svg.appendChild(geneLabelGroup);
     svg.appendChild(labelGroup);
-
+    
     // Calculate final bounding box dimensions
     const width = maxX - minX;
     const height = maxY - minY;

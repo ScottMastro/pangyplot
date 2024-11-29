@@ -14,7 +14,6 @@ inputField.addEventListener("input", (event) => {
     event.target.value = value.replace(/[^ATCGNatcgn]/g, "").toUpperCase();
 });
 
-// Allow Enter key to add sequence
 inputField.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
         addSequence();
@@ -77,6 +76,11 @@ function addSearchRow(sequence, reverseComplement, color) {
     colorPicker.classList.add("color-picker");
     colorCell.appendChild(colorPicker);
     row.appendChild(colorCell);
+
+    colorPicker.addEventListener("input", () => {
+        searchSequenceEngineSetColor(sequence, colorPicker.value);
+    });
+
 
     // Search string with hover showing reverse complement
     const searchCell = document.createElement("td");

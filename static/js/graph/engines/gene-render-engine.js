@@ -24,7 +24,7 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
                     type: 'node', 
                     element: node, 
                     color: annotation.color,
-                    zoomSize: hsize * n, 
+                    size: hsize * n, 
                     zIndex: n
                 });
                 n += 1;
@@ -36,15 +36,18 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
         if (link.isVisible && link.isDrawn) {
             const annotations = annotationManagerGetLinkAnnotations(link);
             let n = 1;
-            
-            hsize = Math.max(link.width+100, (link.width+100)*(1/zoomFactor/10));
+            let w = link.width + 10;
+            if(link.class=="edge"){
+                w+=35;
+            }
+            hsize = Math.max(w, (w)*(1/zoomFactor/10));
 
             annotations.forEach(annotation => {
                 renderQueue.push({
                     type: 'link', 
                     element: link, 
                     color: annotation.color, 
-                    zoomSize: hsize * n, 
+                    width: hsize * n * 2, 
                     zIndex: n
                 });
                 n += 1;
@@ -59,9 +62,9 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
     } else; {
         renderQueue.forEach(item => {
             if (item.type === 'node') {
-                outlineNode(item.element, ctx, 0, item.zoomSize, item.color);
+                outlineNode(item.element, ctx, 0, item.size, item.color);
             } else if (item.type === 'link') {
-                outlineLink(item.element, ctx, 0, item.zoomSize, item.color);
+                outlineLink(item.element, ctx, 0, item.width, item.color);
             }
         });
     }
@@ -280,8 +283,8 @@ function drawGeneName(ctx, graphData, viewport, svg=false) {
                 text: displayName,
                 x: x,
                 y: y,
-                fontSize: exon_number ? FONT_SIZE : 2*FONT_SIZE,
-                strokeWidth: exon_number ? 4 : 1,
+                fontSize: size,
+                strokeWidth: size/20,
                 stroke: bgColor,
                 color: color
             });
