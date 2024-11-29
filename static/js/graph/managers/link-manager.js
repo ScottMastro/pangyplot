@@ -67,6 +67,7 @@ function findDeadEndNodes(links) {
     return new Set(deadEndNodes);
 }
 
+//todo: this shouldn't be necessary to do
 function reorientLinks(graphData) {
     const deadEndNodes = findDeadEndNodes(graphData.links);
     const nodeMap = Object.fromEntries(graphData.nodes.map(node => [node.nodeid, node])); 

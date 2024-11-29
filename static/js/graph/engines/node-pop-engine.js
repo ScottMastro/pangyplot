@@ -119,6 +119,7 @@ function findSubgraphs(nodeIds, adjacencyList) {
 }
 
 function processSubgraphData(subgraph, originNode, forceGraph){
+    const isSelected = originNode.isSelected;
     graphData = forceGraph.graphData();
 
     graphData.nodes = graphData.nodes.filter(node => node.type != "collapse");
@@ -134,6 +135,10 @@ function processSubgraphData(subgraph, originNode, forceGraph){
     nodeResult = shiftSubgraph(nodeResult, originNode, forceGraph);
     
     graphData = deleteNode(graphData, originNode.nodeid);
+    
+    if(isSelected){
+        nodeResult.nodes.forEach(node => { node.isSelected = true });
+    }
 
     graphData.nodes = graphData.nodes.concat(nodeResult.nodes);
 
@@ -154,7 +159,8 @@ function processSubgraphData(subgraph, originNode, forceGraph){
     //forceGraph = shrinkGraph(forceGraph, 1000); 
     
     annotationManagerAnnotateGraph(forceGraph.graphData());
-
+    searchSequenceEngineRerun();
+    
     document.dispatchEvent(new CustomEvent("updatedGraphData", { detail: { graph: forceGraph.graphData() } }));
 }
 

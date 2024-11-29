@@ -29,7 +29,6 @@ class RightClickManager {
             }
         });
 
-      console.log(targetNodes.length,targetNodes )
       const categorizedOptions = this.categorizeOptions();
 
       if (categorizedOptions['general']) {

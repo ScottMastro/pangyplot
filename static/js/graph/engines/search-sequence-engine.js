@@ -105,17 +105,18 @@ function searchSequenceEngineRun(searchString) {
 }
 
 
-function searchSequenceEngineUpdate(ctx, forceGraph, viewport) {
+function searchSequenceEngineUpdate(ctx, forceGraph, svg=false) {
     const graphData = forceGraph.graphData();
     const nodes = graphData.nodes;
+    const svgData = []
 
     const segments = {};
     nodes.forEach(node => {
         if (!segments[node.nodeid]) {
-            const totalKinks = countNodeKinks(node.nodeid); // Find the total number of kinks for the segment
-            segments[node.nodeid] = new Array(totalKinks).fill(null); // Initialize array for segment
+            const totalKinks = countNodeKinks(node.nodeid);
+            segments[node.nodeid] = new Array(totalKinks).fill(null);
         }
-        segments[node.nodeid][node.__nodeidx] = node; // Insert the node at its correct position
+        segments[node.nodeid][node.__nodeidx] = node;
     });
 
     // Loop over all sequences in SEQUENCE_SEARCH_RESULTS
@@ -133,7 +134,19 @@ function searchSequenceEngineUpdate(ctx, forceGraph, viewport) {
             if (totalKinks === 1) {
                 const node = segmentNodes[0]; 
                 positions.forEach(([start, end]) => {
-                    drawSquare(ctx, node.x, node.y, node.size*0.8, SEQUENCE_SEARCH_COLOR[sequence]);
+
+                    if(svg){
+                        svgData.push({
+                            type: "square",
+                            fill: SEQUENCE_SEARCH_COLOR[sequence],
+                            x: node.x,
+                            y: node.y,
+                            size: node.size*0.8
+                        });
+                    } else {
+                        drawSquare(ctx, node.x, node.y, node.size*0.8, SEQUENCE_SEARCH_COLOR[sequence]);
+                    }
+
                 });
                 continue;
             }
@@ -164,21 +177,20 @@ function searchSequenceEngineUpdate(ctx, forceGraph, viewport) {
 
                     const nextCumulativeProportion = cumulativeProportion + kinkProportion;
 
-
                     // Handle start position
                     if (startRatio >= cumulativeProportion &&
                         startRatio < nextCumulativeProportion) {
                         const progress = (startRatio - cumulativeProportion) / kinkProportion;        
                         const startX = (1 - progress) * node.x + progress * nextNode.x;
                         const startY = (1 - progress) * node.y + progress * nextNode.y;
-                        path.push({ x: startX, y: startY }); // Add calculated start position
+                        path.push({ x: startX, y: startY });
                     }
 
                     // Add intermediate kinks if the sequence spans multiple nodes
                     if (startRatio < cumulativeProportion &&
                         endRatio > cumulativeProportion && 
                         Math.abs(endRatio-startRatio) > 0.05) {
-                        path.push({ x: node.x, y: node.y }); // Add intermediate kink
+                        path.push({ x: node.x, y: node.y });
                     }
 
                     // Handle end position
@@ -187,14 +199,25 @@ function searchSequenceEngineUpdate(ctx, forceGraph, viewport) {
                         const progress = (endRatio - cumulativeProportion) / kinkProportion;
                         const endX = (1 - progress) * node.x + progress * nextNode.x;
                         const endY = (1 - progress) * node.y + progress * nextNode.y;
-                        path.push({ x: endX, y: endY }); // Add calculated end position
+                        path.push({ x: endX, y: endY });
                     }
 
                     cumulativeProportion = nextCumulativeProportion;
                 }
 
-                drawPath(ctx, path, 100, SEQUENCE_SEARCH_COLOR[sequence]);
+                if(svg){
+                    svgData.push({
+                        type: "path",
+                        stroke: SEQUENCE_SEARCH_COLOR[sequence],
+                        path: path,
+                        width: 100
+                    });
+                } else {
+                    drawPath(ctx, path, 100, SEQUENCE_SEARCH_COLOR[sequence]);
+                }
             });
         }
     }
+
+    if(svg){ return svgData; }
 }
