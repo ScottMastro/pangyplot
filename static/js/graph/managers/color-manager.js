@@ -86,7 +86,8 @@ function colorByGC(count, total){
     } if (total == null || isNaN(total) || total <= 0) {
         return NULL_COLOR;
     }
-
+    if (total < 3){ return NULL_COLOR ; }
+    
     const pcGC = count/total;
     const color = getGradientColor(pcGC, 0, 1, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
 

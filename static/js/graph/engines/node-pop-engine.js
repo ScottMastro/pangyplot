@@ -134,21 +134,26 @@ function processSubgraphData(subgraph, originNode, forceGraph){
     nodeResult = shiftSubgraph(nodeResult, originNode, forceGraph);
     
     graphData = deleteNode(graphData, originNode.nodeid);
-       
-    links = processLinks(subgraph.links);
-    
+
     graphData.nodes = graphData.nodes.concat(nodeResult.nodes);
+
+    links = processLinks(subgraph.links);
+
+    const currentNodeIds = new Set(graphData.nodes.map(node => node.__nodeid));
+    links = links.filter(link => 
+        currentNodeIds.has(link.source) && currentNodeIds.has(link.target)
+    );
+        
     graphData.links = graphData.links.concat(links).concat(nodeResult.nodeLinks);
-
+    
     graphData = reorientLinks(graphData);
-
-    forceGraph.graphData(graphData)
+    forceGraph.graphData(graphData);
 
     //todo: take number as input
-    forceGraph = simplifyGraph(forceGraph, 1);
+    //forceGraph = simplifyGraph(forceGraph, 1);
     //forceGraph = shrinkGraph(forceGraph, 1000); 
     
-    annotationManagerAnnotateGraph(forceGraph.graphData())
+    annotationManagerAnnotateGraph(forceGraph.graphData());
 
     document.dispatchEvent(new CustomEvent("updatedGraphData", { detail: { graph: forceGraph.graphData() } }));
 }
