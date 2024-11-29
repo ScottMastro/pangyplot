@@ -2,7 +2,7 @@ const LABEL_FONT_SIZE=80;
 const LABEL_FILL_COLOR = "#FFFFFF";
 const LABEL_OUTLINE_COLOR= "#000000";
 
-function LabelEngineUpdate(ctx, forceGraph, svg=false){
+function labelEngineUpdate(ctx, forceGraph, svg=false){
     const zoomFactor = ctx.canvas.__zoom["k"];
 
     const labelGroups = {};

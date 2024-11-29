@@ -38,6 +38,7 @@ function renderGraph(graph){
     if (forceGraph) {
         forceGraph.graphData(graph);
         annotationManagerAnnotateGraph(forceGraph.graphData())
+        searchSequenceEngineRerun();
 
         console.log("Graph data updated.");
     } else {
@@ -225,6 +226,7 @@ function renderGraph(graph){
             forceGraph.d3Force('center', null); // Disable center force
         }
         graphSettingEngineSetup(forceGraph);
+        searchSequenceEngineInitialize(forceGraph);
     }
 
     setTimeout(() => {
@@ -317,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function () {
     data = {genome: "GRCh38", chrom:"chr7", start:142760398-15000, end:142774564+1000, genome: "GRCh38"};
     
     // SLC9A3
-    data = {genome: "GRCh38", chrom:"chr5", start:470456, end:524449, genome: "GRCh38"};
+    //data = {genome: "GRCh38", chrom:"chr5", start:470456, end:524449, genome: "GRCh38"};
 
 
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));

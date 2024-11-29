@@ -1,0 +1,37 @@
+#add-search-button {
+    padding: 5px;
+}
+
+#search-tab-bar {
+    padding: 5px;
+}
+
+.remove-row-button{
+    padding: 5px;
+}
+
+#search-table .tooltip {
+    position: relative;
+    cursor: pointer;
+}
+
+#search-table .tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 50%;
+    bottom: 120%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: pre; /* Enables multiline tooltip */
+    display: none;
+    z-index: 10;
+}
+
+#search-table .tooltip:hover::after {
+    display: block;
+}
