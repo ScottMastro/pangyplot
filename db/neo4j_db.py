@@ -45,6 +45,13 @@ def get_session():
     finally:
         session_cm.__exit__(None, None, None)
 
+def create_dummy_relationship(session, type):
+    query = """
+    MERGE (a:Dummy {id: 'dummy_start'})
+    MERGE (b:Dummy {id: 'dummy_end'})
+    MERGE (a)-[:"""+type+"""]->(b)
+    """
+    session.run(query)
 
 def close_driver():
     if NEO4J_DRIVER is not None:
@@ -58,7 +65,9 @@ def db_init(dbName=None):
 
         #index.drop_all_constraints(session)
         #index.drop_all_index(session)
-        
+
+        create_dummy_relationship(session, "ANCHOR") 
+               
         compoundPosition = ["db", "genome", "chrom", "start", "end"]
 
         for x in ["Segment", "Bubble", "Chain"]:
