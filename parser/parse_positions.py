@@ -10,10 +10,16 @@ def parse_line(line):
 
     cols = line.strip().split("\t")
     nodeId, startCol, endCol = cols
+    print(startCol)
 
-    startPath, startPos = startCol.split(":")
-    endPath, endPos = endCol.split(":")
-    
+    startColSplit = startCol.split(":")
+    startPos = startColSplit[-1]
+    startPath = ":".join(startColSplit[:-1])
+
+    endColSplit = endCol.split(":")
+    endPos = endColSplit[-1]
+    endPath = ":".join(endColSplit[:-1])
+
     start = utils.parse_id_string(startPath)
     end = utils.parse_id_string(endPath)
 
