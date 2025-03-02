@@ -37,7 +37,7 @@ def parse_args(app):
         parser_add.add_argument('--compact', help='Attempt to compact graph (not recommended for large graph)', action='store_true', required=False)
 
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
-        parser_annotate.add_argument('--ref', help='Reference name', default=None)
+        parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
         parser_annotate.add_argument('--gff3', help='Path to the GFF3 file', default=None, required=True)
 
         parser_drop = subparsers.add_parser('drop', help='Drop data tables')
