@@ -138,6 +138,13 @@ function rightClickManagerSetup(forceGraph){
         });     
       });
 
+      RIGHT_CLICK_MANAGER.addOption('lock', 'Lock nodes', 'node', (nodes) => {
+        nodes.forEach(node => {
+          node.fx = node.x;
+          node.fy = node.y;
+        });     
+      });
+
       RIGHT_CLICK_MANAGER.addOption('arrows-to-circle', 'Recenter Graph', 'general', () => {
         forceGraph.zoomToFit(200, 10, node => true);
       });
