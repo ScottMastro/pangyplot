@@ -22,6 +22,11 @@ def segment_record(record):
     segment["nodeid"] = record.id
     return segment
 
+def cluster_record(record):
+    cluster = {k: record[k] for k in record.keys()}
+    cluster["type"] = "cluster"
+    return cluster
+
 def node_record(record, nodeType):
     if nodeType == "Segment":
         return segment_record(record) 

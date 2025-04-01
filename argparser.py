@@ -2,6 +2,8 @@ import argparse
 
 from db.neo4j_db import db_init
 import db.modify.drop_data as drop
+import db.modify.cluster_graph as cluster
+
 from parser.parse_gfa import parse_graph
 from parser.parse_layout import parse_layout
 from parser.parse_gff3 import parse_gff3
@@ -9,6 +11,7 @@ from parser.parse_positions import parse_positions
 
 import db.bubble_gun as bubble_gun
 from db.utils.check_status import get_status
+
 
 
 def parse_args(app):
@@ -61,6 +64,7 @@ def parse_args(app):
             db_init(args.db)
             port = args.port if args.port else DEFAULT_PORT
             print(f"Starting PangyPlot... http://127.0.0.1:{port}")
+           
             app.run(port=port)
             exit()
 
@@ -135,5 +139,9 @@ def parse_args(app):
                 #drop.drop_bubbles()
                 print("Calculating bubbles...")
                 bubble_gun.shoot(args.compact, True)
+
+                print("Calculating clusters...")
+                #cluster.generate_clusters()
+
                 print("Done.")
           
