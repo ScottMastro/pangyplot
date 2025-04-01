@@ -257,9 +257,15 @@ function processGraphData(rawGraph){
 
 function fetchGraph(genome, chromosome, start, end) {
     const url = buildUrl('/select', { genome, chromosome, start, end });
-
     fetchData(url, 'graph').then(fetchedData => {
-        processGraphData(fetchedData);
+
+        if (fetchedData["result"] == "segments"){
+            processGraphData(fetchedData);
+        }
+        if (fetchedData["result"] == "clusters"){
+            console.log("AHHHHHH BIG")
+        }
+
     });
 }
 function fetchAndConstructGraph(genome, chrom, start, end){
@@ -275,7 +281,7 @@ function fetchAndConstructGraph(genome, chrom, start, end){
     GRAPH_START_POS = start;
     GRAPH_END_POS = end;
 
-    console.log("CONSTRUCTING:", genome,chrom,start,end);
+    console.log("QUERY:", genome,chrom,start,end);
     
     annotationManagerFetch(genome, chrom, start, end);
     fetchGraph(genome, chrom, start, end);

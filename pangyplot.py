@@ -6,6 +6,8 @@ from db.neo4j_db import update_db
 from db.query.query_top_level import get_top_level
 from db.query.query_annotation import query_gene_range,text_search_gene
 from db.query.query_subgraph import get_subgraph
+from db.query.query_cluster import get_clusters
+
 from db.query.query_all import query_all_chromosomes, query_all_db, query_all_samples
 from argparser import parse_args
 
@@ -41,13 +43,20 @@ def select():
     chrom = request.args.get("chromosome")
     start = request.args.get("start")
     end = request.args.get("end")
-    print(f"Making graph for {genome}#{chrom}:{start}-{end}...")
     
     start = int(start)
     end = int(end)
 
-    resultDict = get_top_level(genome, chrom, start, end)
-    
+    if abs(end-start) > 100_000:
+        print(f"Getting clusters for {genome}#{chrom}:{start}-{end}...")
+        resultDict = get_clusters(genome, chrom, start, end)
+        resultDict["result"] = "clusters" 
+
+    else:
+        print(f"Making graph for {genome}#{chrom}:{start}-{end}...")
+        resultDict = get_top_level(genome, chrom, start, end)
+        resultDict["result"] = "segments" 
+
     return resultDict, 200
 
 @app.route('/samples', methods=["GET"])
