@@ -43,6 +43,7 @@ def insert_segment_links(links, batch_size=10000):
                 from_strand: link.from_strand,
                 to_strand: link.to_strand,
                 haplotype: link.haplotype,
+                reverse: link.reverse,
                 frequency: link.frequency,
                 isRef: link.is_ref
             }]->(b)

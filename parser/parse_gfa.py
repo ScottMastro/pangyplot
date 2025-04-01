@@ -68,57 +68,46 @@ def parse_line_L(line):
     result["to_strand"]=cols[4]
     return result
 
-def path_to_lists(path):
-    ids, strands = [], []
-    pos=0
-    for i,char in enumerate(path):
-        if char == ">" or char == "<":
-            strand = "+" if char == ">" else "-"
-            strands.append(strand)
-            if i != 0: ids.append(path[pos:i])
-            pos=i+1
-    ids.append(path[pos:])
-
-    return ids, strands
-
-def P_to_W(path):
-    splitPath = path.split(",")
-    newPath = ""
-    for part in splitPath:
-        if part[-1] == "+":
-            newPath += ">" + part[:-1]
-        elif part[-1] == "-":
-            newPath += "<" + part[:-1]
-    return newPath
-
 def parse_line_P(line):
 
     result = {"type" : "P"}   
     cols = line.strip().split("\t")
-
-    result["type"] = "P"
-
     sampleInfo = utils.parse_id_string(cols[1])
     result["sample"] = sampleInfo["genome"]
     result["contig"] = sampleInfo["chrom"]
     result["hap"] = sampleInfo["hap"]
     result["start"] = sampleInfo["start"]
 
-    result["path"], result["strand"] = path_to_lists(P_to_W(cols[2]))
+    result["path"] = cols[2].split(",")
 
     return result
+
+def path_from_W(path_str):
+    path = []
+    pos = 0
+    for i, char in enumerate(path_str):
+        if char in "><":
+            if i != 0:
+                seg_id = path_str[pos:i]
+                strand = "+" if path_str[i - 1] == ">" else "-"
+                path.append(seg_id + strand)
+            pos = i + 1
+    # Append last
+    seg_id = path_str[pos:]
+    strand = "+" if path_str[pos - 1] == ">" else "-"
+    path.append(seg_id + strand)
+    return path
 
 def parse_line_W(line):
 
     result = {"type" : "W"}   
     cols = line.strip().split("\t")
 
-    result["type"] = "W"
     result["sample"] = cols[1]
     result["hap"] = cols[2]
     result["start"] = cols[4]
     result["end"] = cols[5]
-    result["path"], result["strand"] = path_to_lists(cols[6])
+    result["path"] = path_from_W(cols[6])
 
     return result
 
@@ -138,20 +127,28 @@ def path_id(path):
     suffix = "" if path["hap"] is None else "." + path["hap"]
     return path["sample"] + suffix
 
+def reverse_key(key):
+    def flip(stranded_id):
+        seg_id = stranded_id[:-1]
+        strand = stranded_id[-1]
+        flipped_strand = '-' if strand == '+' else '+'
+        return seg_id + flipped_strand
+
+    from_key, to_key = key
+    return (flip(to_key), flip(from_key))
+
 def collapse_path(path, collapseDict, sampleIdDict):
     sampleIdx = sampleIdDict[path_id(path)]
 
-    for i,fromId in enumerate(path["path"][:-1]):
-        toId = path["path"][i+1]
-        fromStrand = path["strand"][i]
-        toStrand = path["strand"][i+1]
-        fromKey = str(fromId) + fromStrand
-        toKey = str(toId) + toStrand
+    for i in range(len(path["path"]) - 1):
+        fromKey = path["path"][i]
+        toKey = path["path"][i + 1]
         key = (fromKey, toKey)
+
         if key not in collapseDict:
             collapseDict[key] = []
-        
         collapseDict[key].append(sampleIdx)
+
     return collapseDict
    
 def collapse_binary(collapseDict, sampleIdDict):
@@ -233,25 +230,38 @@ def parse_graph(gfa, ref, positions, layoutCoords):
     insert_segments(segments)
 
     def process_links(links):
-        if len(collapseDict) == 0:
-            for link in links:
-                link["haplotype"] = []
-                link["frequency"] = 0
-                link["is_ref"] = link["from_id"] in refSet and link["to_id"] in refSet
-        else:
-            for link in links:
-                key = (str(link["from_id"]) + link["from_strand"],
-                    str(link["to_id"]) + link["to_strand"])
-                #todo: line below does not account for strand
-                link["is_ref"] = link["from_id"] in refSet and link["to_id"] in refSet
-                if key in collapseDict:
-                    hap = collapseDict[key]
-                    link["haplotype"] = hap
-                    link["frequency"] = sum(hap) / len(hap)
-                else:
-                    n = max([sampleIdDict[x] for x in sampleIdDict]) + 1
-                    link["haplotype"] = [False] * n
-                    link["frequency"] = 0
+        n = max([sampleIdDict[x] for x in sampleIdDict]) + 1
+
+        for link in links:
+            link["haplotype"] = [False] * n
+            link["reverse"] = [False] * n
+            link["frequency"] = 0
+            
+            #todo: line below does not account for strand 
+            #later note: I think it is probably correct behaviour
+            link["is_ref"] = link["from_id"] in refSet and link["to_id"] in refSet
+
+            if len(collapseDict) == 0:
+                continue
+
+            key = (f"{link['from_id']}{link['from_strand']}",
+                f"{link['to_id']}{link['to_strand']}")
+            keyReverse = reverse_key(key)
+
+            #todo: doesn't account for a path going through the same link multiple times
+            if key in collapseDict:
+                for i, val in enumerate(collapseDict[key]):
+                    if val:
+                        link["haplotype"][i] = True
+
+            if keyReverse in collapseDict:
+                for i, val in enumerate(collapseDict[keyReverse]):
+                    if val:
+                        link["haplotype"][i] = True
+                        link["reverse"][i] = True   
+
+            link["frequency"] = sum(link["haplotype"]) / n
+
         return links
 
     print("\nFinding links...")
