@@ -24,8 +24,8 @@ def combine_node_properties(nodes, mainId):
     combinedNode["sequence"] = "".join([n["sequence"] for n in nodes])
     combinedNode["length"] = len(combinedNode["sequence"])
     combinedNode["gcCount"] = combinedNode["sequence"].count('G') + combinedNode["sequence"].count('C') + combinedNode["sequence"].count('g') + combinedNode["sequence"].count('c')
-    combinedNode["start"] = min([n["start"] for n in nodes if n["start"] is not None], default=None)
-    combinedNode["end"] = max([n["end"] for n in nodes if n["end"] is not None], default=None)
+    combinedNode["start"] = min([n["start"] for n in nodes if "start" in n and n["start"] is not None], default=None)
+    combinedNode["end"] = max([n["end"] for n in nodes if "end" in n and n["end"] is not None], default=None)
 
     xDir = sum([1 if n["x1"] < n["x2"] else -1 for n in nodes])
     yDir = sum([1 if n["y1"] < n["y2"] else -1 for n in nodes])

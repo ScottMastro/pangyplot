@@ -249,8 +249,6 @@ function processGraphData(rawGraph){
     const links = processLinks(rawGraph.links);
     
     let graph = {"nodes": nodeResult.nodes, "links": links.concat(nodeResult.nodeLinks)}
-    graph = reorientLinks(graph);
-
     const normalizedGraph = normalizeGraph(graph);
 
     renderGraph(normalizedGraph);
