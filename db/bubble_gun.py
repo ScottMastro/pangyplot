@@ -158,6 +158,8 @@ def create_alt_subgraphs(graph):
             visited.add(v)
 
         if len(subgraph["graph"]) > 1:
+            print(subgraph)
+            input()
             insert_subgraph(subgraph)
 
 

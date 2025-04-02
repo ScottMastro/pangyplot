@@ -33,6 +33,7 @@ def parse_line(line):
 
     result = {"genome": start["genome"], "chrom": start["chrom"],
                 "start":startPos, "end":endPos }
+    
     return (nodeId, result)
 
 def parse_positions(positions_file):
