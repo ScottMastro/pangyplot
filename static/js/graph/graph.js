@@ -259,12 +259,11 @@ function fetchGraph(genome, chromosome, start, end) {
     const url = buildUrl('/select', { genome, chromosome, start, end });
     fetchData(url, 'graph').then(fetchedData => {
 
-        if (fetchedData["result"] == "segments"){
+        if (fetchedData["detailed"]){
             processGraphData(fetchedData);
         }
-        if (fetchedData["result"] == "clusters"){
-            console.log("AHHHHHH BIG")
-        }
+        console.log("README", fetchedData)
+        
 
     });
 }

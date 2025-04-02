@@ -47,15 +47,16 @@ def select():
     start = int(start)
     end = int(end)
 
-    if abs(end-start) > 100_000:
-        print(f"Getting clusters for {genome}#{chrom}:{start}-{end}...")
-        resultDict = get_clusters(genome, chrom, start, end)
-        resultDict["result"] = "clusters" 
+    print(f"Getting clusters for {genome}#{chrom}:{start}-{end}...")
+    resultDict = get_clusters(genome, chrom, start, end)
+    resultDict["detailed"] = False 
 
-    else:
+    if abs(end-start) < 100_000:
         print(f"Making graph for {genome}#{chrom}:{start}-{end}...")
-        resultDict = get_top_level(genome, chrom, start, end)
+        resultDict.extend(get_top_level(genome, chrom, start, end))
         resultDict["result"] = "segments" 
+        resultDict["detailed"] = True 
+
 
     return resultDict, 200
 
