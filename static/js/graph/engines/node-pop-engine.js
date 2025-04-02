@@ -150,8 +150,6 @@ function processSubgraphData(subgraph, originNode, forceGraph){
     );
         
     graphData.links = graphData.links.concat(links).concat(nodeResult.nodeLinks);
-    
-    graphData = reorientLinks(graphData);
     forceGraph.graphData(graphData);
 
     //todo: take number as input

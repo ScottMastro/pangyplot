@@ -1,4 +1,3 @@
-const HIGHLIGHT_SIZE=60;
 const FONT_SIZE = 180;
 const LIGHTNESS_SCALE=0.0;
 const LABEL_POSITION_CACHE = {};
@@ -14,7 +13,7 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
     //todo: don't loop if no genes are visible
     graphData.nodes.forEach(node => {
         if (node.isVisible && node.isDrawn) {
-            let hsize = Math.max(node.size+10, node.size+10*(1/zoomFactor/10));
+            let hsize = Math.max(100,node.size) + 10/zoomFactor;
 
             const annotations = annotationManagerGetNodeAnnotations(node); 
             let n = 1; 
@@ -36,18 +35,14 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
         if (link.isVisible && link.isDrawn) {
             const annotations = annotationManagerGetLinkAnnotations(link);
             let n = 1;
-            let w = link.width + 10;
-            if(link.class=="edge"){
-                w+=35;
-            }
-            hsize = Math.max(w, (w)*(1/zoomFactor/10));
+            let hsize = Math.max(100,link.width) + 10/zoomFactor;
 
             annotations.forEach(annotation => {
                 renderQueue.push({
                     type: 'link', 
                     element: link, 
                     color: annotation.color, 
-                    width: hsize * n * 2, 
+                    width: hsize * n, 
                     zIndex: n
                 });
                 n += 1;

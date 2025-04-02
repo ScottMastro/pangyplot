@@ -4,7 +4,7 @@ from db.neo4j_db import get_session
 
 def insert_segments(segments, batch_size=10000):
     if len(segments) == 0: return
-    with get_session() as (db,session):
+    with get_session() as (db, session):
 
         for i in range(0, len(segments), batch_size):
             batch = segments[i:i + batch_size]
@@ -43,6 +43,7 @@ def insert_segment_links(links, batch_size=10000):
                 from_strand: link.from_strand,
                 to_strand: link.to_strand,
                 haplotype: link.haplotype,
+                reverse: link.reverse,
                 frequency: link.frequency,
                 isRef: link.is_ref
             }]->(b)

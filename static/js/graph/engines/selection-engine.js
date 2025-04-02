@@ -179,11 +179,12 @@ function selectionEngineDraw(ctx, graphData) {
 
     });
 
-
     const zoomFactor = ctx.canvas.__zoom["k"];
-    const hsize = Math.max(HIGHLIGHT_SIZE, HIGHLIGHT_SIZE * (1 / zoomFactor / 10));
+
     graphData.nodes.forEach(node => {
         if (node.isSingleton) {
+            let hsize = node.size+50 + 3/zoomFactor;
+
             if (highlightNodeIds.has(node.nodeid) && (!selectedNodeIds.has(node.nodeid) || DRAW_HIGHLIGHT_ON_TOP)){
                 outlineNode(node, ctx, 0, hsize, HIGHLIGHT_COLOR);
             } else if (selectedNodeIds.has(node.nodeid)){
@@ -192,14 +193,15 @@ function selectionEngineDraw(ctx, graphData) {
         } 
     });
 
-    const hsizeLink = Math.max(HIGHLIGHT_SIZE + 40, (HIGHLIGHT_SIZE + 40) * (1 / zoomFactor / 10));
-
     graphData.links.forEach(link => {
         if (link.class === "node"){
+
+            let hsize = link.width+50 + 3/zoomFactor;
+
             if (highlightNodeIds.has(link.nodeid) && (!selectedNodeIds.has(link.nodeid) || DRAW_HIGHLIGHT_ON_TOP)){
-                outlineLink(link, ctx, 0, hsizeLink, HIGHLIGHT_COLOR); 
+                outlineLink(link, ctx, 0, hsize, HIGHLIGHT_COLOR); 
             } else if (selectedNodeIds.has(link.nodeid)){
-                outlineLink(link, ctx, 0, hsizeLink, SELECTED_COLOR); 
+                outlineLink(link, ctx, 0, hsize, SELECTED_COLOR); 
             }
         }
     });

@@ -22,6 +22,11 @@ def segment_record(record):
     segment["nodeid"] = record.id
     return segment
 
+def cluster_record(record):
+    cluster = {k: record[k] for k in record.keys()}
+    cluster["type"] = "cluster"
+    return cluster
+
 def node_record(record, nodeType):
     if nodeType == "Segment":
         return segment_record(record) 
@@ -44,6 +49,7 @@ def link_record(record):
             "to_strand": record["to_strand"],
             "frequency": record["frequency"],
             "haplotype": record["haplotype"],
+            "reverse": record["reverse"],
             "is_ref": record["isRef"],
             "is_del": record["isDel"],
             "class": "edge"}

@@ -1,21 +1,13 @@
-function drawCircle(ctx, x, y, size, color){
-    const previousFillStyle = ctx.fillStyle;
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x, y, size/2, 0, 2 * Math.PI, false);
-    ctx.fill();
-    ctx.fillStyle = previousFillStyle;
+
+function outlineNode(node, ctx, shift, size, color) {
+    drawCircle(ctx, node.x+shift, node.y+shift, size, color)
 }
 
-function drawCircleOutline(ctx, x, y, size, color, lineWidth=3, fill=BACKGROUND_COLOR){
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.fillStyle = fill;
-    ctx.lineWidth = lineWidth;
-    ctx.beginPath(); ctx.arc(x, y, size, 0, 2 * Math.PI, false);  
-    ctx.stroke();
-    ctx.fill();
-    ctx.restore();
+function outlineLink(link, ctx, shift, width, color) {
+    drawLine(ctx, 
+        link.source.x+shift, link.source.y+shift,
+        link.target.x+shift, link.target.y+shift, width, color
+    );
 }
 
 function drawLine(ctx, x1, y1, x2, y2, width, color){
@@ -37,6 +29,27 @@ function drawLine(ctx, x1, y1, x2, y2, width, color){
     ctx.strokeStyle = previousStrokeStyle;
 }
 
+
+function drawCircle(ctx, x, y, size, color){
+    const previousFillStyle = ctx.fillStyle;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, size/2, 0, 2 * Math.PI, false);
+    ctx.fill();
+    ctx.fillStyle = previousFillStyle;
+}
+
+function drawCircleOutline(ctx, x, y, size, color, lineWidth=3, fill=BACKGROUND_COLOR){
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = fill;
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath(); ctx.arc(x, y, size, 0, 2 * Math.PI, false);  
+    ctx.stroke();
+    ctx.fill();
+    ctx.restore();
+}
+
 function drawPath(ctx, path, width, color) {
     ctx.save();
 
@@ -54,18 +67,6 @@ function drawPath(ctx, path, width, color) {
     ctx.stroke();
     ctx.restore();
 
-}
-
-
-function drawCircleOutline2(ctx, x, y, size, color, lineWidth=3, fill=null){
-    ctx.save();
-    ctx.strokeStyle = color;
-    ctx.fillStyle = fill;
-    ctx.lineWidth = lineWidth;
-    ctx.beginPath();
-    ctx.arc(x, y, size, 0, 2 * Math.PI, false);
-    ctx.stroke();
-    ctx.restore();
 }
 
 function drawSquare(ctx, x, y, size, color){
@@ -142,31 +143,7 @@ function drawRotatedCross(ctx, x, y, size, width, color, angle) {
     ctx.restore(); 
 }
 
-function outlineNode(node, ctx, shift, size, color) {
-    ctx.beginPath();
-    ctx.arc(node.x+shift, node.y+shift, size, 0, 2 * Math.PI, false);
-    ctx.fillStyle = color;
-    ctx.fill();
-}
 
-function outlineLink(link, ctx, shift, width, color) {
-    const previousLineWidth = ctx.lineWidth;
-    const previousLineCap = ctx.lineCap;
-    const previousStrokeStyle = ctx.strokeStyle;
-
-    ctx.lineWidth = width;
-    ctx.strokeStyle = color;
-    ctx.lineCap = 'round';
-
-    ctx.beginPath();
-    ctx.moveTo(link.source.x+shift, link.source.y+shift);
-    ctx.lineTo(link.target.x+shift, link.target.y+shift);
-    ctx.stroke();
-
-    ctx.lineWidth = previousLineWidth;
-    ctx.lineCap = previousLineCap;
-    ctx.strokeStyle = previousStrokeStyle;
-}
 
 function drawText(text, ctx, x, y, size, color, outlineColor=null, outlineWidth=4, align="center", baseline="middle") {
     ctx.save();

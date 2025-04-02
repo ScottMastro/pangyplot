@@ -3,27 +3,16 @@ function basicRenderPaintNode(ctx, node, svg=false) {
 
     const zoomFactor = ctx.canvas.__zoom["k"];
     const color = colorManagerNodeColor(node);
-    
+    const nodesize = node.size + 3/zoomFactor;
     if (svg) {
-        return node.type === "null" ? {
+        return {
             cx: node.x,
             cy: node.y,
-            size: node.size,
-            stroke: color,
-            fill: BACKGROUND_COLOR,
-            strokeWidth: 5
-        } : {
-            cx: node.x,
-            cy: node.y,
-            size: node.size,
+            size: nodesize,
             fill: color
         };
     } else {
-        if (node.type === "null") {
-            drawCircleOutline(ctx, node.x, node.y, node.size, color, lineWidth=5);
-        } else {
-            drawCircle(ctx, node.x, node.y, node.size + 3/zoomFactor, color);
-        }
+        drawCircle(ctx, node.x, node.y, nodesize, color);
     }
     
     //drawSquare(ctx, x, y, size, color);
@@ -34,13 +23,14 @@ function basicRenderPaintNode(ctx, node, svg=false) {
 function basicRenderPaintLink(ctx, link, svg=false){
 
     const color = colorManagerLinkColor(link);
+    const zoomFactor = ctx.canvas.__zoom["k"];
 
     let zoomAdjust = 0;
 
     if (link.class === "node"){
-        zoomAdjust = 3/(ctx.canvas.__zoom["k"]);
+        zoomAdjust = 3/zoomFactor;
     }
-
+    const linkwidth = link.width+zoomAdjust;
     const x1 = link.source.x;
     const y1 = link.source.y;
     const x2 = link.target.x;
@@ -53,12 +43,12 @@ function basicRenderPaintLink(ctx, link, svg=false){
             x2:x2,
             y1:y1,
             y2:y2,
-            width:link.width,
+            width:linkwidth,
             color:color
         })
     } else{
 
-        drawLine(ctx, x1, y1, x2, y2, link.width+zoomAdjust, color);
+        drawLine(ctx, x1, y1, x2, y2, linkwidth, color);
         if (link.isDel){
         
             const midX = (x1 + x2) / 2;

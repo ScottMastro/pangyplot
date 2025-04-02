@@ -47,7 +47,7 @@ function colorManagerLinkColor(link){
         case "node_length":
             return colorByLength(link.source.seqLen);
         case "ref_alt":
-            return colorByRef(link.isRef);
+            return colorByRef(link.source);
         case "gc_content":
             return colorByGC(link.source.gcCount, link.source.seqLen);
         case "position":
@@ -68,7 +68,7 @@ function colorManagerNodeColor(node){
         case "node_length":
             return colorByLength(node.seqLen);
         case "ref_alt":
-            return colorByRef(node.isRef);
+            return colorByRef(node);
         case "gc_content": 
             return colorByGC(node.gcCount, node.seqLen);
         case "position":
@@ -87,7 +87,7 @@ function colorByGC(count, total){
         return NULL_COLOR;
     }
     if (total < 3){ return NULL_COLOR ; }
-    
+
     const pcGC = count/total;
     const color = getGradientColor(pcGC, 0, 1, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
 
@@ -130,8 +130,11 @@ function colorByType(type){
     }    
 }
 
-function colorByRef(isRef){
-    return isRef ? NODE_COLOR1 : NODE_COLOR3;
+function colorByRef(node){
+    //if(node.type != "segment"){
+    //    return NULL_COLOR;
+    //}
+    return node.isRef ? NODE_COLOR1 : NODE_COLOR3;
 }
 
 function colorByLength(length) {
