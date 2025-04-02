@@ -33,4 +33,4 @@ def get_clusters(genome, chrom, start, end, level=None, window=None):
         """
 
         result = session.run(query, params)        
-        return { "clusters": [record.cluster_record(result["c"]) for record in result] }
+        return { "clusters": [record.cluster_record(r["c"]) for r in result] }
