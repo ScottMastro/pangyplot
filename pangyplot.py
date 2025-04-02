@@ -62,10 +62,10 @@ def select():
 
     if abs(end-start) < 100_000:
         print(f"Making graph for {genome}#{chrom}:{start}-{end}...")
-        resultDict.extend(get_top_level(genome, chrom, start, end))
-        resultDict["result"] = "segments" 
+        rd2 = get_top_level(genome, chrom, start, end)
+        for key in rd2:
+            resultDict[key] = rd2[key] 
         resultDict["detailed"] = True 
-
 
     return resultDict, 200
 
