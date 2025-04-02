@@ -64,7 +64,7 @@ function exportForceGraphToSVG(forceGraph) {
             const circle = document.createElementNS(svgNS, "circle");
             circle.setAttribute("cx", item.element.x);
             circle.setAttribute("cy", item.element.y);
-            circle.setAttribute("r", item.size);
+            circle.setAttribute("r", item.size/2);
             circle.setAttribute("fill", item.color);
             geneGroup.appendChild(circle);
         } else if (item.type === 'link') {
@@ -74,7 +74,7 @@ function exportForceGraphToSVG(forceGraph) {
             line.setAttribute("x2", item.element.target.x);
             line.setAttribute("y2", item.element.target.y);
             line.setAttribute("stroke", item.color);
-            line.setAttribute("stroke-width", item.width); 
+            line.setAttribute("stroke-width", item.width);
             geneGroup.appendChild(line);
         }
     });
@@ -93,6 +93,7 @@ function exportForceGraphToSVG(forceGraph) {
         line.setAttribute("y2", l.y2);
         line.setAttribute("stroke", l.color);
         line.setAttribute("stroke-width", l.width); 
+
         linkGroup.appendChild(line);
         updateBoundingBox(l.x1, l.y1);
         updateBoundingBox(l.x2, l.y2);
@@ -156,16 +157,10 @@ function exportForceGraphToSVG(forceGraph) {
         textElement.setAttribute("stroke-width", label.strokeWidth);
         textElement.textContent = label.text;
 
+        textElement.setAttribute("text-anchor", "middle");
+        textElement.setAttribute("dominant-baseline", "middle"); 
+
         geneLabelGroup.appendChild(textElement);
-
-        const bbox = textElement.getBBox(); // Measure text dimensions
-        const adjustedX = label.x - bbox.width / 2;
-        const adjustedY = label.y + bbox.height / 2;
-    
-        textElement.setAttribute("x", adjustedX);
-        textElement.setAttribute("y", adjustedY);
-
-        updateBoundingBox(adjustedX, adjustedY);
     });
     
     const labelGroup = document.createElementNS(svgNS, "g");
@@ -195,9 +190,9 @@ function exportForceGraphToSVG(forceGraph) {
     const width = maxX - minX;
     const height = maxY - minY;
 
-    // Add a 5% buffer to the bounding box
-    const bufferX = width * 0.05;
-    const bufferY = height * 0.05;
+    // Add a 10% buffer to the bounding box
+    const bufferX = width * 0.1;
+    const bufferY = height * 0.1;
     const finalMinX = minX - bufferX;
     const finalMinY = minY - bufferY;
     const finalWidth = width + 2 * bufferX;
