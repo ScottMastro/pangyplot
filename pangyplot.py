@@ -8,7 +8,7 @@ from db.query.query_annotation import query_gene_range,text_search_gene
 from db.query.query_subgraph import get_subgraph
 from db.query.query_cluster import get_clusters
 
-from db.query.query_all import query_all_chromosomes, query_all_db, query_all_samples
+from db.query.query_all import query_all_chromosomes, query_all_genome, query_all_samples
 from argparser import parse_args
 
 app = Flask(__name__)
@@ -36,6 +36,15 @@ def inject_ga_tag_id():
     # Get the Google Analytics tag ID from the environment variable
     ga_tag_id = os.getenv('GA_TAG_ID', '')
     return dict(ga_tag_id=ga_tag_id)
+
+@app.route('/default-genome', methods=['GET'])
+def get_default_genome():
+
+    genome = query_all_genome()
+    if genome is None: genome ="???"
+    
+    return jsonify({"genome": genome})
+
 
 @app.route('/select', methods=["GET"])
 def select():

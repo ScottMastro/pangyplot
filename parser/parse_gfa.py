@@ -16,7 +16,6 @@ def extract_chrom(s):
     return None
 
 def parse_line_S(line, ref, positions):
-
     result = {"type" : "S"}   
     cols = line.strip().split("\t")
     

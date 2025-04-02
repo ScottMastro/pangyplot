@@ -75,3 +75,16 @@ def query_all_db():
 
     return dbs
 
+def query_all_genome():
+    with get_session() as (db, session):
+        query = """
+        MATCH (s:Segment)
+        WHERE s.db = $db
+        RETURN s.genome AS genome, COUNT(*) AS count
+        ORDER BY count DESC
+        LIMIT 1
+        """
+        result = session.run(query, parameters={"db": db})
+        record = result.single()
+        return record["genome"] if record else None
+

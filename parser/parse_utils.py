@@ -24,20 +24,18 @@ import re
 # GRCh38#0#chr5[10000-626046]
 # GENOME#HAP#CHR[START-END]
 
-def pound_separated(reference_str, ref):
+def pound_separated(reference_str, start=0):
     genome = None
     chrom = None
-    start = None
+    start = start
     hap = None
 
     parts = reference_str.split("#")
     
     bracket_match = re.search(r"\[(\d+)-(\d+)\]$", parts[-1])
     if bracket_match:
-        start = int(bracket_match.group(1))
+        start += int(bracket_match.group(1))
         parts[-1] = re.sub(r"\[\d+-\d+\]$", "", parts[-1])
-    else:
-        start = 0
         
     genome = parts[0]
 
@@ -55,10 +53,16 @@ def parse_id_string(reference_str, ref=None):
     chrom = None
     genome = None
     hap = None
-    start = None
+    start = 0
+
+    # Regex to check for pattern :[number]-[number] at the end
+    match = re.search(r":(\d+)-\d+$", reference_str)
+    if match:
+        start = int(match.group(1))
+        reference_str = reference_str.rsplit(":", 1)[0]
 
     if "#" in reference_str:
-        return pound_separated(reference_str, ref)
+        return pound_separated(reference_str, start)
     else:
         if "|" in reference_str:
             chrom = reference_str.split("|")[-1]
@@ -68,5 +72,5 @@ def parse_id_string(reference_str, ref=None):
         else:
             genome = ref
             chrom = reference_str
-
+    
     return {"chrom": chrom, "genome": genome, "hap":hap, "start": start}
