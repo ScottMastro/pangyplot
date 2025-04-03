@@ -47,7 +47,7 @@ function colorManagerLinkColor(link){
         case "node_length":
             return colorByLength(link.source.seqLen);
         case "ref_alt":
-            return colorByRef(link.source);
+            return colorByRef(link);
         case "gc_content":
             return colorByGC(link.source.gcCount, link.source.seqLen);
         case "position":
@@ -130,11 +130,8 @@ function colorByType(type){
     }    
 }
 
-function colorByRef(node){
-    //if(node.type != "segment"){
-    //    return NULL_COLOR;
-    //}
-    return node.isRef ? NODE_COLOR1 : NODE_COLOR3;
+function colorByRef(obj){
+    return obj.isRef ? NODE_COLOR1 : NODE_COLOR3;
 }
 
 function colorByLength(length) {

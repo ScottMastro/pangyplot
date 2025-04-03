@@ -14,8 +14,6 @@ from parser.parse_positions import parse_positions
 import db.bubble_gun as bubble_gun
 from db.utils.check_status import get_status
 
-
-
 def parse_args(app):
 
     DEFAULT_DB = "default"
