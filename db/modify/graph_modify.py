@@ -52,6 +52,6 @@ def annotate_deletions():
         MATCH (s1:Segment)-[l:LINKS_TO]->(s2:Segment)
         WHERE s1.db = $db AND s2.db = $db
         MATCH (s1)-[e1:END]->(b:Bubble)-[e2:END]->(s2)
-        SET l.isDel = true
+        SET l.is_del = true
         """
         session.run(query, {"db": db})

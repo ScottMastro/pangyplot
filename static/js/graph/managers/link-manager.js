@@ -14,6 +14,18 @@ function flipLink(link) {
     };
 }
 
+function decodeHaplotypeMask(hexString) {
+    const mask = BigInt("0x" + hexString.replace(/^0x/, ""));
+    const bools = [];
+    let i = 0n;
+    while ((mask >> i) > 0) {
+        bools.push((mask >> i) & 1n ? true : false);
+        i += 1n;
+    }
+    return bools;
+}
+
+
 function processLinks(rawLinks) {
     console.log("rawLinks", rawLinks)
     rawLinks = filterBadLinks(rawLinks);
@@ -25,7 +37,7 @@ function processLinks(rawLinks) {
         toStrand: rawLink["to_strand"],
         sourceid: String(rawLink["source"]),
         targetid: String(rawLink["target"]),
-        haplotype: rawLink["haplotype"],
+        haplotype: decodeHaplotypeMask(rawLink["haplotype"]),
         isRef: rawLink.is_ref,
         isDel: rawLink.is_del,
         isVisible: true,

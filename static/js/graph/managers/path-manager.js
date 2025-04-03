@@ -27,7 +27,7 @@ function pathManagerInitialize() {
 }
 
 function pathManagerShouldHighlightLink(link){
-    if (!CURRENTLY_SELECTED_PATH || ! link.haplotype){
+    if (!CURRENTLY_SELECTED_PATH || ! link.haplotype || CURRENTLY_SELECTED_PATH >= link.haplotype.length){
         return false;
     }
     return link.haplotype[CURRENTLY_SELECTED_PATH];

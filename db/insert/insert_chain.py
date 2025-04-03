@@ -74,8 +74,8 @@ def add_chain_properties():
         q5= MATCH + " WITH c, SUM(b.n) AS n SET c.n = n"
         q6= MATCH + " WITH c, COLLECT(DISTINCT b.chrom)[0] AS chrom SET c.chrom = chrom"
         q7= MATCH + " WITH c, COLLECT(DISTINCT b.genome)[0] AS genome SET c.genome = genome"
-        q8= MATCH + " WITH c, ANY(b IN COLLECT(b.isRef) WHERE b = true) AS hasRef SET c.isRef = hasRef"
-        q9= MATCH + " WITH c, SUM(b.gcCount) AS count SET c.gcCount = count"
+        q8= MATCH + " WITH c, ANY(b IN COLLECT(b.is_ref) WHERE b = true) AS hasRef SET c.is_ref = hasRef"
+        q9= MATCH + " WITH c, SUM(b.gc_count) AS count SET c.gc_count = count"
 
         #todo remove?
         #q7 = MATCH + """

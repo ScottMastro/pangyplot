@@ -23,7 +23,7 @@ def combine_node_properties(nodes, mainId):
     #todo: might have to adjust for reverse compliment and correct order
     combinedNode["sequence"] = "".join([n["sequence"] for n in nodes])
     combinedNode["length"] = len(combinedNode["sequence"])
-    combinedNode["gcCount"] = combinedNode["sequence"].count('G') + combinedNode["sequence"].count('C') + combinedNode["sequence"].count('g') + combinedNode["sequence"].count('c')
+    combinedNode["gc_count"] = combinedNode["sequence"].count('G') + combinedNode["sequence"].count('C') + combinedNode["sequence"].count('g') + combinedNode["sequence"].count('c')
     combinedNode["start"] = min([n["start"] for n in nodes if "start" in n and n["start"] is not None], default=None)
     combinedNode["end"] = max([n["end"] for n in nodes if "end" in n and n["end"] is not None], default=None)
 
@@ -116,8 +116,8 @@ def add_combined_segment(db, session, combinedNode):
                 x2: segment.x2,
                 length: segment.length,
                 sequence: segment.sequence,
-                gcCount: segment.gcCount,
-                isRef: segment.isRef,
+                gc_count: segment.gc_count,
+                is_ref: segment.is_ref,
                 compact: segment.compact
             })
             """
@@ -144,7 +144,7 @@ def reconnect_outside_links(db, session, combinedNode, incomingLinks, outgoingLi
         to_strand: link.to_strand,
         haplotype: link.haplotype,
         frequency: link.frequency,
-        isRef: link.is_ref
+        is_ref: link.is_ref
     }]->(new)
     """
     session.run(query, {"db": db, 
@@ -160,7 +160,7 @@ def reconnect_outside_links(db, session, combinedNode, incomingLinks, outgoingLi
         to_strand: link.to_strand,
         haplotype: link.haplotype,
         frequency: link.frequency,
-        isRef: link.is_ref
+        is_ref: link.is_ref
     }]->(b)
     """
     session.run(query, {

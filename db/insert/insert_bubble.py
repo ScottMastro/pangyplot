@@ -63,8 +63,8 @@ def add_bubble_properties():
         q5= MATCH + " WITH b, SUM(1) AS n SET b.n = n"
         q6= MATCH + " WITH b, COLLECT(DISTINCT s.chrom)[0] AS chrom SET b.chrom = chrom"
         q7= MATCH + " WITH b, COLLECT(DISTINCT s.genome)[0] AS genome SET b.genome = genome"
-        q8= MATCH + " WITH b, ANY(s IN COLLECT(s.isRef) WHERE s = true) AS hasRef SET b.isRef = hasRef"
-        q9= MATCH + " WITH b, SUM(s.gcCount) AS count SET b.gcCount = count"
+        q8= MATCH + " WITH b, ANY(s IN COLLECT(s.is_ref) WHERE s = true) AS hasRef SET b.is_ref = hasRef"
+        q9= MATCH + " WITH b, SUM(s.gc_count) AS count SET b.gc_count = count"
 
         print("Calculating bubble properties...")
         for query in [q1,q2,q3,q4,q5,q6,q7,q8,q9]:

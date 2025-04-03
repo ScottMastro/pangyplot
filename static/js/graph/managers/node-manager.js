@@ -112,8 +112,8 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         size: NODE_WIDTH,
         largestChild: largestChild,
         isSingleton: totalKinks === 1,
-        isRef: node.isRef,
-        gcCount: node.gcCount,
+        isRef: node.is_ref,
+        gcCount: node.gc_count,
         annotations: []
     };
 
@@ -145,7 +145,7 @@ function createNewNodeLink(node, nodeid, idx, totalKinks, nodeLength) {
         width: NODE_WIDTH,
         length: Math.min(nodeLength / totalKinks, 1000),
         force: LINK_FORCE,
-        isRef: node.isRef,
+        isRef: node.is_ref,
         annotations: []
     };
 }

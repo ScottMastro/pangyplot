@@ -25,8 +25,8 @@ def insert_segments(segments, batch_size=10000):
                     x2: segment.x2,
                     length: segment.length,
                     sequence: segment.seq,
-                    gcCount: segment.gc_count,
-                    isRef: segment.is_ref
+                    gc_count: segment.gc_count,
+                    is_ref: segment.is_ref
 
                 })
             """
@@ -47,7 +47,7 @@ def insert_segment_links(links, batch_size=10000):
                 haplotype: link.haplotype,
                 reverse: link.reverse,
                 frequency: link.frequency,
-                isRef: link.is_ref
+                is_ref: link.is_ref
             }]->(b)
                 
             """
