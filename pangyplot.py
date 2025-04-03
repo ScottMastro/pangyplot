@@ -11,6 +11,7 @@ from db.query.query_cluster import get_clusters
 from db.query.query_all import query_all_chromosomes, query_all_genome, query_all_samples
 from argparser import parse_args
 
+
 app = Flask(__name__)
 script_dir = os.path.dirname(os.path.realpath(__file__))
 

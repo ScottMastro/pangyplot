@@ -4,6 +4,8 @@ from db.neo4j_db import db_init
 import db.modify.drop_data as drop
 import db.modify.cluster_graph as cluster
 
+import environment_setup as setup
+
 from parser.parse_gfa import parse_graph
 from parser.parse_layout import parse_layout
 from parser.parse_gff3 import parse_gff3
@@ -26,6 +28,8 @@ def parse_args(app):
         subparsers = parser.add_subparsers(dest='command', help='Available commands', required=True)
 
         parser_status = subparsers.add_parser('status', help='Check the database status.')
+
+        parser_setup = subparsers.add_parser('setup', help='Setup the environment for database connection.')
 
         parser_run = subparsers.add_parser('run', help='Launch the software.')
         parser_run.add_argument('--db', help='Database name', default=DEFAULT_DB)
@@ -55,10 +59,14 @@ def parse_args(app):
 
         args = parser.parse_args()
 
+        if args.command == 'setup':
+            setup.handle_setup_env()
+            exit()
+
         if args.command == 'status':
             db_init(None)
             get_status()
-            exit
+            exit()
 
         if args.command == 'run':
             db_init(args.db)
@@ -90,7 +98,7 @@ def parse_args(app):
 
             if not flag:
                 print("Nothing dropped. Please specify objects to drop.")
-            exit
+            exit()
 
         if args.command == "example":
             if args.gencode:

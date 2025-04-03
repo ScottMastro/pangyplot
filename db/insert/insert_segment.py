@@ -3,7 +3,9 @@ from db.neo4j_db import get_session
 #todo: handle situation where different chromosomes have the same segment ids
 
 def insert_segments(segments, batch_size=10000):
-    if len(segments) == 0: return
+    if len(segments) == 0: 
+        return
+    
     with get_session() as (db, session):
 
         for i in range(0, len(segments), batch_size):

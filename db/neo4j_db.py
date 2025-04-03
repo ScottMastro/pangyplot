@@ -18,7 +18,7 @@ def init_driver():
 
     global NEO4J_DRIVER
     global CURRENT_DB
-    uri = f"neo4j://{db_host}:{db_port}"
+    uri = f"{db_host}:{db_port}"
     NEO4J_DRIVER = GraphDatabase.driver(uri, auth=(db_user, db_pass))
 
 def update_db(dbName):
