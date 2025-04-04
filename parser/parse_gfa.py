@@ -162,59 +162,72 @@ def get_ref_id(ref, sampleIdDict):
     matching_refs = [sample_name for sample_name in sampleIdDict if ref in sample_name]
 
     if len(matching_refs) == 0:
-        print(f"\nERROR: Reference sample '{ref}' not found in any sample IDs.")
+        print(f"   ❌ ERROR: Reference sample '{ref}' not found in any sample IDs.")
         sys.exit(1)
     elif len(matching_refs) > 1:
-        print(f"\nERROR: Reference sample string '{ref}' matched multiple samples:")
+        print(f"   ❌ ERROR: Reference sample string '{ref}' matched multiple samples:")
         for name in matching_refs:
-            print(f"  - {name}")
-        print("Please provide a more specific reference name.")
+            print(f"     - {name}")
+        print("   Please provide a more specific reference name.")
         sys.exit(1)
 
     ref_sample_id = matching_refs[0]
     ref_sample_idx = sampleIdDict[ref_sample_id]
-    print(f"\nFound reference sample: '{ref_sample_id}' (id={ref_sample_idx})")
+    print(f"   🎯 Found reference sample: {ref_sample_id} (id={ref_sample_idx}).")
     return ref_sample_idx
 
 def parse_graph(gfa, ref, positions, layoutCoords):
     lenDict = dict()
     sampleIdDict = dict()
     pathDict = dict()
-
     refSet = set()
 
+    counter = 0
+    startTime, printType = None,None
+
+    def write_update(string=None, type=None, terminate=False):
+        nonlocal startTime, counter, printType
+        if string is not None:
+            startTime = time.time()
+            printType = type
+            print( f"   {string}" )
+            return
+        
+        elapsed = time.time() - startTime
+        rate = counter / elapsed
+        
+        sys.stdout.write( f"\r      Read {counter:,} {printType} at {rate:,.1f}/sec." )
+        sys.stdout.flush()
+        if terminate:
+            print()
+
     # ==== PATHS ====
-    pathCount = 0
-    start_time = time.time()
-    print("Gathering paths from GFA...")
+    counter = 0
+    write_update("🧵 Gathering paths from GFA...", "paths")
 
     with get_reader(gfa) as gfaFile:
         for line in gfaFile:
             if line[0] in "PW":
                 path = parse_line_P(line) if line[0] == "P" else parse_line_W(line)
-                pathCount += 1
+                counter += 1
                 if ref in path["sample"]:
                     refSet.update({p[:-1] for p in path["path"]}) # remove strand info
                 sampleIdDict = update_sample_codes(path, sampleIdDict)
                 pathDict = collapse_binary(path, pathDict, sampleIdDict)
 
-                if pathCount % 1000 == 0:
-                    elapsed = time.time() - start_time
-                    rate = pathCount / elapsed
-                    
-                    sys.stdout.write( f"\rRead {pathCount:,} paths at {rate:,.1f}/sec" )
-                    sys.stdout.flush()
-    print()  # new line
+            if counter % 1000 == 0:
+                write_update()
+
+    write_update(terminate=True)
 
     samples = [{"id": sample_name, "idx": sample_idx} for sample_name, sample_idx in sampleIdDict.items()]
     refIdx = get_ref_id(ref, sampleIdDict)
     insert_samples(samples)
     
     # ==== SEGMENTS ====
-    print("Gathering segments from GFA and batch uploading...")
     segments = []
-    segmentCount = 0
-    start_time = time.time()
+    counter = 0
+    write_update("🍡 Gathering segments from GFA and batch uploading...", "segments")
 
     with get_reader(gfa) as gfaFile:
         for line in gfaFile:
@@ -222,24 +235,24 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 segment = parse_line_S(line, ref, refSet, positions, layoutCoords)
                 lenDict[segment["id"]] = segment["length"]
                 for c in ["x1", "y1", "x2", "y2"]:
-                    segment[c] = layoutCoords[segmentCount][c]
+                    segment[c] = layoutCoords[counter][c]
                 segment["is_ref"] = segment["id"] in refSet
                 segments.append(segment)
-                segmentCount += 1
+                counter += 1
 
                 if len(segments) > 100000:
                     insert_segments(segments)
                     segments = []
-
-                    elapsed = time.time() - start_time
-                    rate = segmentCount / elapsed
-                    sys.stdout.write(f"\rProcessed {segmentCount:,} segments at {rate:,.1f}/sec")
-                    sys.stdout.flush()
+                    write_update()
 
     insert_segments(segments) ; segments = []
-    print()  # new line
+    write_update(terminate=True)
 
     # ==== LINKS ====
+    links = []
+    counter = 0
+    write_update("🧷 Gathering links from GFA and batch uploading...", "links")
+
     def process_path_information(links):
         n = max([sampleIdDict[x] for x in sampleIdDict]) + 1
         for link in links:
@@ -263,31 +276,24 @@ def parse_graph(gfa, ref, positions, layoutCoords):
 
         return links
 
-    print("Gathering links from GFA and batch uploading...")
-    links = []
-    linkCount = 0
-    start_time = time.time()
-
     with get_reader(gfa) as gfaFile:
         for line in gfaFile:
             if line[0] == "L":
                 link = parse_line_L(line)
                 links.append(link)
-                linkCount += 1
+                counter += 1
 
                 if len(links) > 100000:
                     links = process_path_information(links)
                     insert_segment_links(links)
                     links = []
+                    write_update()
 
-                    elapsed = time.time() - start_time
-                    rate = linkCount / elapsed
-                    sys.stdout.write(f"\rProcessed {linkCount} links at {rate:.1f}/sec")
-                    sys.stdout.flush()
-
+    write_update(terminate=True)
 
     links = process_path_information(links); links = []
     insert_segment_links(links)
-    print()
+    print("   💾 GFA elements stored in database.")
+
 
 

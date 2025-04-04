@@ -11,7 +11,7 @@ from parser.parse_layout import parse_layout
 from parser.parse_gff3 import parse_gff3
 from parser.parse_positions import parse_positions
 
-import db.bubble_gun as bubble_gun
+import preprocess.bubble_gun as bubble_gun
 from db.utils.check_status import get_status
 
 def parse_args(app):
@@ -128,8 +128,20 @@ def parse_args(app):
                 parse_gff3(args.gff3, args.ref)
 
         if args.command == "add":
-            db_init(args.db)
+            exists = db_init(args.db)
             
+            if exists:
+                delete_response = input(f'Database "{args.db}" already contains data. Drop and recreate it? [y/n]: ').strip().lower()
+
+                if delete_response == 'y':
+                    print(f'Dropping "{args.db}" data...')
+                    drop.drop_db(args.db)
+                else:
+                    add_response = input(f'Add data to existing database "{args.db}"? [y/n]: ').strip().lower()
+                    if add_response != 'y':
+                        print("Exiting. No changes made.")
+                        exit(0)
+
             positions = dict()
             if args.positions:
                 print("Parsing positions...")

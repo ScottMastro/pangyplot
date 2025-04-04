@@ -33,6 +33,11 @@
             <div id="cytoband-chromosome-canvas-container">
                 <!-- The figure will be appended here by JavaScript -->
             </div>
+
+            <div id="cytoband-track-container">
+                <svg id="cytoband-coordinate-track" width="100%" height="60"></svg>
+            </div>
+            
             
         </div>   
     </div>
@@ -45,3 +50,4 @@
 <script src="{{url_for('static', filename='js/cytoband/cytoband-genome-drawer.js')}}"></script>
 <script src="{{url_for('static', filename='js/cytoband/cytoband-chromosome.js')}}"></script>
 <script src="{{url_for('static', filename='js/cytoband/cytoband-chromosome-drawer.js')}}"></script>
+<script src="{{url_for('static', filename='js/cytoband/cytoband-track.js')}}"></script>

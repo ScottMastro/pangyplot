@@ -68,7 +68,6 @@ def add_bubble_properties():
 
         print("Calculating bubble properties...")
         for query in [q1,q2,q3,q4,q5,q6,q7,q8,q9]:
-            print(query)
             session.run(query, {"db": db})
 
     with get_session() as (db, session):
@@ -84,7 +83,6 @@ def add_bubble_properties():
 
         print("Calculating bubble layout...")
         for query in [q1,q2,q3,q4]:
-            print(query)
             session.run(query, {"db": db})
 
     with get_session() as (db, session):
@@ -102,5 +100,4 @@ def add_bubble_properties():
 
         print("Calculating chain properties...")
         for query in [q1,q2,q3,q4]:
-            print(query)
             session.run(query, {"db": db})
