@@ -5,7 +5,7 @@ from BubbleGun.connect_bubbles import connect_bubbles
 from BubbleGun.find_parents import find_parents
 
 import db.modify.drop_data as drop
-from db.query.query_all import query_all_segments, query_all_links
+from db.query.query_preprocess import query_segment_summary, query_link_summary
 import db.modify.compact_graph as compacter 
 import db.modify.graph_modify as modify
 
@@ -14,13 +14,15 @@ from db.insert.insert_chain import insert_chains, add_chain_properties
 from db.insert.insert_subgraph import insert_subgraph
 
 from collections import deque
-import time
+import sys, time
 
 def read_from_db():
     nodes = dict()
+    linkDict = {}
 
-    print("Getting segments...")
-    segments = query_all_segments()
+    # ==== SEGMENTS ====
+    print("   📦 Summarizing segments from database...")
+    segments = query_segment_summary()
 
     for s in segments:
         nid, nlen, nref = s
@@ -28,34 +30,26 @@ def read_from_db():
         nodes[nid] = Node(nid)
         nodes[nid].seq_len = nlen
         nodes[nid].optional_info = {"ref": nref}
-        #nodes[nid].seq = ...
 
-    print("Getting links...")
-    edges = query_all_links()
+    # ==== LINKS ====
+    print("   🚚 Summarizing links from database...")
+    links = query_link_summary()
 
-    edgeDict = {}
-    for e in edges:
-        from_strand, first_node, to_strand, second_node = e
-        first_node=str(first_node)
-        second_node=str(second_node)
+    for from_strand, first_node, to_strand, second_node in links:
+        first_node = str(first_node)
+        second_node = str(second_node)
         overlap = 0
+        counter += 1
 
-        if first_node not in edgeDict:
-            edgeDict[first_node] = set()
-
-        if second_node in edgeDict[first_node]:
+        if first_node not in linkDict:
+            linkDict[first_node] = set()
+        if second_node in linkDict[first_node]:
             print("DUPLICATE", first_node, second_node)
+        linkDict[first_node].add(second_node)
 
-        edgeDict[first_node].add(second_node)
+        from_start = (from_strand == "-")
+        to_end = (to_strand == "-")
 
-        if from_strand == "-":
-            from_start = True
-        else:
-            from_start = False
-        if to_strand == "-":
-            to_end = True
-        else:
-            to_end = False
 
         if from_start and to_end:  # from start to end L x - y -
             if (second_node, 1, overlap) not in nodes[first_node].start:
@@ -164,7 +158,6 @@ def create_alt_subgraphs(graph):
 
 def shoot(compact, altgraphs):
 
-    print("Fetching graph...")
     graph = Graph()
     graph.nodes = read_from_db()
 

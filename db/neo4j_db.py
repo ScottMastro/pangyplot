@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from contextlib import contextmanager
 import db.utils.create_index as index
 
-
 NEO4J_DRIVER = None
 GENE_TEXT_INDEX = "gene_fulltext_index"
 CURRENT_DB = None
@@ -28,6 +27,16 @@ def update_db(dbName):
         CURRENT_DB = dbName
     else:
         CURRENT_DB = "default"
+
+def db_exists(dbName):
+    with get_session() as (_,session):
+        query = """
+        MATCH (s:Segment)
+        WHERE s.db = $db
+        RETURN s LIMIT 1
+        """
+        result = session.run(query, parameters={"db": dbName})
+        return result.single() is not None
 
 def get_session_old():
     if NEO4J_DRIVER is None:
@@ -61,7 +70,9 @@ def close_driver():
 def db_init(dbName=None):
     init_driver()
     update_db(dbName)
-    
+
+    alreadyExists = db_exists(dbName)
+
     with get_session() as (db, session):
 
         #index.drop_all_constraints(session)
@@ -87,3 +98,7 @@ def db_init(dbName=None):
         index.create_restraint(session, "Exon", "id")
 
         index.create_fulltext_node_index(session, "Gene", GENE_TEXT_INDEX, ["gene", "id"])
+
+        print(alreadyExists)
+        return alreadyExists
+        
