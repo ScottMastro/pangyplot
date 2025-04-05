@@ -39,16 +39,16 @@ def insert_segment_links(links, batch_size=10000):
         for i in range(0, len(links), batch_size):
             batch = links[i:i + batch_size]
             query = """
-            UNWIND $batch AS link
-            MATCH (a:Segment {id: link.from_id, db: $db}), (b:Segment {id: link.to_id, db: $db})            
-            CREATE (a)-[:LINKS_TO {
-                from_strand: link.from_strand,
-                to_strand: link.to_strand,
-                haplotype: link.haplotype,
-                reverse: link.reverse,
-                frequency: link.frequency,
-                is_ref: link.is_ref
-            }]->(b)
+                UNWIND $batch AS link
+                MATCH (a:Segment {db: $db, id: link.from_id}), (b:Segment {db: $db, id: link.to_id})
+                CREATE (a)-[:LINKS_TO {
+                    from_strand: link.from_strand,
+                    to_strand: link.to_strand,
+                    haplotype: link.haplotype,
+                    reverse: link.reverse,
+                    frequency: link.frequency,
+                    is_ref: link.is_ref
+                }]->(b)
                 
             """
             session.run(query, {"batch": batch, "db": db})

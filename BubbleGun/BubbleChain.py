@@ -133,29 +133,13 @@ class BubbleChain:
         # looking "left" or "right" I still don't know who's is "bigger"
         # until I finish the whole chain.
         # pdb.set_trace()
-        
-        # ========= EDITED BY SCOTT MASTROMATTEO ===========
         start = self.ends[0]  # randomly choosing one end of the chain as start
-
-        all_ends_dict = dict()
-        for key in all_ends:
-            if key[0] not in all_ends_dict:
-                all_ends_dict[key[0]] = []
-            if key[1] not in all_ends_dict:
-                all_ends_dict[key[1]] = []
-            all_ends_dict[key[0]].append(key)
-            all_ends_dict[key[1]].append(key)
-
-        mark_done = set()
-
+        all_keys = list(all_ends.keys())
         while len(self.sorted) < len(self.bubbles):
-            for key in all_ends_dict[start]:
-                if key in mark_done:
-                    continue
-                next_key = key
-                mark_done.add(key)
-                start = next_key[1 - next_key.index(start)]
-                self.sorted.append(all_ends[next_key])
-                break
-            
-        # ========= EDITED BY SCOTT MASTROMATTEO ===========
+            for idx, key in enumerate(all_keys):
+                if start in key:
+                    rm_key = idx
+                    start = key[1 - key.index(start)]
+                    self.sorted.append(all_ends[key])
+                    break
+            del all_keys[rm_key]

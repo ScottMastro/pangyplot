@@ -273,7 +273,6 @@ def parse_graph(gfa, ref, positions, layoutCoords):
             link["frequency"] = bin(mask).count("1") / n
             link["reverse"] = hex(pathDict[keyReverse])[2:] if keyReverse in pathDict else "0"
             link["is_ref"] = ((mask >> refIdx) & 1) == 1
-
         return links
 
     with get_reader(gfa) as gfaFile:
@@ -289,10 +288,10 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                     links = []
                     write_update()
 
+    links = process_path_information(links)
+    insert_segment_links(links); links = []
     write_update(terminate=True)
 
-    links = process_path_information(links); links = []
-    insert_segment_links(links)
     print("   💾 GFA elements stored in database.")
 
 
