@@ -14,7 +14,7 @@ from db.insert.insert_chain import insert_chains, add_chain_properties
 from db.insert.insert_subgraph import insert_subgraph
 
 from collections import deque
-import sys, time
+import time
 
 def read_from_db():
     nodes = dict()
@@ -39,7 +39,6 @@ def read_from_db():
         first_node = str(first_node)
         second_node = str(second_node)
         overlap = 0
-        counter += 1
 
         if first_node not in linkDict:
             linkDict[first_node] = set()
@@ -50,31 +49,28 @@ def read_from_db():
         from_start = (from_strand == "-")
         to_end = (to_strand == "-")
 
-
         if from_start and to_end:  # from start to end L x - y -
             if (second_node, 1, overlap) not in nodes[first_node].start:
-                nodes[first_node].start.append((second_node, 1, overlap))
+                nodes[first_node].start.add((second_node, 1, overlap))
             if (first_node, 0, overlap) not in nodes[second_node].end:
-                nodes[second_node].end.append((first_node, 0, overlap))
+                nodes[second_node].end.add((first_node, 0, overlap))
         elif from_start and not to_end:  # from start to start L x - y +
             if (second_node, 0, overlap) not in nodes[first_node].start:
-                nodes[first_node].start.append((second_node, 0, overlap))
+                nodes[first_node].start.add((second_node, 0, overlap))
             if (first_node, 0, overlap) not in nodes[second_node].start:
-                nodes[second_node].start.append((first_node, 0, overlap))
+                nodes[second_node].start.add((first_node, 0, overlap))
         elif not from_start and not to_end:  # from end to start L x + y +
             if (second_node, 0, overlap) not in nodes[first_node].end:
-                nodes[first_node].end.append((second_node, 0, overlap))
+                nodes[first_node].end.add((second_node, 0, overlap))
             if (first_node, 1, overlap) not in nodes[second_node].start:
-                nodes[second_node].start.append((first_node, 1, overlap))
+                nodes[second_node].start.add((first_node, 1, overlap))
         elif not from_start and to_end:  # from end to end L x + y -
             if (second_node, 1, overlap) not in nodes[first_node].end:
-                nodes[first_node].end.append((second_node, 1, overlap))
+                nodes[first_node].end.add((second_node, 1, overlap))
             if (first_node, 1, overlap) not in nodes[second_node].end:
-                nodes[second_node].end.append((first_node, 1, overlap))
+                nodes[second_node].end.add((first_node, 1, overlap))
 
     return nodes
-
-
 
 def insert_all(graph):
     chains,bubbles = [], []
@@ -156,11 +152,12 @@ def create_alt_subgraphs(graph):
             insert_subgraph(subgraph)
 
 
-def shoot(compact, altgraphs):
+def shoot(altgraphs):
 
     graph = Graph()
     graph.nodes = read_from_db()
 
+    compact = False
     if compact:
         print("Compacting graph...")
         before = len(graph.nodes)
@@ -168,35 +165,32 @@ def shoot(compact, altgraphs):
         after = len(graph.nodes)
         print(f"{after}/{before} segments retained.")
     
-
-    print("Finding bubble chains...")
+    print("   ⛓️  Finding bubble chains...")
     start_time = time.time()
     find_bubbles(graph)
     end_time = time.time()
-    print(f"Bubble chains found in {end_time - start_time} seconds.")
+    print(f"      Took {round(end_time - start_time,1)} seconds.")
 
-    print("Connecting bubbles...")
+    print("   🔗 Connecting bubbles...")
     start_time = time.time()
     connect_bubbles(graph)
     end_time = time.time()
-    print(f"Bubbles connected in {end_time - start_time} seconds.")
+    print(f"      Took {round(end_time - start_time,1)} seconds.")
 
-    print("Building hierarchy...")
+    print("   🏗 Building bubble hierarchy...")
     start_time = time.time()
     find_parents(graph)
     end_time = time.time()
-    print(f"Hierarchy built in {end_time - start_time} seconds.")
+    print(f"      Took {round(end_time - start_time,1)} seconds.")
 
-    b_numbers = graph.bubble_number()
-    print("The number of Simple Bubbles is {}\n"
-        "The number of Superbubbles is {}\n"
-        "The number of insertions is {}".format(b_numbers[0], b_numbers[1], b_numbers[2]))
+    bubbleCount = graph.bubble_number()
+    print("   🔘 Simple Bubbles: {}, Superbubbles: {}, Insertions: {}".format(bubbleCount[0], bubbleCount[1], bubbleCount[2]))
 
-    print("Inserting all data...")
+    print("   🗃️ Updating database...")
     start_time = time.time()
     insert_all(graph)
     end_time = time.time()
-    print(f"Data inserted in {end_time - start_time} seconds.")
+    print(f"      Took {round(end_time - start_time,1)} seconds.")
 
     modify.annotate_deletions()
     modify.connect_bubble_ends_to_chain()

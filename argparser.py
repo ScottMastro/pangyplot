@@ -39,7 +39,6 @@ def parse_args(app):
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
         parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=False)
-        parser_add.add_argument('--compact', help='Attempt to compact graph (not recommended for large graph)', action='store_true', required=False)
 
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
         parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
@@ -156,7 +155,7 @@ def parse_args(app):
                 
                 #drop.drop_bubbles()
                 print("Calculating bubbles...")
-                bubble_gun.shoot(args.compact, True)
+                bubble_gun.shoot(True)
 
                 print("Calculating clusters...")
                 #cluster.generate_clusters()
