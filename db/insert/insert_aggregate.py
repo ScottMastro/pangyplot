@@ -90,43 +90,40 @@ def add_aggregate_properties(max_depth):
         match_chain = f"MATCH (n)-[:CHAINED]->(a:Chain) WHERE a.db = $db AND a.depth = $depth"
 
         for d in range(max_depth + 1):
-            print("depth", d)
             for query in queries:
                 session.run(f"{match_bubble} {query}", {"db": db, "depth": d})
                 session.run(f"{match_chain} {query}", {"db": db, "depth": d})
 
+        match_bubble = "MATCH (n)-[:INSIDE]->(a:Bubble)"
+        match_chain = "MATCH (n)-[:CHAINED]->(a:Chain)"
 
-        input()
+        query = """
+                WHERE a.db = $db AND a.depth = $depth
 
-        MATCH = """
-            MATCH (x)-[:INSIDE]->(b:Bubble)<-[r:END]-(s:Segment)
-            WHERE b.db = $db AND exists((x)-[]-(s))
-        """
-        q1= MATCH + " WITH b, avg(x.x1) AS avgX1 SET b.x1 = avgX1"
-        q2= MATCH + " WITH b, avg(x.y1) AS avgY1 SET b.y1 = avgY1"
-        q3= MATCH + " WITH b, avg(x.x2) AS avgX2 SET b.x2 = avgX2"
-        q4= MATCH + " WITH b, avg(x.y2) AS avgY2 SET b.y2 = avgY2"
+                WITH a,
+                    avg(n.x1) AS avgX1,
+                    avg(n.x2) AS avgX2,
+                    min(n.x1) AS minX1,
+                    max(n.x1) AS maxX1,
+                    min(n.x2) AS minX2,
+                    max(n.x2) AS maxX2,
+                    avg(n.y1) AS avgY1,
+                    avg(n.y2) AS avgY2,
+                    min(n.y1) AS minY1,
+                    max(n.y1) AS maxY1,
+                    min(n.y2) AS minY2,
+                    max(n.y2) AS maxY2
 
-        print("Calculating bubble layout...")
-        for query in [q1,q2,q3,q4]:
-            session.run(query, {"db": db})
+                SET a.x1 = CASE WHEN avgX1 < avgX2 THEN minX1 ELSE maxX1 END,
+                    a.x2 = CASE WHEN avgX1 < avgX2 THEN maxX2 ELSE minX2 END,
+                    a.y1 = CASE WHEN avgY1 < avgY2 THEN minY1 ELSE maxY1 END,
+                    a.y2 = CASE WHEN avgY1 < avgY2 THEN maxY2 ELSE minY2 END                
+                """
+        
+        for d in range(max_depth + 1):
+            session.run(f"{match_bubble} {query}", {"db": db, "depth": d})
+            session.run(f"{match_chain} {query}", {"db": db, "depth": d})
 
-    with get_session() as (db, session):
-
-        MATCH = """
-                MATCH (e1:Segment)-[:END]->(b:Bubble)-[:END]->(e2:Segment)
-                WHERE e1.db = $db AND e2.db = $db""" + \
-                " AND e1.genome = e2.genome" + \
-                " AND e1.chrom IS NOT NULL AND e2.chrom IS NOT NULL AND b.chrom is NULL"
-
-        q1 = MATCH + " SET b.start = CASE WHEN e1.end < e2.end THEN e1.end + 1 ELSE e2.end + 1 END"
-        q2 = MATCH + " SET b.end = CASE WHEN e1.start > e2.start THEN e1.start - 1 ELSE e2.start - 1 END"
-        q3 = MATCH + " SET b.genome = e1.genome"
-        q4 = MATCH + " SET b.chrom = e1.chrom"
-
-        print("Calculating chain properties...")
-        for query in [q1,q2,q3,q4]:
-            session.run(query, {"db": db})
 
 def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
     if len(bubbles) == 0: return
