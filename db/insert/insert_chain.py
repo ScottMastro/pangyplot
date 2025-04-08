@@ -1,10 +1,8 @@
 from db.neo4j_db import get_session
 
 def insert_chain_nodes(db, session, chains, batch_size):
-
     for i in range(0, len(chains), batch_size):
         batch = chains[i:i + batch_size]
-        # sb: chain.sb, pc: chain.pc
         print(f"{i}/{len(chains)} chains inserted.")
         query = """
                 UNWIND $chains AS chain
@@ -12,9 +10,14 @@ def insert_chain_nodes(db, session, chains, batch_size):
                 """
         session.run(query, {"chains": batch, "db": db})
 
+
+
+
+
 def create_links(db, session, links, nodeType, relationship, direction):
     a = direction if direction == "<-" else "-"
     b = direction if direction == "->" else "-"
+    
     query = """
             UNWIND $links AS link
             MATCH (n:"""+nodeType+""" {db: $db, id: link.oid}), (c:Chain {db: $db, id: link.cid})
