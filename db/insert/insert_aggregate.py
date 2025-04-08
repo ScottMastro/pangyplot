@@ -124,6 +124,37 @@ def add_aggregate_properties(max_depth):
             session.run(f"{match_bubble} {query}", {"db": db, "depth": d})
             session.run(f"{match_chain} {query}", {"db": db, "depth": d})
 
+def adjust_compacted_nodes(db, session):
+
+        query = """
+                MATCH (b:Bubble)-[r:END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:LINKS_TO]-(s:Segment)-[:INSIDE]->(b)
+                WHERE b.db = $db AND c <> e
+                WITH DISTINCT b, r, c, startNode(r) AS from, endNode(r) AS to
+                DELETE r
+                FOREACH (_ IN CASE WHEN from = b THEN [1] ELSE [] END |
+                    CREATE (b)-[:END]->(c)
+                )
+                FOREACH (_ IN CASE WHEN to = b THEN [1] ELSE [] END |
+                    CREATE (c)-[:END]->(b)
+                )
+                """
+        session.run(query, {"db": db})
+
+        #TODO:
+        #query = """
+        #        MATCH (a:Chain)-[r:END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:CHAINED]-(s:Segment)-[:INSIDE]->(b)
+        #        WHERE a.db = $db AND c <> e
+        #        WITH DISTINCT b, r, c, startNode(r) AS from, endNode(r) AS to
+        #        DELETE r
+        #        FOREACH (_ IN CASE WHEN from = b THEN [1] ELSE [] END |
+        #            CREATE (a)-[:CHAIN_END]->(c)
+        #        )
+        #        FOREACH (_ IN CASE WHEN to = b THEN [1] ELSE [] END |
+        #            CREATE (c)-[:CHAIN_END]->(a)
+        #        )
+        #        """
+        #session.run(query, {"db": db})
+
 
 def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
     if len(bubbles) == 0: return
@@ -131,6 +162,8 @@ def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
         insert_aggregate_nodes(db, session, bubbles, "Bubble", batch_size)
         insert_aggregate_nodes(db, session, chains, "Chain", batch_size)
         insert_aggregate_links(db, session, bubbles, chains, batch_size)
+        
+        adjust_compacted_nodes(db, session)
 
         max_depth = max([x["depth"] for x in chains + bubbles])
 

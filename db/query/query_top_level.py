@@ -2,7 +2,6 @@ from db.neo4j_db import get_session
 import db.utils.create_record as record
 import db.utils.integrity_check as integrity
 
-
 def get_top_level_data(db, session, genome, chrom, start, end):
     nodes,links = [],[]
 
@@ -10,10 +9,10 @@ def get_top_level_data(db, session, genome, chrom, start, end):
             MATCH (n:Segment|Chain|Bubble)
             WHERE n.db = $db AND n.genome = $genome AND n.chrom = $chrom 
                 AND n.start >= $start AND n.end <= $end AND NOT EXISTS {
-                    MATCH (n)-[:INSIDE]->(m)
+                    MATCH (n)-[:INSIDE|CHAINED|PARENT_SB]->(m)
                     WHERE m.chrom = $chrom AND m.start >= $start AND m.end <= $end
             }
-            OPTIONAL MATCH (n)-[r1:END]-(e:Segment)
+            OPTIONAL MATCH (n)-[r1:END|CHAIN_END]-(e:Segment)
             OPTIONAL MATCH (n:Segment)-[r2:LINKS_TO]-(s:Segment)
 
             RETURN n, labels(n) AS type,
@@ -27,6 +26,7 @@ def get_top_level_data(db, session, genome, chrom, start, end):
         nodes.append( record.node_record(result["n"], result["type"][0]) )
 
         links.extend( [record.link_record(r) for r in result["endlinks"]] )
+        print([record.link_record(r) for r in result["endlinks"]])
         links.extend( [record.link_record(r) for r in result["links"]] )
 
         

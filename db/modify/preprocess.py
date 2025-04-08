@@ -75,11 +75,12 @@ def create_compact_links(merged_map):
         for i in range(0, len(links), batch_size):
             batch = links[i:i + batch_size]
             query = """
-                UNWIND $links AS link
-                MATCH (s1:Segment {db: $db, id: link.s1}), (s2:Segment {db: $db, id: link.s2})
-                MERGE (s1)-[:COMPACT]->(s2)
-            """
+                    UNWIND $links AS link
+                    MATCH (s1:Segment {db: $db, id: link.s1}), (s2:Segment {db: $db, id: link.s2})
+                    MERGE (s1)-[:COMPACT]->(s2)
+                    """
             session.run(query, {"links": batch, "db": db})
+    
 
 def annotate_deletions_simple():
     with get_session() as (db, session):

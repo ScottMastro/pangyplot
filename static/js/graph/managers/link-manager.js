@@ -27,7 +27,6 @@ function decodeHaplotypeMask(hexString) {
 
 
 function processLinks(rawLinks) {
-    console.log("rawLinks", rawLinks)
     rawLinks = filterBadLinks(rawLinks);
     
     let links = rawLinks.map(rawLink => ({
