@@ -46,7 +46,7 @@ def drop_db(db):
             print(f"Deleted {total_deleted} nodes so far...")
         print("Deletion complete.")
 
-def drop_node_type(session, type, db=None):
+def drop_node_type(session, type, db=None, print_info=True):
 
     db_clause = f'WHERE n.db = "{db}"' if db else ''
 
@@ -65,7 +65,8 @@ def drop_node_type(session, type, db=None):
         if deleted == 0:
             break
         total_deleted += deleted
-        print(f"Deleted {total_deleted} {type} so far...")
+        if print_info:
+            print(f"Deleted {total_deleted} {type} so far...")
 
 def drop_relationship_type(session, type, db=None):
 
@@ -98,7 +99,7 @@ def drop_bubbles():
 
 def drop_subgraphs():
     with get_session() as (db, session):
-        drop_node_type(session, "Subgraph", db)
+        drop_node_type(session, "Subgraph", db, print_info=False)
     
 def drop_anchors():
     with get_session() as (db, session):

@@ -17,7 +17,7 @@ def extract_chrom(s):
         return match.group()
     return None
 
-def parse_line_S(line, ref, refSet, positions, layoutCoords):
+def parse_line_S(line, ref, positions):
     result = {"type" : "S"}   
     cols = line.strip().split("\t")
     
@@ -232,7 +232,7 @@ def parse_graph(gfa, ref, positions, layoutCoords):
     with get_reader(gfa) as gfaFile:
         for line in gfaFile:
             if line[0] == "S":
-                segment = parse_line_S(line, ref, refSet, positions, layoutCoords)
+                segment = parse_line_S(line, ref, positions)
                 lenDict[segment["id"]] = segment["length"]
                 for c in ["x1", "y1", "x2", "y2"]:
                     segment[c] = layoutCoords[counter][c]

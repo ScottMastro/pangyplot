@@ -173,6 +173,7 @@ def bfs_find_subgraph(graph, start_node):
     refset = set()
 
     while queue:
+        
         current = queue.popleft()
 
         if current.optional_info["ref"]:
@@ -189,7 +190,6 @@ def bfs_find_subgraph(graph, start_node):
                 queue.append(graph.nodes[neighbor])
 
     return {"anchor": refset, "graph": visited}
-
 
 def create_alt_subgraphs(graph):
     nodes = list(graph.nodes.keys())
@@ -208,7 +208,6 @@ def create_alt_subgraphs(graph):
             visited.add(v)
 
         if len(subgraph["graph"]) > 1:
-            input()
             insert_subgraph(subgraph)
 
 
@@ -217,8 +216,6 @@ def shoot(altgraphs):
     graph = Graph()
     graph.nodes = read_from_db()
 
-    #compact = False
-    #if compact:
     print("   🗜️ Compacting graph...")
     before = len(graph.nodes)
     merged_map = compacter.compact_graph(graph)
@@ -255,18 +252,15 @@ def shoot(altgraphs):
 
     print("   🚩 Annotating deletions...")
     preprocess.annotate_deletions()
-    print("done")
-    input()
 
     if altgraphs:
-        print("Building alt branches...")
-
+        print("   🌿 Building alternative path branches...")
         #drop.drop_anchors()
         #drop.drop_subgraphs()
-
-        print("Finding alt branches...")
         create_alt_subgraphs(graph)
-        
-        print("Anchoring alt branches...")
+
+        print("   ⚓ Anchoring alt branches...")
         preprocess.anchor_alternative_branches()
         drop.drop_subgraphs()
+    
+    print("   Done.")
