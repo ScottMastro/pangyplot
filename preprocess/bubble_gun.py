@@ -5,15 +5,14 @@ from BubbleGun.connect_bubbles import connect_bubbles
 from BubbleGun.find_parents import find_parents
 
 import db.modify.drop_data as drop
-from db.query.query_preprocess import query_segment_summary, query_link_summary
-import db.modify.compact_graph as compacter 
-import db.modify.graph_modify as modify
+import db.modify.preprocess as preprocess
+import preprocess.compact_graph as compacter
 
-from db.insert.insert_bubble import insert_bubbles, add_bubble_properties
-from db.insert.insert_chain import insert_chains, add_chain_properties
+from db.insert.insert_aggregate import insert_bubbles_and_chains
 from db.insert.insert_subgraph import insert_subgraph
 
-from collections import deque
+from collections import deque, defaultdict
+
 import time
 
 def read_from_db():
@@ -22,7 +21,7 @@ def read_from_db():
 
     # ==== SEGMENTS ====
     print("   📦 Summarizing segments from database...")
-    segments = query_segment_summary()
+    segments = preprocess.query_segment_summary()
 
     for s in segments:
         nid, nlen, nref = s
@@ -33,7 +32,7 @@ def read_from_db():
 
     # ==== LINKS ====
     print("   🚚 Summarizing links from database...")
-    links = query_link_summary()
+    links = preprocess.query_link_summary()
 
     for from_strand, first_node, to_strand, second_node in links:
         first_node = str(first_node)
@@ -72,39 +71,100 @@ def read_from_db():
 
     return nodes
 
-def insert_all(graph):
-    chains,bubbles = [], []
+def assign_bubble_depths(graph, bubble_dict, child_bubbles):
+    nesting_cache = {}
+    depth_cache = {}
+
+    def get_nesting_level(bid):
+        if bid in nesting_cache:
+            return nesting_cache[bid]
+        bubble = bubble_dict.get(bid)
+        if not bubble or not bubble.parent_sb:
+            nesting_cache[bid] = 0
+            return 0
+        level = 1 + get_nesting_level(bubble.parent_sb)
+        nesting_cache[bid] = level
+        return level
+
+    def get_depth_below(bid):
+        if bid in depth_cache:
+            return depth_cache[bid]
+        children = child_bubbles.get(bid, [])
+        if not children:
+            depth = 0
+        else:
+            depth = 1 + max(get_depth_below(child.id) for child in children)
+        depth_cache[bid] = depth
+        return depth
+
+    bubble_metadata = {}
+    for bid, bubble in bubble_dict.items():
+        bubble_metadata[bid] = {
+            "nesting_level": get_nesting_level(bid),
+            "depth": get_depth_below(bid),
+        }
+
+    return bubble_metadata
+
+def insert_all(graph, merged_map):
+    child_bubbles = defaultdict(list)
+    bubble_dict = {}
 
     for chain in graph.b_chains:
-        chains.append({
-                "id": chain.id, 
-                "ends": [chain.ends[1], chain.ends[0]],
-                "sb": None if not chain.parent_sb else chain.parent_sb,
-                "pc": None if not chain.parent_chain else chain.parent_chain,
-                "bubbles":[bubble.id for bubble in chain.bubbles]
-                })
-        
         for bubble in chain.bubbles:
-            type = "simple" 
-            if bubble.is_super():
-                type = "super"
-            elif bubble.is_insertion():
-                type = "insertion"
+            bubble_dict[bubble.id] = bubble
+            if bubble.parent_sb:
+                child_bubbles[bubble.parent_sb].append(bubble)
 
+    bubble_metadata = assign_bubble_depths(graph, bubble_dict, child_bubbles)
+
+    chains, bubbles = [], []
+
+    for chain in graph.b_chains:
+        for bubble in chain.bubbles:
+            subtype = "simple"
+            if bubble.is_insertion():
+                subtype = "insertion"
+
+            inside_ids = {seg.id for seg in bubble.inside}
+            compacted_ids = set()
+            for sid in inside_ids:
+                if sid in merged_map:
+                    compacted_ids.update(merged_map[sid])
+            inside_ids.update(compacted_ids)
+
+            if bubble.is_super():
+                subtype = "super"
+                for child in child_bubbles.get(bubble.id, []):
+                    inside_ids -= {seg.id for seg in child.inside}
+ 
+            meta = bubble_metadata[bubble.id]
             bubbles.append({
                 "id": bubble.id,
-                "type": type,
+                "subtype": subtype,
                 "ends": [bubble.sink.id, bubble.source.id],
-                "chain_id": None if not bubble.chain_id else bubble.chain_id,
                 "sb": None if not bubble.parent_sb else bubble.parent_sb,
                 "pc": None if not bubble.parent_chain else bubble.parent_chain,
-                "inside":[segment.id for segment in bubble.inside]
-                })
-            
-    insert_bubbles(bubbles)
-    insert_chains(chains)
-    add_bubble_properties()
-    add_chain_properties()
+                "nesting_level": meta["nesting_level"],
+                "depth": meta["depth"],
+                "inside": sorted(inside_ids),
+            })
+
+        if len(chain.bubbles) < 2:
+            continue
+
+        chains.append({
+            "id": chain.id,
+            "subtype": "chain",
+            "ends": [chain.ends[1], chain.ends[0]],
+            "sb": None if not chain.parent_sb else chain.parent_sb,
+            "pc": None if not chain.parent_chain else chain.parent_chain,
+            "nesting_level": bubble_metadata.get(chain.parent_sb, {}).get("nesting_level", 0),
+            "depth": max(bubble_metadata[b.id]["depth"] for b in chain.bubbles),
+            "inside": [bubble.id for bubble in chain.bubbles]
+        })
+
+    insert_bubbles_and_chains(bubbles, chains)
 
 
 def bfs_find_subgraph(graph, start_node):
@@ -157,14 +217,15 @@ def shoot(altgraphs):
     graph = Graph()
     graph.nodes = read_from_db()
 
-    compact = False
-    if compact:
-        print("Compacting graph...")
-        before = len(graph.nodes)
-        compacter.compact_graph(graph)
-        after = len(graph.nodes)
-        print(f"{after}/{before} segments retained.")
-    
+    #compact = False
+    #if compact:
+    print("   🗜️ Compacting graph...")
+    before = len(graph.nodes)
+    merged_map = compacter.compact_graph(graph)
+    preprocess.create_compact_links(merged_map)
+    after = len(graph.nodes)
+    print(f"      Segments compacted; Total: {before} ➜ {after}.")
+
     print("   ⛓️  Finding bubble chains...")
     start_time = time.time()
     find_bubbles(graph)
@@ -186,15 +247,16 @@ def shoot(altgraphs):
     bubbleCount = graph.bubble_number()
     print("   🔘 Simple Bubbles: {}, Superbubbles: {}, Insertions: {}".format(bubbleCount[0], bubbleCount[1], bubbleCount[2]))
 
-    print("   🗃️ Updating database...")
+    print("   🗃️ Adding to database...")
     start_time = time.time()
-    insert_all(graph)
+    insert_all(graph, merged_map)
     end_time = time.time()
     print(f"      Took {round(end_time - start_time,1)} seconds.")
 
-    modify.annotate_deletions()
-    modify.connect_bubble_ends_to_chain()
-    modify.add_chain_subtype()
+    print("   🚩 Annotating deletions...")
+    preprocess.annotate_deletions()
+    print("done")
+    input()
 
     if altgraphs:
         print("Building alt branches...")
@@ -206,5 +268,5 @@ def shoot(altgraphs):
         create_alt_subgraphs(graph)
         
         print("Anchoring alt branches...")
-        modify.anchor_alternative_branches()
+        preprocess.anchor_alternative_branches()
         drop.drop_subgraphs()
