@@ -53,6 +53,8 @@ def link_record(record):
             "is_ref": record["is_ref"],
             "is_del": record["is_del"],
             "class": "edge"}
+    if link["haplotype"] is None:
+        link["haplotype"] = "0";
     return link
 
 
