@@ -8,18 +8,6 @@ def query_all_chromosomes():
 
     return chromosomes
 
-def query_all_samples():
-    with get_session() as (db, session):
-        query = """
-            MATCH (s:Sample {db: $db})
-            RETURN s.id AS id, s.index AS idx
-        """
-        result = session.run(query, parameters={"db": db})
-        samples = [{"id": record["id"], "index": record["idx"]} for record in result]
-        
-        return samples
-    return []
-
 def query_all_db():
     with get_session() as (_, session):
         query = "MATCH (s:Segment) RETURN DISTINCT s.db"

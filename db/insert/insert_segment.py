@@ -6,7 +6,7 @@ def insert_segments(segments, batch_size=10000):
     if len(segments) == 0: 
         return
     
-    with get_session() as (db, session):
+    with get_session(collection=True) as (db, collection, session):
 
         for i in range(0, len(segments), batch_size):
             batch = segments[i:i + batch_size]
@@ -14,6 +14,7 @@ def insert_segments(segments, batch_size=10000):
                 UNWIND $batch AS segment
                 CREATE (:Segment {
                     id: segment.id,
+                    collection: $col,
                     db: $db,
                     genome: segment.genome,
                     chrom: segment.chrom,
@@ -30,17 +31,18 @@ def insert_segments(segments, batch_size=10000):
 
                 })
             """
-            session.run(query, parameters={"batch": batch, "db": db})
+            session.run(query, parameters={"col": collection, "batch": batch, "db": db})
 
 def insert_segment_links(links, batch_size=10000):
     if len(links) == 0: return
-    with get_session() as (db,session):
+    with get_session(collection=True) as (db, collection, session):
 
         for i in range(0, len(links), batch_size):
             batch = links[i:i + batch_size]
             query = """
                 UNWIND $batch AS link
-                MATCH (a:Segment {db: $db, id: link.from_id}), (b:Segment {db: $db, id: link.to_id})
+                MATCH (a:Segment {db: $db, collection: $col, id: link.from_id}),
+                      (b:Segment {db: $db, collection: $col, id: link.to_id})
                 CREATE (a)-[:LINKS_TO {
                     from_strand: link.from_strand,
                     to_strand: link.to_strand,
@@ -51,6 +53,6 @@ def insert_segment_links(links, batch_size=10000):
                 }]->(b)
                 
             """
-            session.run(query, {"batch": batch, "db": db})
+            session.run(query, {"col": collection, "batch": batch, "db": db})
 
 

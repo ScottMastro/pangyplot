@@ -3,7 +3,7 @@ import uuid
 
 def insert_subgraphs(subgraphs, batch_size=1000):
 
-    with get_session() as (db, session):
+    with get_session(collection=True) as (db, collection, session):
 
         for subgraph in subgraphs:
             subgraph_id = str(uuid.uuid4())
@@ -12,9 +12,10 @@ def insert_subgraphs(subgraphs, batch_size=1000):
             query = """
                     CREATE (:Subgraph { 
                     db: $db,
+                    collection: $col,
                     id: $id })
                     """
-            session.run(query, parameters={"db": db, "id": subgraph_id})
+            session.run(query, parameters={"col": collection, "db": db, "id": subgraph_id})
 
             # Insert graph nodes in batches
             graph_nodes = list(subgraph["graph"])
@@ -23,10 +24,10 @@ def insert_subgraphs(subgraphs, batch_size=1000):
 
                 session.run("""
                     UNWIND $batch AS node
-                    MATCH (s:Subgraph {db: $db, id: $id}),
-                        (n:Segment {db: $db, id: node})
+                    MATCH (s:Subgraph {db: $db, collection: $col, id: $id}),
+                        (n:Segment {db: $db, collection: $col, id: node})
                     CREATE (n)-[:SUBGRAPH]->(s)
-                """, parameters={"batch": batch, "id": subgraph_id, "db": db})
+                """, parameters={"col": collection, "batch": batch, "id": subgraph_id, "db": db})
 
             # Insert anchor nodes in batches
             anchor_nodes = list(subgraph["anchor"])
@@ -34,7 +35,7 @@ def insert_subgraphs(subgraphs, batch_size=1000):
                 batch = anchor_nodes[i:i + batch_size]
                 session.run("""
                     UNWIND $batch AS anchor
-                    MATCH (s:Subgraph {db: $db, id: $id}),
-                        (n:Segment {db: $db, id: anchor})
+                    MATCH (s:Subgraph {db: $db, collection: $col, id: $id}),
+                        (n:Segment {db: $db, collection: $col, id: anchor})
                     CREATE (s)-[:ANCHOR]->(n)
-                """, parameters={"batch": batch, "id": subgraph_id, "db": db})
+                """, parameters={"col": collection, "batch": batch, "id": subgraph_id, "db": db})

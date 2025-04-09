@@ -96,7 +96,6 @@ def drop_bubbles():
 
     print("Deletion complete.")
 
-
 def drop_subgraphs():
     with get_session() as (db, session):
         drop_node_type(session, "Subgraph", db, print_info=False)

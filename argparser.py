@@ -1,8 +1,7 @@
-import argparse
+import argparse, uuid
 
-from db.neo4j_db import db_init
+import db.neo4j_db as db
 import db.modify.drop_data as drop
-import db.modify.cluster_graph as cluster
 
 import environment_setup as setup
 
@@ -13,6 +12,7 @@ from parser.parse_positions import parse_positions
 
 import preprocess.bubble_gun as bubble_gun
 from db.utils.check_status import get_status
+import db.insert.insert_metadata as metadata
 
 def parse_args(app):
 
@@ -61,12 +61,12 @@ def parse_args(app):
             exit()
 
         if args.command == 'status':
-            db_init(None)
+            db.db_init(None)
             get_status()
             exit()
 
         if args.command == 'run':
-            db_init(args.db)
+            db.db_init(args.db)
             port = args.port if args.port else DEFAULT_PORT
             print(f"Starting PangyPlot... http://127.0.0.1:{port}")
            
@@ -74,7 +74,7 @@ def parse_args(app):
             exit()
 
         if args.command == 'drop':
-            db_init(args.db)
+            db.db_init(args.db)
 
             flag = False
 
@@ -82,7 +82,6 @@ def parse_args(app):
                 print(f"Dropping everything...")
                 drop.drop_all()
                 flag = True
-
 
             if args.db:
                 print(f'Dropping "{args.db}" data...')
@@ -120,14 +119,14 @@ def parse_args(app):
             
         if args.command == 'annotate':
             print("Adding annotations...")
-            db_init(None)
+            db.db_init(None)
             if args.gff3 and args.ref:
                 #drop.drop_annotations()
                 print("Parsing GFF3...")
                 parse_gff3(args.gff3, args.ref)
 
         if args.command == "add":
-            exists = db_init(args.db)
+            exists = db.db_init(args.db)
             
             if exists:
                 delete_response = input(f'Database "{args.db}" already contains data. Drop and recreate it? [y/n]: ').strip().lower()
@@ -140,6 +139,9 @@ def parse_args(app):
                     if add_response != 'y':
                         print("Exiting. No changes made.")
                         exit(0)
+
+            collection_id = metadata.insert_new_collection(args.gfa, args.ref)
+            db.initiate_collection(collection_id)
 
             positions = dict()
             if args.positions:
