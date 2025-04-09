@@ -109,19 +109,14 @@ def score_orientation(graph, bubble):
 
     return score
 
-def normalize_bubble_direction(graph):
-    for chain in graph.b_chains:
-        for bubble in chain.bubbles:
-            original_score = score_orientation(graph, bubble)
+def normalize_bubble_direction(graph, bubble):
+    original_score = score_orientation(graph, bubble)
 
-            # Try flipped version
-            bubble.source, bubble.sink = bubble.sink, bubble.source
-            flipped_score = score_orientation(graph, bubble)
+    # Try flipped version
+    bubble.source, bubble.sink = bubble.sink, bubble.source
+    flipped_score = score_orientation(graph, bubble)
 
-            # Decide whether to keep it flipped
-            if flipped_score > original_score:
-                print("flip")
-                pass
-            else:
-                # flip back
-                bubble.source, bubble.sink = bubble.sink, bubble.source
+    if flipped_score > original_score:
+        pass
+    else: # flip back
+        bubble.source, bubble.sink = bubble.sink, bubble.source

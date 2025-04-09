@@ -4,7 +4,6 @@ import BubbleGun.find_bubbles as BubbleGunFindBubbles
 import BubbleGun.connect_bubbles as BubbleGunConnectBubbles
 import BubbleGun.find_parents as BubbleGunFindParents
 
-
 import preprocess.bubble_gun_utils as utils
 
 import db.modify.drop_data as drop
@@ -82,6 +81,9 @@ def insert_all(graph, merged_map):
     chains, bubbles = [], []
 
     for chain in graph.b_chains:
+        bubble_sources = set()
+        bubble_sinks = set()
+
         for bubble in chain.bubbles:
             subtype = "simple"
             if bubble.is_insertion():
@@ -99,6 +101,10 @@ def insert_all(graph, merged_map):
                 for child in child_bubbles.get(bubble.id, []):
                     inside_ids -= {seg.id for seg in child.inside}
  
+            utils.normalize_bubble_direction(graph, bubble)
+            bubble_sources.add(bubble.source.id)
+            bubble_sinks.add(bubble.sink.id)
+
             meta = bubble_metadata[bubble.id]
             bubbles.append({
                 "id": bubble.id,
@@ -114,10 +120,15 @@ def insert_all(graph, merged_map):
         if len(chain.bubbles) < 2:
             continue
 
+        chain_source, chain_sink = chain.ends[0], chain.ends[1]
+        if chain_source in bubble_sinks and chain_sink in bubble_sources:
+            chain_source, chain_sink = chain_sink, chain_source 
+            print("chain flip")
+
         chains.append({
             "id": chain.id,
             "subtype": "chain",
-            "ends": [chain.ends[1], chain.ends[0]],
+            "ends": [chain_source, chain_sink],
             "sb": None if not chain.parent_sb else chain.parent_sb,
             "pc": None if not chain.parent_chain else chain.parent_chain,
             "nesting_level": bubble_metadata.get(chain.parent_sb, {}).get("nesting_level", 0),
@@ -157,10 +168,6 @@ def shoot(altgraphs):
     BubbleGunFindParents.find_parents(graph)
     end_time = time.time()
     print(f"      Took {round(end_time - start_time,1)} seconds.")
-
-
-    normalize_bubble_direction(graph)
-
 
     bubbleCount = graph.bubble_number()
     print("   🔘 Simple Bubbles: {}, Superbubbles: {}, Insertions: {}".format(bubbleCount[0], bubbleCount[1], bubbleCount[2]))
