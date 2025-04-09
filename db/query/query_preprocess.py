@@ -6,17 +6,17 @@ def all_segment_summary():
     nodes = []
     startTime = time.time()
 
-    with get_session() as (db, session):
+    with get_session(collection=True) as (db, collection, session):
         skip = 0
         while True:
             query = """
                     MATCH (s:Segment)
-                    WHERE s.db = $db
+                    WHERE s.db = $db AND s.collection = $col
                     RETURN s.id, s.length, s.start
                     SKIP $skip
                     LIMIT $limit
                     """
-            results = session.run(query, parameters={"db": db}, skip=skip, limit=batch_size)
+            results = session.run(query, parameters={"db": db, "col": collection}, skip=skip, limit=batch_size)
             batch = [(result['s.id'], result['s.length'], result["s.start"] is not None) for result in results]
 
             if not batch:
@@ -36,17 +36,17 @@ def all_link_summary():
     links = []
     startTime = time.time()
     
-    with get_session() as (db,session):
+    with get_session(collection=True) as (db, collection, session):
         skip = 0
         while True:
             query = """
                     MATCH (s1:Segment)-[l:LINKS_TO]->(s2:Segment)
-                    WHERE s1.db = $db
+                    WHERE s1.db = $db AND s1.collection = $col
                     RETURN l.from_strand, l.to_strand, s1.id, s2.id
                     SKIP $skip
                     LIMIT $limit
                     """
-            results = session.run(query, parameters={"db": db}, skip=skip, limit=batch_size)
+            results = session.run(query, parameters={"db": db, "col": collection}, skip=skip, limit=batch_size)
             batch = [(result['l.from_strand'], result['s1.id'], result['l.to_strand'], result['s2.id']) for result in results]
     
             if not batch:

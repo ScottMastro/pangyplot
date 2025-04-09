@@ -8,7 +8,9 @@ from db.query.query_annotation import query_gene_range,text_search_gene
 from db.query.query_subgraph import get_subgraph
 from db.query.query_cluster import get_clusters
 
-from db.query.query_all import query_all_chromosomes, query_all_genome, query_all_samples
+from db.query.query_all import query_all_chromosomes, query_all_genome
+from db.query.query_metadata import query_samples
+
 from argparser import parse_args
 
 
@@ -73,7 +75,7 @@ def select():
 
 @app.route('/samples', methods=["GET"])
 def get_samples():
-    samples = query_all_samples()    
+    samples = query_samples()    
     return samples, 200
 
 @app.route('/genes', methods=["GET"])

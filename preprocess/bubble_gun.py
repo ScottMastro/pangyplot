@@ -123,7 +123,6 @@ def insert_all(graph, merged_map):
         chain_source, chain_sink = chain.ends[0], chain.ends[1]
         if chain_source in bubble_sinks and chain_sink in bubble_sources:
             chain_source, chain_sink = chain_sink, chain_source 
-            print("chain flip")
 
         chains.append({
             "id": chain.id,

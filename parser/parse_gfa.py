@@ -4,7 +4,7 @@ import gzip,re
 import parser.parse_utils as utils
 from statistics import mean
 from db.insert.insert_segment import insert_segments, insert_segment_links
-from db.insert.insert_sample import insert_samples
+from db.insert.insert_metadata import insert_samples
 
 def get_reader(gfa):
     if gfa.endswith(".gz"):

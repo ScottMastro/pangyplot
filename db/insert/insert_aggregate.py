@@ -4,71 +4,77 @@ import sys
 
 import db.modify.preprocess_modifications as modify
 
-def insert_aggregate_nodes(db, session, aggregates, type, batch_size):
+def insert_aggregate_nodes(aggregates, type, batch_size):
     total = len(aggregates)
-    for i in range(0, total, batch_size):
-        batch = aggregates[i:i + batch_size]
+    
+    with get_session(collection=True) as (db, collection, session):
 
-        sys.stdout.write(f"\r      Inserting {type}s: {min(i + batch_size, total)}/{total}.")
+        for i in range(0, total, batch_size):
+            batch = aggregates[i:i + batch_size]
 
-        query = f"""
-            UNWIND $aggregates AS agg
-            CREATE (:{type} {{
-                db: $db,
-                id: toString(agg.id),
-                subtype: agg.subtype,
-                nesting_level: agg.nesting_level,
-                depth: agg.depth
-            }})
-        """
-        session.run(query, {"aggregates": batch, "db": db})
+            sys.stdout.write(f"\r      Inserting {type}s: {min(i + batch_size, total)}/{total}.")
 
-    print(f"\r      Inserting {type}s: {total}/{total}.")
+            query = f"""
+                UNWIND $aggregates AS agg
+                CREATE (:{type} {{
+                    db: $db,
+                    collection: $col,
+                    id: toString(agg.id),
+                    subtype: agg.subtype,
+                    nesting_level: agg.nesting_level,
+                    depth: agg.depth
+                }})
+            """
+            session.run(query, {"aggregates": batch, "col": collection, "db": db})
 
-def insert_aggregate_links(db, session, bubbles, chains, batch_size):
+        print(f"\r      Inserting {type}s: {total}/{total}.")
+
+def insert_aggregate_links(bubbles, chains, batch_size):
     linkmap = defaultdict(list)
 
-    def insert_link(db, session, links, label_a, label_b, rel):
-        query = f"""
-            UNWIND $links AS link
-            MATCH (a:{label_a} {{db: $db, id: toString(link.id_a)}}),
-                  (b:{label_b} {{db: $db, id: toString(link.id_b)}})
-            CREATE (a)-[:{rel}]->(b)
-        """
-        session.run(query, {"links": links, "db": db})
+    with get_session(collection=True) as (db, collection, session):
 
-    for bubble in bubbles:
-        bid = bubble["id"]
-        start_id, end_id = bubble["ends"]
+        def insert_link(links, label_a, label_b, rel):
+            query = f"""
+                UNWIND $links AS link
+                MATCH (a:{label_a} {{db: $db, collection: $col, id: toString(link.id_a)}}),
+                    (b:{label_b} {{db: $db, collection: $col, id: toString(link.id_b)}})
+                CREATE (a)-[:{rel}]->(b)
+            """
+            session.run(query, {"links": links, "col": collection,  "db": db})
 
-        linkmap["Segment.END.Bubble"].append({"id_a": start_id, "id_b": bid})
-        linkmap["Bubble.END.Segment"].append({"id_a": bid, "id_b": end_id})
+        for bubble in bubbles:
+            bid = bubble["id"]
+            start_id, end_id = bubble["ends"]
 
-        if bubble["sb"]:
-            linkmap["Bubble.INSIDE.Bubble"].append({"id_a": bid, "id_b": bubble["sb"]})
-        for sid in bubble["inside"]:
-            linkmap["Segment.INSIDE.Bubble"].append({"id_a": sid, "id_b": bid})
+            linkmap["Segment.END.Bubble"].append({"id_a": start_id, "id_b": bid})
+            linkmap["Bubble.END.Segment"].append({"id_a": bid, "id_b": end_id})
 
-    for chain in chains:
-        cid = chain["id"]
-        start_id, end_id = chain["ends"]
+            if bubble["sb"]:
+                linkmap["Bubble.INSIDE.Bubble"].append({"id_a": bid, "id_b": bubble["sb"]})
+            for sid in bubble["inside"]:
+                linkmap["Segment.INSIDE.Bubble"].append({"id_a": sid, "id_b": bid})
 
-        linkmap["Segment.CHAIN_END.Chain"].append({"id_a": start_id, "id_b": cid})
-        linkmap["Chain.CHAIN_END.Segment"].append({"id_a": cid, "id_b": end_id})
+        for chain in chains:
+            cid = chain["id"]
+            start_id, end_id = chain["ends"]
 
-        if chain["sb"]:
-            linkmap["Chain.PARENT_SB.Bubble"].append({"id_a": cid, "id_b": chain["sb"]})
-        for bid_inside in chain["inside"]:
-            linkmap["Bubble.CHAINED.Chain"].append({"id_a": bid_inside, "id_b": cid})
+            linkmap["Segment.CHAIN_END.Chain"].append({"id_a": start_id, "id_b": cid})
+            linkmap["Chain.CHAIN_END.Segment"].append({"id_a": cid, "id_b": end_id})
 
-    for key, batch in linkmap.items():
-        if not batch: continue
-        label_a, rel, label_b = key.split('.')
-        for i in range(0, len(batch), batch_size):
-            insert_link(db, session, batch[i:i + batch_size], label_a, label_b, rel)
+            if chain["sb"]:
+                linkmap["Chain.PARENT_SB.Bubble"].append({"id_a": cid, "id_b": chain["sb"]})
+            for bid_inside in chain["inside"]:
+                linkmap["Bubble.CHAINED.Chain"].append({"id_a": bid_inside, "id_b": cid})
+
+        for key, batch in linkmap.items():
+            if not batch: continue
+            label_a, rel, label_b = key.split('.')
+            for i in range(0, len(batch), batch_size):
+                insert_link(batch[i:i + batch_size], label_a, label_b, rel)
 
 def add_aggregate_properties(max_depth):
-    with get_session() as (db, session):
+    with get_session(collection=True) as (db, collection, session):
         
         queries = [
             "WITH a, MIN(n.start) AS start SET a.start = start",
@@ -84,19 +90,20 @@ def add_aggregate_properties(max_depth):
 
         print("      Calculating aggregate properties...")
 
-        match_bubble = f"MATCH (n)-[:INSIDE]->(a:Bubble) WHERE a.db = $db AND a.depth = $depth"
-        match_chain = f"MATCH (n)-[:CHAINED]->(a:Chain) WHERE a.db = $db AND a.depth = $depth"
+        match_bubble = f"MATCH (n)-[:INSIDE]->(a:Bubble) WHERE a.db = $db AND a.collection = $col AND a.depth = $depth"
+        match_chain = f"MATCH (n)-[:CHAINED]->(a:Chain) WHERE a.db = $db AND a.collection = $col AND a.depth = $depth"
 
         for d in range(max_depth + 1):
             for query in queries:
-                session.run(f"{match_bubble} {query}", {"db": db, "depth": d})
-                session.run(f"{match_chain} {query}", {"db": db, "depth": d})
+                params = {"db": db, "col": collection, "depth": d}
+                session.run(f"{match_bubble} {query}", params)
+                session.run(f"{match_chain} {query}", params)
 
         match_bubble = "MATCH (n)-[:INSIDE]->(a:Bubble)"
         match_chain = "MATCH (n)-[:CHAINED]->(a:Chain)"
 
         query = """
-                WHERE a.db = $db AND a.depth = $depth
+                WHERE a.db = $db AND a.collection = $col AND a.depth = $depth
 
                 WITH a,
                     avg(n.x1) AS avgX1,
@@ -119,18 +126,19 @@ def add_aggregate_properties(max_depth):
                 """
         
         for d in range(max_depth + 1):
-            session.run(f"{match_bubble} {query}", {"db": db, "depth": d})
-            session.run(f"{match_chain} {query}", {"db": db, "depth": d})
+            params = {"db": db, "col": collection, "depth": d}
+
+            session.run(f"{match_bubble} {query}", params)
+            session.run(f"{match_chain} {query}", params)
 
 def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
     if len(bubbles) == 0: return
-    with get_session() as (db, session):
-        insert_aggregate_nodes(db, session, bubbles, "Bubble", batch_size)
-        insert_aggregate_nodes(db, session, chains, "Chain", batch_size)
-        insert_aggregate_links(db, session, bubbles, chains, batch_size)
-        
-        modify.adjust_compacted_nodes(db, session)
+    insert_aggregate_nodes(bubbles, "Bubble", batch_size)
+    insert_aggregate_nodes(chains, "Chain", batch_size)
+    insert_aggregate_links(bubbles, chains, batch_size)
+    
+    modify.adjust_compacted_nodes()
 
-        max_depth = max([x["depth"] for x in chains + bubbles])
+    max_depth = max([x["depth"] for x in chains + bubbles])
 
-        add_aggregate_properties(max_depth)
+    add_aggregate_properties(max_depth)

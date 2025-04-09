@@ -7,6 +7,7 @@ import db.utils.create_index as index
 NEO4J_DRIVER = None
 GENE_TEXT_INDEX = "gene_fulltext_index"
 CURRENT_DB = None
+CURRENT_COLLECTION = None
 
 def init_driver():
     load_dotenv()
@@ -38,22 +39,23 @@ def db_exists(dbName):
         result = session.run(query, parameters={"db": dbName})
         return result.single() is not None
 
-def get_session_old():
-    if NEO4J_DRIVER is None:
-        raise Exception("Neo4j driver is not initialized.")
-    db = CURRENT_DB
-    return db, NEO4J_DRIVER.session()
-
 @contextmanager
-def get_session():
+def get_session(collection = False):
     if NEO4J_DRIVER is None:
         raise Exception("Neo4j driver is not initialized.")
-    db = CURRENT_DB
     session_cm = NEO4J_DRIVER.session()
-    try:
-        yield db, session_cm.__enter__()
-    finally:
-        session_cm.__exit__(None, None, None)
+
+    if not collection:
+        try:
+            yield CURRENT_DB, session_cm.__enter__()
+        finally:
+            session_cm.__exit__(None, None, None)
+    else:
+        try:
+            yield CURRENT_DB, CURRENT_COLLECTION, session_cm.__enter__()
+        finally:
+            session_cm.__exit__(None, None, None)
+
 
 def create_dummy_relationship(session, type):
     query = """
@@ -66,6 +68,11 @@ def create_dummy_relationship(session, type):
 def close_driver():
     if NEO4J_DRIVER is not None:
         NEO4J_DRIVER.close()
+
+def initiate_collection(collection_id):       
+    global CURRENT_COLLECTION
+    CURRENT_COLLECTION = collection_id
+    return CURRENT_COLLECTION
 
 def db_init(dbName=None):
     init_driver()
@@ -81,12 +88,14 @@ def db_init(dbName=None):
         create_dummy_relationship(session, "ANCHOR") 
                
         compoundPosition = ["db", "genome", "chrom", "start", "end"]
+        compoundCollection = ["db", "collection", "id"]
 
         for x in ["Segment", "Bubble", "Chain"]:
             index.create_restraint(session, x, ["db","id"])
             index.create_index(session, x, compoundPosition)
+            index.create_index(session, x, compoundCollection)
 
-        index.create_restraint(session, "Subgraph", ["db","id"])
+        index.create_restraint(session, "Subgraph", ["db", "collection", "id"])
 
         compoundPosition = ["genome", "chrom", "start", "end"]
 
