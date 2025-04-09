@@ -145,7 +145,7 @@ function createNewNodeLink(node, nodeid, idx, totalKinks, nodeLength) {
         width: NODE_WIDTH,
         length: Math.min(nodeLength / totalKinks, 1000),
         force: LINK_FORCE,
-        isRef: node.is_ref,
+        isRef: node.isRef,
         annotations: []
     };
 }
