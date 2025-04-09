@@ -1,66 +1,4 @@
 from db.neo4j_db import get_session
-import sys, time
-
-def query_segment_summary():
-    batch_size=100000
-    nodes = []
-    startTime = time.time()
-
-    with get_session() as (db, session):
-        skip = 0
-        while True:
-            query = """
-                    MATCH (s:Segment)
-                    WHERE s.db = $db
-                    RETURN s.id, s.length, s.start
-                    SKIP $skip
-                    LIMIT $limit
-                    """
-            results = session.run(query, parameters={"db": db}, skip=skip, limit=batch_size)
-            batch = [(result['s.id'], result['s.length'], result["s.start"] is not None) for result in results]
-
-            if not batch:
-                break
-            nodes.extend(batch)
-            skip += batch_size
-            
-            elapsed = time.time() - startTime
-            rate = len(nodes) / elapsed if elapsed > 0 else 0
-            sys.stdout.write(f"\r      Read {len(nodes):,} segments at {rate:,.1f}/sec.")
-    
-    print()
-    return nodes
-
-def query_link_summary():
-    batch_size=100000
-    links = []
-    startTime = time.time()
-    
-    with get_session() as (db,session):
-        skip = 0
-        while True:
-            query = """
-                    MATCH (s1:Segment)-[l:LINKS_TO]->(s2:Segment)
-                    WHERE s1.db = $db
-                    RETURN l.from_strand, l.to_strand, s1.id, s2.id
-                    SKIP $skip
-                    LIMIT $limit
-                    """
-            results = session.run(query, parameters={"db": db}, skip=skip, limit=batch_size)
-            batch = [(result['l.from_strand'], result['s1.id'], result['l.to_strand'], result['s2.id']) for result in results]
-    
-            if not batch:
-                break 
-            
-            links.extend(batch)
-            skip += batch_size
-    
-            elapsed = time.time() - startTime
-            rate = len(links) / elapsed if elapsed > 0 else 0
-            sys.stdout.write(f"\r      Read {len(links):,} segments at {rate:,.1f}/sec.")
-
-    print()
-    return links
 
 def create_compact_links(merged_map):
     batch_size=100000
@@ -139,6 +77,33 @@ def anchor_alternative_branches():
                 """
         session.run(query, {"db": db})
 
+def adjust_compacted_nodes(db, session):
 
+        query = """
+                MATCH (b:Bubble)-[r:END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:LINKS_TO]-(s:Segment)-[:INSIDE]->(b)
+                WHERE b.db = $db AND c <> e
+                WITH DISTINCT b, r, c, startNode(r) AS from, endNode(r) AS to
+                DELETE r
+                FOREACH (_ IN CASE WHEN from = b THEN [1] ELSE [] END |
+                    CREATE (b)-[:END]->(c)
+                )
+                FOREACH (_ IN CASE WHEN to = b THEN [1] ELSE [] END |
+                    CREATE (c)-[:END]->(b)
+                )
+                """
+        session.run(query, {"db": db})
 
-
+        #TODO:
+        #query = """
+        #        MATCH (a:Chain)-[r:END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:CHAINED]-(s:Segment)-[:INSIDE]->(b)
+        #        WHERE a.db = $db AND c <> e
+        #        WITH DISTINCT b, r, c, startNode(r) AS from, endNode(r) AS to
+        #        DELETE r
+        #        FOREACH (_ IN CASE WHEN from = b THEN [1] ELSE [] END |
+        #            CREATE (a)-[:CHAIN_END]->(c)
+        #        )
+        #        FOREACH (_ IN CASE WHEN to = b THEN [1] ELSE [] END |
+        #            CREATE (c)-[:CHAIN_END]->(a)
+        #        )
+        #        """
+        #session.run(query, {"db": db})

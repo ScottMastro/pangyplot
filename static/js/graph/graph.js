@@ -261,9 +261,7 @@ function fetchGraph(genome, chromosome, start, end) {
 
         if (fetchedData["detailed"]){
             processGraphData(fetchedData);
-        }
-        console.log("README", fetchedData)
-        
+        }      
 
     });
 }

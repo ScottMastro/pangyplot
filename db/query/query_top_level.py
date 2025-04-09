@@ -26,10 +26,8 @@ def get_top_level_data(db, session, genome, chrom, start, end):
         nodes.append( record.node_record(result["n"], result["type"][0]) )
 
         links.extend( [record.link_record(r) for r in result["endlinks"]] )
-        print([record.link_record(r) for r in result["endlinks"]])
         links.extend( [record.link_record(r) for r in result["links"]] )
 
-        
     alt_query = """
             MATCH (n:Segment)
             WHERE n.db = $db AND n.genome = $genome AND n.chrom = $chrom 
