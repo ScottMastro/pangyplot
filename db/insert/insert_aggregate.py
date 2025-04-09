@@ -2,28 +2,25 @@ from db.neo4j_db import get_session
 from collections import defaultdict
 import sys
 
+import db.modify.preprocess_modifications as modify
+
 def insert_aggregate_nodes(db, session, aggregates, type, batch_size):
     total = len(aggregates)
     for i in range(0, total, batch_size):
         batch = aggregates[i:i + batch_size]
 
         sys.stdout.write(f"\r      Inserting {type}s: {min(i + batch_size, total)}/{total}.")
-        sys.stdout.flush()
 
         query = f"""
             UNWIND $aggregates AS agg
             CREATE (:{type} {{
                 db: $db,
-                id: agg.id,
+                id: toString(agg.id),
                 subtype: agg.subtype,
                 nesting_level: agg.nesting_level,
                 depth: agg.depth
             }})
         """
-        #        inside: agg.inside,
-        #        pc: agg.pc,
-        #        sb: agg.sb
-
         session.run(query, {"aggregates": batch, "db": db})
 
     print(f"\r      Inserting {type}s: {total}/{total}.")
@@ -34,7 +31,8 @@ def insert_aggregate_links(db, session, bubbles, chains, batch_size):
     def insert_link(db, session, links, label_a, label_b, rel):
         query = f"""
             UNWIND $links AS link
-            MATCH (a:{label_a} {{db: $db, id: link.id_a}}), (b:{label_b} {{db: $db, id: link.id_b}})
+            MATCH (a:{label_a} {{db: $db, id: toString(link.id_a)}}),
+                  (b:{label_b} {{db: $db, id: toString(link.id_b)}})
             CREATE (a)-[:{rel}]->(b)
         """
         session.run(query, {"links": links, "db": db})
@@ -124,38 +122,6 @@ def add_aggregate_properties(max_depth):
             session.run(f"{match_bubble} {query}", {"db": db, "depth": d})
             session.run(f"{match_chain} {query}", {"db": db, "depth": d})
 
-def adjust_compacted_nodes(db, session):
-
-        query = """
-                MATCH (b:Bubble)-[r:END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:LINKS_TO]-(s:Segment)-[:INSIDE]->(b)
-                WHERE b.db = $db AND c <> e
-                WITH DISTINCT b, r, c, startNode(r) AS from, endNode(r) AS to
-                DELETE r
-                FOREACH (_ IN CASE WHEN from = b THEN [1] ELSE [] END |
-                    CREATE (b)-[:END]->(c)
-                )
-                FOREACH (_ IN CASE WHEN to = b THEN [1] ELSE [] END |
-                    CREATE (c)-[:END]->(b)
-                )
-                """
-        session.run(query, {"db": db})
-
-        #TODO:
-        #query = """
-        #        MATCH (a:Chain)-[r:END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:CHAINED]-(s:Segment)-[:INSIDE]->(b)
-        #        WHERE a.db = $db AND c <> e
-        #        WITH DISTINCT b, r, c, startNode(r) AS from, endNode(r) AS to
-        #        DELETE r
-        #        FOREACH (_ IN CASE WHEN from = b THEN [1] ELSE [] END |
-        #            CREATE (a)-[:CHAIN_END]->(c)
-        #        )
-        #        FOREACH (_ IN CASE WHEN to = b THEN [1] ELSE [] END |
-        #            CREATE (c)-[:CHAIN_END]->(a)
-        #        )
-        #        """
-        #session.run(query, {"db": db})
-
-
 def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
     if len(bubbles) == 0: return
     with get_session() as (db, session):
@@ -163,7 +129,7 @@ def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
         insert_aggregate_nodes(db, session, chains, "Chain", batch_size)
         insert_aggregate_links(db, session, bubbles, chains, batch_size)
         
-        adjust_compacted_nodes(db, session)
+        modify.adjust_compacted_nodes(db, session)
 
         max_depth = max([x["depth"] for x in chains + bubbles])
 

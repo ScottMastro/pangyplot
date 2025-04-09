@@ -1,17 +1,22 @@
-from BubbleGun.Graph import Graph
-from BubbleGun.Node import Node
-from BubbleGun.find_bubbles import find_bubbles
-from BubbleGun.connect_bubbles import connect_bubbles
-from BubbleGun.find_parents import find_parents
+import BubbleGun.Node as BubbleGunNode
+import BubbleGun.Graph as BubbleGunGraph
+import BubbleGun.find_bubbles as BubbleGunFindBubbles
+import BubbleGun.connect_bubbles as BubbleGunConnectBubbles
+import BubbleGun.find_parents as BubbleGunFindParents
+
+
+import preprocess.bubble_gun_utils as utils
 
 import db.modify.drop_data as drop
-import db.modify.preprocess as preprocess
+import db.modify.preprocess_modifications as modify
+import db.query.query_preprocess as query
+
 import preprocess.compact_graph as compacter
 
 from db.insert.insert_aggregate import insert_bubbles_and_chains
-from db.insert.insert_subgraph import insert_subgraph
+from db.insert.insert_subgraph import insert_subgraphs
 
-from collections import deque, defaultdict
+from collections import defaultdict
 
 import time
 
@@ -21,18 +26,18 @@ def read_from_db():
 
     # ==== SEGMENTS ====
     print("   📦 Summarizing segments from database...")
-    segments = preprocess.query_segment_summary()
+    segments = query.all_segment_summary()
 
     for s in segments:
         nid, nlen, nref = s
         nid = str(nid)
-        nodes[nid] = Node(nid)
+        nodes[nid] = BubbleGunNode.Node(nid)
         nodes[nid].seq_len = nlen
         nodes[nid].optional_info = {"ref": nref}
 
     # ==== LINKS ====
     print("   🚚 Summarizing links from database...")
-    links = preprocess.query_link_summary()
+    links = query.all_link_summary()
 
     for from_strand, first_node, to_strand, second_node in links:
         first_node = str(first_node)
@@ -41,70 +46,26 @@ def read_from_db():
 
         if first_node not in linkDict:
             linkDict[first_node] = set()
-        if second_node in linkDict[first_node]:
-            print("DUPLICATE", first_node, second_node)
         linkDict[first_node].add(second_node)
 
         from_start = (from_strand == "-")
         to_end = (to_strand == "-")
 
-        if from_start and to_end:  # from start to end L x - y -
-            if (second_node, 1, overlap) not in nodes[first_node].start:
-                nodes[first_node].start.add((second_node, 1, overlap))
-            if (first_node, 0, overlap) not in nodes[second_node].end:
-                nodes[second_node].end.add((first_node, 0, overlap))
-        elif from_start and not to_end:  # from start to start L x - y +
-            if (second_node, 0, overlap) not in nodes[first_node].start:
-                nodes[first_node].start.add((second_node, 0, overlap))
-            if (first_node, 0, overlap) not in nodes[second_node].start:
-                nodes[second_node].start.add((first_node, 0, overlap))
-        elif not from_start and not to_end:  # from end to start L x + y +
-            if (second_node, 0, overlap) not in nodes[first_node].end:
-                nodes[first_node].end.add((second_node, 0, overlap))
-            if (first_node, 1, overlap) not in nodes[second_node].start:
-                nodes[second_node].start.add((first_node, 1, overlap))
-        elif not from_start and to_end:  # from end to end L x + y -
-            if (second_node, 1, overlap) not in nodes[first_node].end:
-                nodes[first_node].end.add((second_node, 1, overlap))
-            if (first_node, 1, overlap) not in nodes[second_node].end:
-                nodes[second_node].end.add((first_node, 1, overlap))
+        if not from_start and not to_end:  #  + +
+            nodes[first_node].end.add((second_node, 0, overlap))
+            nodes[second_node].start.add((first_node, 1, overlap))
+        elif not from_start and to_end:  # + -
+            nodes[first_node].end.add((second_node, 1, overlap))
+            nodes[second_node].end.add((first_node, 1, overlap))
+        elif from_start and not to_end:  # - +
+            nodes[first_node].start.add((second_node, 0, overlap))
+            nodes[second_node].start.add((first_node, 0, overlap))
+        elif from_start and to_end:  # - -
+            nodes[first_node].start.add((second_node, 1, overlap))
+            nodes[second_node].end.add((first_node, 0, overlap))
 
     return nodes
 
-def assign_bubble_depths(graph, bubble_dict, child_bubbles):
-    nesting_cache = {}
-    depth_cache = {}
-
-    def get_nesting_level(bid):
-        if bid in nesting_cache:
-            return nesting_cache[bid]
-        bubble = bubble_dict.get(bid)
-        if not bubble or not bubble.parent_sb:
-            nesting_cache[bid] = 0
-            return 0
-        level = 1 + get_nesting_level(bubble.parent_sb)
-        nesting_cache[bid] = level
-        return level
-
-    def get_depth_below(bid):
-        if bid in depth_cache:
-            return depth_cache[bid]
-        children = child_bubbles.get(bid, [])
-        if not children:
-            depth = 0
-        else:
-            depth = 1 + max(get_depth_below(child.id) for child in children)
-        depth_cache[bid] = depth
-        return depth
-
-    bubble_metadata = {}
-    for bid, bubble in bubble_dict.items():
-        bubble_metadata[bid] = {
-            "nesting_level": get_nesting_level(bid),
-            "depth": get_depth_below(bid),
-        }
-
-    return bubble_metadata
 
 def insert_all(graph, merged_map):
     child_bubbles = defaultdict(list)
@@ -116,7 +77,7 @@ def insert_all(graph, merged_map):
             if bubble.parent_sb:
                 child_bubbles[bubble.parent_sb].append(bubble)
 
-    bubble_metadata = assign_bubble_depths(graph, bubble_dict, child_bubbles)
+    bubble_metadata = utils.assign_bubble_depths(bubble_dict, child_bubbles)
 
     chains, bubbles = [], []
 
@@ -142,7 +103,7 @@ def insert_all(graph, merged_map):
             bubbles.append({
                 "id": bubble.id,
                 "subtype": subtype,
-                "ends": [bubble.sink.id, bubble.source.id],
+                "ends": [bubble.source.id, bubble.sink.id],
                 "sb": None if not bubble.parent_sb else bubble.parent_sb,
                 "pc": None if not bubble.parent_chain else bubble.parent_chain,
                 "nesting_level": meta["nesting_level"],
@@ -167,79 +128,39 @@ def insert_all(graph, merged_map):
     insert_bubbles_and_chains(bubbles, chains)
 
 
-def bfs_find_subgraph(graph, start_node):
-    queue = deque([start_node])
-    visited = set()
-    refset = set()
-
-    while queue:
-        
-        current = queue.popleft()
-
-        if current.optional_info["ref"]:
-            refset.add(current.id)
-            continue
-
-        if current.id in visited:
-            continue
-
-        visited.add(current.id)
-
-        for neighbor in current.neighbors():
-            if neighbor not in visited:
-                queue.append(graph.nodes[neighbor])
-
-    return {"anchor": refset, "graph": visited}
-
-def create_alt_subgraphs(graph):
-    nodes = list(graph.nodes.keys())
-    visited = set()
-
-    for nid in nodes:
-        node = graph.nodes[nid]
-        if nid in visited:
-            continue
-        if node.optional_info["ref"]:
-            visited.add(nid)
-            continue
-        
-        subgraph = bfs_find_subgraph(graph, node)
-        for v in subgraph["graph"]:
-            visited.add(v)
-
-        if len(subgraph["graph"]) > 1:
-            insert_subgraph(subgraph)
-
-
 def shoot(altgraphs):
 
-    graph = Graph()
+    graph = BubbleGunGraph.Graph()
     graph.nodes = read_from_db()
 
     print("   🗜️ Compacting graph...")
     before = len(graph.nodes)
     merged_map = compacter.compact_graph(graph)
-    preprocess.create_compact_links(merged_map)
+    modify.create_compact_links(merged_map)
     after = len(graph.nodes)
     print(f"      Segments compacted; Total: {before} ➜ {after}.")
 
     print("   ⛓️  Finding bubble chains...")
     start_time = time.time()
-    find_bubbles(graph)
+    BubbleGunFindBubbles.find_bubbles(graph)
     end_time = time.time()
     print(f"      Took {round(end_time - start_time,1)} seconds.")
 
     print("   🔗 Connecting bubbles...")
     start_time = time.time()
-    connect_bubbles(graph)
+    BubbleGunConnectBubbles.connect_bubbles(graph)
     end_time = time.time()
     print(f"      Took {round(end_time - start_time,1)} seconds.")
 
     print("   🏗 Building bubble hierarchy...")
     start_time = time.time()
-    find_parents(graph)
+    BubbleGunFindParents.find_parents(graph)
     end_time = time.time()
     print(f"      Took {round(end_time - start_time,1)} seconds.")
+
+
+    normalize_bubble_direction(graph)
+
 
     bubbleCount = graph.bubble_number()
     print("   🔘 Simple Bubbles: {}, Superbubbles: {}, Insertions: {}".format(bubbleCount[0], bubbleCount[1], bubbleCount[2]))
@@ -251,16 +172,17 @@ def shoot(altgraphs):
     print(f"      Took {round(end_time - start_time,1)} seconds.")
 
     print("   🚩 Annotating deletions...")
-    preprocess.annotate_deletions()
+    modify.annotate_deletions()
 
     if altgraphs:
         print("   🌿 Building alternative path branches...")
         #drop.drop_anchors()
         #drop.drop_subgraphs()
-        create_alt_subgraphs(graph)
+        subgraphs = utils.create_alt_subgraphs(graph)
+        insert_subgraphs(subgraphs)
 
         print("   ⚓ Anchoring alt branches...")
-        preprocess.anchor_alternative_branches()
+        modify.anchor_alternative_branches()
         drop.drop_subgraphs()
     
     print("   Done.")

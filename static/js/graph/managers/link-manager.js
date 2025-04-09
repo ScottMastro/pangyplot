@@ -15,6 +15,8 @@ function flipLink(link) {
 }
 
 function decodeHaplotypeMask(hexString) {
+    if (!hexString) return [0];
+    
     const mask = BigInt("0x" + hexString.replace(/^0x/, ""));
     const bools = [];
     let i = 0n;

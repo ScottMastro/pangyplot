@@ -9,6 +9,8 @@ function updateGraphInfo(nodeid) {
     document.getElementById('info-end').textContent = nodeInfo.end || '';
     document.getElementById('info-length').textContent = nodeInfo.length || '';
 
+    goToNeo4jBrowser(nodeInfo.type, nodeInfo.id)
+
     fullSequence = nodeInfo.sequence || '';
     const truncatedSequence = fullSequence.slice(0, 10);
     let seq = truncatedSequence + (fullSequence.length > 10 ? '...' : '');
@@ -72,6 +74,28 @@ function showGraphInfo(graphData){
   elementLinks.textContent = `${graphData.links.length}`;
 
 }
+
+function goToNeo4jBrowser(nodetype, id) {
+  if (!nodetype || !id) {
+    console.warn('nodetype and id are required to generate the Neo4j query.');
+    return;
+  }
+
+  const type = nodetype.charAt(0).toUpperCase() + nodetype.slice(1);
+  const query = `MATCH (n:${type}) WHERE n.id = "${id}" RETURN n`;
+  const encodedQuery = encodeURIComponent(query);
+  const neo4jUrl = `http://localhost:7474/browser/?cmd=edit&arg=${encodedQuery}`;
+
+  const button = document.getElementById('info-neo4j-link');
+  if (!button) {
+    return;
+  }
+
+  button.onclick = () => {
+    window.open(neo4jUrl, '_blank');
+  };
+}
+
 
 function debugInformationUpdate(graphData){
   calculateFPS();
