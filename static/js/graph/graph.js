@@ -118,7 +118,17 @@ function renderGraph(graph){
         forceGraph.d3Force('repelFromDeletedLinks', repelFromDelLinksDegree);
 
         forceGraph.d3Force('dragRipple', pullNeighborsWhenDragging);
+
+        //canvasElement.addEventListener("click", evt => {
+        //    const rect = canvasElement.getBoundingClientRect();
+        //    const mouseX = evt.clientX - rect.left;
+        //    const mouseY = evt.clientY - rect.top;
+        //    const graphCoords = forceGraph.screen2GraphCoords(mouseX, mouseY);
         
+        //    triggerExplosion(forceGraph, graphCoords.x, graphCoords.y);
+        //});
+        
+
         // --- Force pause toggle ---
 
         const pause = false;
