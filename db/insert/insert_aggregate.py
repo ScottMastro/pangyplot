@@ -73,6 +73,7 @@ def insert_aggregate_links(bubbles, chains, batch_size):
             for i in range(0, len(batch), batch_size):
                 insert_link(batch[i:i + batch_size], label_a, label_b, rel)
 
+
 def add_aggregate_properties(max_depth):
     with get_session(collection=True) as (db, collection, session):
         

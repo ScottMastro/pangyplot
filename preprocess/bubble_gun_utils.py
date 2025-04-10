@@ -120,3 +120,22 @@ def normalize_bubble_direction(graph, bubble):
         pass
     else: # flip back
         bubble.source, bubble.sink = bubble.sink, bubble.source
+
+def split_chain(chain, max_bubbles=100):
+    bubbles = chain.sorted if chain.sorted else list(chain.bubbles)
+    n = len(bubbles)
+    if n <= max_bubbles:
+        return [bubbles]
+
+    num_chunks = (n + max_bubbles - 1) // max_bubbles
+    chunk_size = n // num_chunks
+    remainder = n % num_chunks
+
+    chunks = []
+    start = 0
+    for i in range(num_chunks):
+        end = start + chunk_size + (1 if i < remainder else 0)
+        chunks.append(bubbles[start:end])
+        start = end
+
+    return chunks

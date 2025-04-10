@@ -65,7 +65,6 @@ def read_from_db():
 
     return nodes
 
-
 def insert_all(graph, merged_map):
     child_bubbles = defaultdict(list)
     bubble_dict = {}
@@ -81,59 +80,61 @@ def insert_all(graph, merged_map):
     chains, bubbles = [], []
 
     for chain in graph.b_chains:
-        bubble_sources = set()
-        bubble_sinks = set()
+        split_chunks = utils.split_chain(chain, max_bubbles=100)
+        chain_id_counter = 1
 
-        for bubble in chain.bubbles:
-            subtype = "simple"
-            if bubble.is_insertion():
-                subtype = "insertion"
+        for chunk_bubbles in split_chunks:
 
-            inside_ids = {seg.id for seg in bubble.inside}
-            compacted_ids = set()
-            for sid in inside_ids:
-                if sid in merged_map:
-                    compacted_ids.update(merged_map[sid])
-            inside_ids.update(compacted_ids)
+            sub_bubble_ids = []
+            for bubble in chunk_bubbles:
+                subtype = "simple"
+                if bubble.is_insertion():
+                    subtype = "insertion"
 
-            if bubble.is_super():
-                subtype = "super"
-                for child in child_bubbles.get(bubble.id, []):
-                    inside_ids -= {seg.id for seg in child.inside}
- 
-            utils.normalize_bubble_direction(graph, bubble)
-            bubble_sources.add(bubble.source.id)
-            bubble_sinks.add(bubble.sink.id)
+                inside_ids = {seg.id for seg in bubble.inside}
+                compacted_ids = set()
+                for sid in inside_ids:
+                    if sid in merged_map:
+                        compacted_ids.update(merged_map[sid])
+                inside_ids.update(compacted_ids)
 
-            meta = bubble_metadata[bubble.id]
-            bubbles.append({
-                "id": bubble.id,
-                "subtype": subtype,
-                "ends": [bubble.source.id, bubble.sink.id],
-                "sb": None if not bubble.parent_sb else bubble.parent_sb,
-                "pc": None if not bubble.parent_chain else bubble.parent_chain,
-                "nesting_level": meta["nesting_level"],
-                "depth": meta["depth"],
-                "inside": sorted(inside_ids),
+                if bubble.is_super():
+                    subtype = "super"
+                    for child in child_bubbles.get(bubble.id, []):
+                        inside_ids -= {seg.id for seg in child.inside}
+
+                utils.normalize_bubble_direction(graph, bubble)
+
+                meta = bubble_metadata[bubble.id]
+                bubbles.append({
+                    "id": bubble.id,
+                    "subtype": subtype,
+                    "ends": [bubble.source.id, bubble.sink.id],
+                    "sb": None if not bubble.parent_sb else bubble.parent_sb,
+                    "pc": None if not bubble.parent_chain else bubble.parent_chain,
+                    "nesting_level": meta["nesting_level"],
+                    "depth": meta["depth"],
+                    "inside": sorted(inside_ids),
+                })
+                sub_bubble_ids.append(bubble.id)
+
+            if len(chunk_bubbles) < 2:
+                continue
+
+            chain_source = chunk_bubbles[-1].source.id
+            chain_sink = chunk_bubbles[0].sink.id
+
+            chains.append({
+                "id": f"{chain.id}.{chain_id_counter}" if len(split_chunks) > 1 else chain.id,
+                "subtype": "chain",
+                "ends": [chain_source, chain_sink],
+                "sb": None if not chain.parent_sb else chain.parent_sb,
+                "pc": None if not chain.parent_chain else chain.parent_chain,
+                "nesting_level": bubble_metadata.get(chain.parent_sb, {}).get("nesting_level", 0),
+                "depth": max(bubble_metadata[b.id]["depth"] for b in chunk_bubbles),
+                "inside": sub_bubble_ids
             })
-
-        if len(chain.bubbles) < 2:
-            continue
-
-        chain_source, chain_sink = chain.ends[0], chain.ends[1]
-        if chain_source in bubble_sinks and chain_sink in bubble_sources:
-            chain_source, chain_sink = chain_sink, chain_source 
-
-        chains.append({
-            "id": chain.id,
-            "subtype": "chain",
-            "ends": [chain_source, chain_sink],
-            "sb": None if not chain.parent_sb else chain.parent_sb,
-            "pc": None if not chain.parent_chain else chain.parent_chain,
-            "nesting_level": bubble_metadata.get(chain.parent_sb, {}).get("nesting_level", 0),
-            "depth": max(bubble_metadata[b.id]["depth"] for b in chain.bubbles),
-            "inside": [bubble.id for bubble in chain.bubbles]
-        })
+            chain_id_counter += 1
 
     insert_bubbles_and_chains(bubbles, chains)
 
@@ -179,7 +180,8 @@ def shoot(altgraphs):
 
     print("   🚩 Annotating deletions...")
     modify.annotate_deletions()
-
+    modify.chain_intermediate_segments()
+    
     if altgraphs:
         print("   🌿 Building alternative path branches...")
         #drop.drop_anchors()
