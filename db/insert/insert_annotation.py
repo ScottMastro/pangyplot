@@ -34,20 +34,14 @@ def add_annotations(refGenome, annotationDict, batchSize=10000):
     with get_session() as (db, session):
 
         add_annotations_by_type(session, annotationDict[GENE], GENE, batchSize)
-        print(GENE, len(annotationDict[GENE]))
+        print(f"   🧬 Genes: {len(annotationDict[GENE])}")
         #del annotationDict[GENE]
 
         add_annotations_by_type(session, annotationDict[TRANSCRIPT], TRANSCRIPT, batchSize)
-        print(TRANSCRIPT, len(annotationDict[TRANSCRIPT]))
+        print(f"   📜 Transcripts: {len(annotationDict[GENE])}")
         add_annotation_links(session, annotationDict[TRANSCRIPT], TRANSCRIPT, GENE, batchSize)
 
         add_annotations_by_type(session, annotationDict[EXON], EXON, batchSize)
-        print(EXON, len(annotationDict[EXON]))
+        print(f"   🧩 Exons: {len(annotationDict[GENE])}")
         add_annotation_links(session, annotationDict[EXON], EXON, TRANSCRIPT, batchSize)
 
-
-        #for type in annotationDict:
-        #    print(type, len(annotationDict[type]))
-        #    add_annotations_by_type(session, annotationDict[type], type, batchSize)
-        
-        #add_annotation_links(refGenome, session)

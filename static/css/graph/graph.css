@@ -43,8 +43,33 @@
     height: 100%;
 }
 
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+#graph-legend {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid #ccc;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 4px;
+    z-index: 10;
+  }
+  
+  #graph-legend .legend-item {
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+  }
+
+  #graph-legend .legend-color {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+  }
+  

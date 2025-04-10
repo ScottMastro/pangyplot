@@ -43,7 +43,8 @@
     <div class="flex-row">
     
         <div id="graph" class="flex-1" tabindex="0"></div>
-      
+        <div id="graph-legend"></div>
+
         {% include 'tabs/tab-container.html' %}
 
     </div>
@@ -65,6 +66,7 @@
 <script src="{{url_for('static', filename='js/d3/force-graph.min.js')}}"></script>
 
 <script src="{{url_for('static', filename='js/graph/graph.js')}}"></script>
+<script src="{{url_for('static', filename='js/graph/graph-legend.js')}}"></script>
 <script src="{{url_for('static', filename='js/graph/graph-input-state.js')}}"></script>
 
 <script src="{{url_for('static', filename='js/graph/managers/input-manager.js')}}"></script>

@@ -233,6 +233,7 @@ function renderGraph(graph){
         forceGraph.zoomToFit(200, 10, node => true);
     }, 500); // wait 0.5 seconds 
     
+    colorUpdateLegend();
 }
 
 
