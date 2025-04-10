@@ -141,6 +141,7 @@ function colorByLength(length) {
     const high = 5;
 
     if (length == null || isNaN(length) || length <= 0) {
+        console.log(length)
         return NULL_COLOR;
     }
 
@@ -176,7 +177,9 @@ function colorUpdateLegend() {
         items = [
           { label: "Short", color: NODE_COLOR1 },
           { label: "Medium", color: NODE_COLOR2 },
-          { label: "Long", color: NODE_COLOR3 }
+          { label: "Long", color: NODE_COLOR3 },
+          { label: "Undefined", color: NULL_COLOR }
+
         ];
         break;
       case "ref_alt":

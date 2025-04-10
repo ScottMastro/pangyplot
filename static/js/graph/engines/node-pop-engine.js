@@ -140,6 +140,9 @@ function processSubgraphData(subgraph, originNode, forceGraph){
         nodeResult.nodes.forEach(node => { node.isSelected = true });
     }
 
+    const existingIds = new Set(graphData.nodes.map(n => n.nodeid));
+    nodeResult.nodes = nodeResult.nodes.filter(n => !existingIds.has(n.nodeid));
+
     graphData.nodes = graphData.nodes.concat(nodeResult.nodes);
 
     links = processLinks(subgraph.links);

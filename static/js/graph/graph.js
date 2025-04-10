@@ -92,138 +92,42 @@ function renderGraph(graph){
         
         // --- FORCES ---
 
-        function link_force_distance(link) {
-            return (link.type === "edge") ? 10 : link.length ;
-        }
-
-        // Create and add the custom force
-        function forceCenterEachNode(alpha) {
-            for (let node of forceGraph.graphData().nodes) {
-                if (node.isSingleton){
-                    node.vx += (node.initX - node.x) * 0.01 * alpha;
-                    node.vy += (node.initY - node.y) * 0.01 * alpha;
-                } else if (node.class = "end"){
-                    node.vx += (node.initX - node.x) * 0.02 * alpha;
-                    node.vy += (node.initY - node.y) * 0.02 * alpha;
-                } else{
-                    node.vx += (node.initX - node.x) * 0.02 * alpha;
-                    node.vy += (node.initY - node.y) * 0.02 * alpha;
-                }
-            }
-        }
-
-        function forceSpreadX(alpha) {
-            const nodes = forceGraph.graphData().nodes;
-        
-            let minX = Infinity, maxX = -Infinity;
-            for (const node of nodes) {
-                if (node.x < minX) minX = node.x;
-                if (node.x > maxX) maxX = node.x;
-            }
-        
-            const midX = (minX + maxX) / 2;
-            const range = (maxX-minX)/2;
-            let i = 0; 
-            for (let node of nodes) {
-                const targetX = node.x < midX ? minX : maxX;
-                const strength = 1 - Math.abs(targetX - node.x)/range;
-
-                node.vx += (node.x < midX ? -1 : 1) * 1000* strength * alpha;
-
-            }
-        }
-        
-        function pullTextToAnchor(alpha) {
-            const threshold = 5000; // Define the snapping threshold distance
-        
-            for (let node of forceGraph.graphData().nodes) {
-                if (node.class === "text") {
-                    let dx = node.anchorX - node.x;
-                    let dy = node.anchorY - node.y;
-        
-                    // Calculate the current distance between the node and the anchor
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-        
-                    if (distance > threshold) {
-                        // Calculate the ratio to snap the node exactly to the threshold distance
-                        let snapRatio = threshold / distance;
-        
-                        // Snap the node to the threshold distance from the anchor
-                        node.x = node.anchorX - dx * snapRatio;
-                        node.y = node.anchorY - dy * snapRatio;
-        
-                        // Now apply the velocity based on the new snapped position
-                        node.vx += (node.anchorX - node.x) * 0.01;
-                        node.vy += (node.anchorY - node.y) * 0.01;
-                    } else {
-                        // Apply the velocity normally if within the threshold
-                        node.vx += (dx * 0.01);
-                        node.vy += (dy * 0.01);
-                    }
-                }
-            }
-        }
-        //forceGraph.d3Force('pullToAnchor', pullTextToAnchor);
-
-        function textRepelForce(alpha) {
-            let strength = -1e9;
-            let distanceMin = 10;
-            let distanceMax = 10000;
-
-            const nodes = forceGraph.graphData().nodes;
-            for (let i = 0; i < nodes.length; i++) {
-                if (nodes[i].class != "text") continue;
-                let node = nodes[i];
-
-                for (let j = 0; j < nodes.length; j++) {
-                    if (i != j) continue;
-                    const other = nodes[j];
-                    const dx = other.x - node.x;
-                    const dy = other.y - node.y;
-                    let distance = Math.sqrt(dx * dx + dy * dy);
-    
-                    if (distance > distanceMax) continue;
-
-                    if (distance < distanceMin) distance = distanceMin;
-    
-                    const force = (strength / (distance * distance));
-                    node.vx += dx  *strength;
-                    node.vy += dy * strength;
-                }
-            }
-        }
-        //forceGraph.d3Force('textRepel', textRepelForce);
-
-        //todo: try force that keeps nodes apart by certain distance
-        //todo: local density check, spread along x axis
-
-
-        //forceGraph.d3Force('centerEachNode', forceCenterEachNode);
-        //forceGraph.d3Force('spreadX', forceSpreadX);
-        
+        // Disable center force (no gravitational centering)
         forceGraph.d3Force('center', null);
 
+        // Custom link distance function
         function link_force_distance(link) {
-            return link.force*10;
+            // You can adjust this if different types need different spacing
+            return link.force * 10;
         }
-        
-        forceGraph.d3Force('link').distance(link_force_distance).strength(0.9)
-        //forceGraph.d3Force('link').distance(100).strength(0.9); //equal force
-        //forceGraph.d3Force('link', null);   // Disable link force
 
+        // Link force: keeps connected nodes at a fixed distance
+        forceGraph.d3Force('link')
+            .distance(link_force_distance)
+            .strength(0.9);
+
+        // Collision force: prevents node overlap
         forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
-        forceGraph.d3Force('charge').strength(-500).distanceMax(1000);
 
-        
+        // Charge force: repels nodes from each other (global push-apart)
+        forceGraph.d3Force('charge')
+            .strength(-500)
+            .distanceMax(1000);
+
+        // Custom force to repel from deleted links
         forceGraph.d3Force('repelFromDeletedLinks', repelFromDelLinksDegree);
 
+        forceGraph.d3Force('dragRipple', pullNeighborsWhenDragging);
+        
+        // --- Force pause toggle ---
+
         const pause = false;
-        if(pause){
-            forceGraph.d3AlphaDecay(1)
-            forceGraph.d3Force('link', null);   // Disable link force
-            forceGraph.d3Force('charge', null); // Disable charge force
-            forceGraph.d3Force('collide', null); // Disable collide force
-            forceGraph.d3Force('center', null); // Disable center force
+        if (pause) {
+            forceGraph.d3AlphaDecay(1); // Rapid cooldown
+            forceGraph.d3Force('link', null);
+            forceGraph.d3Force('charge', null);
+            forceGraph.d3Force('collide', null);
+            forceGraph.d3Force('center', null);
         }
         graphSettingEngineSetup(forceGraph);
         searchSequenceEngineInitialize(forceGraph);
@@ -236,13 +140,6 @@ function renderGraph(graph){
     colorUpdateLegend();
 }
 
-
-// ==================================================
-
-/*
-FORCE_GRAPH.d3Force('collide', d3.forceCollide(50).radius(50))    
-FORCE_GRAPH.d3Force('charge').strength(-500).distanceMax(1000)
-*/
 
 function processGraphData(rawGraph){
 
@@ -323,7 +220,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // SLC9A3
     //data = {genome: "GRCh38", chrom:"chr5", start:470456, end:524449, genome: "GRCh38"};
 
-    data = {genome: "GRCh38", chrom:"chr7", start:1, end:1427745640, genome: "GRCh38"};
+    //full chr7
+    //data = {genome: "GRCh38", chrom:"chr7", start:1, end:1427745640, genome: "GRCh38"};
 
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));

@@ -84,13 +84,10 @@ function calculateNumberOfKinks(nodeLength) {
 
 function createNewNode(node, nodeid, idx, totalKinks) {
     let coords = getCoordinates(node, totalKinks, idx);
-    let seqLength = 0;
+    let seqLength = node.length;
     let largestChild = 0;
 
-    if (node.type == "segment") {
-        seqLength = node.length;
-    } else {
-        seqLength = node.size;
+    if (node.type != "segment") {
         largestChild = node.largest_child;
     }
 
