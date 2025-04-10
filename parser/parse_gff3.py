@@ -19,9 +19,7 @@ def parse_line(line):
     result["type"] = cols[2]
     result["start"] = int(cols[3])
     result["end"] = int(cols[4])
-
     result["strand"] = cols[6]
-
     result["id"] = None
     result["gene"] = None
     result["exon"] = None

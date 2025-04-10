@@ -8,7 +8,7 @@ var NODE_COLOR2="#F2DC0F";
 var NODE_COLOR3="#FF6700";
 var LINK_COLOR="#969696";
 
-var COLOR_STYLE="default";
+var COLOR_STYLE="node_type";
 
 document.addEventListener('updateColor', function(event) {
     if (event.detail.type === "node"){
@@ -22,6 +22,8 @@ document.addEventListener('updateColor', function(event) {
     } else if (event.detail.type === "style"){
         COLOR_STYLE = event.detail.style;
     }
+
+    colorUpdateLegend();
 });
 
 function colorManagerBackgroundColor(){
@@ -147,3 +149,75 @@ function colorByLength(length) {
 
     return color;
 }
+
+function colorUpdateLegend() {
+    let items = [];
+    let title = "";
+  
+    switch (COLOR_STYLE) {
+      case "node_type":
+        title = "Node Type";
+        items = [
+          { label: "Segment", color: NODE_COLOR1 },
+          { label: "Bubble", color: NODE_COLOR2 },
+          { label: "Bubble Chain", color: NODE_COLOR3 }
+        ];
+        break;
+      case "bubble_size":
+        title = "Bubble Size";
+        items = [
+          { label: "Small", color: NODE_COLOR1 },
+          { label: "Medium", color: NODE_COLOR2 },
+          { label: "Large", color: NODE_COLOR3 }
+        ];
+        break;
+      case "node_length":
+        title = "Node Length";
+        items = [
+          { label: "Short", color: NODE_COLOR1 },
+          { label: "Medium", color: NODE_COLOR2 },
+          { label: "Long", color: NODE_COLOR3 }
+        ];
+        break;
+      case "ref_alt":
+        title = "Ref/Alt";
+        items = [
+          { label: "Reference", color: NODE_COLOR1 },
+          { label: "Alternate", color: NODE_COLOR3 }
+        ];
+        break;
+      case "gc_content":
+        title = "GC Content";
+        items = [
+          { label: "Low GC%", color: NODE_COLOR1 },
+          { label: "Medium", color: NODE_COLOR2 },
+          { label: "High GC%", color: NODE_COLOR3 },
+          { label: "< 3 bp", color: NULL_COLOR }
+        ];
+        break;
+      case "position":
+        title = "Position Range";
+        items = [
+          { label: "Start", color: NODE_COLOR1 },
+          { label: "Middle", color: NODE_COLOR2 },
+          { label: "End", color: NODE_COLOR3 },
+          { label: "No position", color: NULL_COLOR }
+        ];
+        break;
+      case "solid":
+        title = "Uniform Color";
+        items = [
+          { label: "Node", color: NODE_COLOR1 }
+        ];
+        break;
+      default:
+        title = "";
+        items = [];
+        break;
+    }
+  
+    setLegendTitle(title);
+    setLegendItems(items);
+  }
+  
+  
