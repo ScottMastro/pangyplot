@@ -67,18 +67,28 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
 
         if node_type == "Bubble":
             query = """
-            MATCH (n)-[:INSIDE]->(t:Bubble)
-            WHERE t.db = $db AND ID(t) = $i
-            OPTIONAL MATCH (n)-[r1:END]-(s1:Segment)
-            OPTIONAL MATCH (s1)-[r2:LINKS_TO]-(s2:Segment)-[:INSIDE]->(t)
-            RETURN n, labels(n) AS type, collect(DISTINCT r1) AS endlinks, collect(DISTINCT r2) AS links
-            """
+                    MATCH (n)-[:INSIDE]->(t:Bubble)
+                    WHERE t.db = $db AND ID(t) = $i
+
+                    OPTIONAL MATCH (n)-[l1:LINKS_TO]-(:Segment)
+                    OPTIONAL MATCH (n)-[r:END]-(e:Segment)
+                    OPTIONAL MATCH (e)-[l2:LINKS_TO]-(:Segment)
+                    OPTIONAL MATCH (e)-[:COMPACT]-(c:Segment)
+                    OPTIONAL MATCH (c)-[l3:LINKS_TO]->(:Segment)
+
+                    RETURN n,  
+                        labels(n) AS type,
+                        collect(DISTINCT l1) + collect(DISTINCT l2) + collect(DISTINCT l3) AS links,
+                        collect(DISTINCT r) AS endlinks
+                    """
             results = session.run(query, parameters)
             for result in results:
                 nodes.append(record.node_record(result["n"], result["type"][0]))
 
-                links.extend([record.link_record(r) for r in result["endlinks"] if r])
-                links.extend([record.link_record(r) for r in result["links"] if r])
+                for r in result["endlinks"] + result["links"]:
+                    link = record.link_record(r)
+                    if link:
+                        links.append(link)
 
         elif node_type == "Chain":
             query = """

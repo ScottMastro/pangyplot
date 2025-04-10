@@ -128,6 +128,10 @@ function inputManagerNodeDragged(node, translate, forceGraph){
     selectionEngineNodeDragged(node);
 }
 
+function inputManagerGetDraggedNode(){
+    return selectionEngineGetDraggedNode();
+}
+
 function inputManagerNodeClicked(node, event, forceGraph){
 
 }

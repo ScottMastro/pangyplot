@@ -25,7 +25,7 @@ def chain_intermediate_segments():
         query = """
                 MATCH (s:Segment)-[:END]-(b:Bubble)-[:CHAINED]-(c:Chain)
                 WHERE c.db = $db AND c.collection = $col
-                AND NOT (s)-[:CHAIN_END]->(c)
+                AND NOT (s)-[:CHAIN_END]-(c)
 
                 WITH s, c
                 OPTIONAL MATCH (other:Segment)-[:COMPACT]->(s)
@@ -114,7 +114,7 @@ def adjust_compacted_nodes():
 
         #shift the CHAIN_END relationship to the segment that neighbours the inside of [a bubble that is inside] a chain
         query = """
-                MATCH (a:Chain)-[r:CHAIN_END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:LINKS_TO]-(s:Segment)-[:INSIDE]->(b:Bubble)-[:INSIDE]->(a)
+                MATCH (a:Chain)-[r:CHAIN_END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:LINKS_TO]-(s:Segment)-[:INSIDE]->(b:Bubble)-[:CHAINED]->(a)
                 WHERE a.db = $db AND b.collection = $col AND c <> e
                 WITH DISTINCT a, r, c, startNode(r) AS from, endNode(r) AS to
                 DELETE r

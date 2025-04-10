@@ -75,6 +75,8 @@ function renderManagerPostRender(ctx, forceGraph, canvasWidth, canvasHeight){
     labelEngineUpdate(ctx, forceGraph);
 
     searchSequenceEngineUpdate(ctx, forceGraph);
+    
+    renderDragInfluenceCircle(ctx, viewport);
 
     ctx.restore();
 }

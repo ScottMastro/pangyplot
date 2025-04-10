@@ -2,12 +2,9 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, make_response
 from cytoband import get_cytoband 
-from db.neo4j_db import update_db
 from db.query.query_top_level import get_top_level
 from db.query.query_annotation import query_gene_range,text_search_gene
 from db.query.query_subgraph import get_subgraph
-from db.query.query_cluster import get_clusters
-
 from db.query.query_all import query_all_chromosomes, query_all_genome
 from db.query.query_metadata import query_samples
 
