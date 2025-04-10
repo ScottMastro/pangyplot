@@ -7,7 +7,6 @@ function createLegendContainer() {
       document.getElementById('graph-container').appendChild(legend);
     }
   
-    // Ensure there's a title element
     if (!document.getElementById('graph-legend-title')) {
       const title = document.createElement('div');
       title.id = 'graph-legend-title';
@@ -32,7 +31,6 @@ function createLegendContainer() {
     createLegendContainer();
     const legend = document.getElementById('graph-legend');
   
-    // Remove old items but keep the title
     while (legend.children.length > 1) {
       legend.removeChild(legend.lastChild);
     }
@@ -65,7 +63,6 @@ function createLegendContainer() {
     const legend = document.getElementById('graph-legend');
     if (legend) {
       legend.style.display = 'none';
-      // remove all children except the title
       while (legend.children.length > 1) {
         legend.removeChild(legend.lastChild);
       }

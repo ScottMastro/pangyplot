@@ -20,6 +20,22 @@ def create_compact_links(merged_map):
                     """
             session.run(query, {"links": batch, "col": collection, "db": db})
     
+def chain_intermediate_segments():
+    with get_session(collection=True) as (db, collection, session):
+        query = """
+                MATCH (s:Segment)-[:END]-(b:Bubble)-[:CHAINED]-(c:Chain)
+                WHERE c.db = $db AND c.collection = $col
+                AND NOT (s)-[:CHAIN_END]->(c)
+
+                WITH s, c
+                OPTIONAL MATCH (other:Segment)-[:COMPACT]->(s)
+                WITH collect(DISTINCT other) + collect(s) AS segment_lists, c
+                UNWIND segment_lists AS seg_list
+                UNWIND seg_list AS seg
+                WITH DISTINCT seg, c
+                MERGE (seg)-[:CHAINED]->(c)
+                """
+        session.run(query, {"db": db, "col": collection})
 
 def annotate_deletions_simple():
     with get_session(collection=True) as (db, collection, session):
@@ -81,6 +97,7 @@ def anchor_alternative_branches():
 def adjust_compacted_nodes():
     with get_session(collection=True) as (db, collection, session):
 
+        #shift the END relationship to the segment that neighbours the inside of the bubble
         query = """
                 MATCH (b:Bubble)-[r:END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:LINKS_TO]-(s:Segment)-[:INSIDE]->(b)
                 WHERE b.db = $db AND b.collection = $col AND c <> e
@@ -95,17 +112,17 @@ def adjust_compacted_nodes():
                 """
         session.run(query, {"db": db, "col": collection})
 
-        #TODO:
-        #query = """
-        #        MATCH (a:Chain)-[r:END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:CHAINED]-(s:Segment)-[:INSIDE]->(b)
-        #        WHERE a.db = $db AND c <> e
-        #        WITH DISTINCT b, r, c, startNode(r) AS from, endNode(r) AS to
-        #        DELETE r
-        #        FOREACH (_ IN CASE WHEN from = b THEN [1] ELSE [] END |
-        #            CREATE (a)-[:CHAIN_END]->(c)
-        #        )
-        #        FOREACH (_ IN CASE WHEN to = b THEN [1] ELSE [] END |
-        #            CREATE (c)-[:CHAIN_END]->(a)
-        #        )
-        #        """
-        #session.run(query, {"db": db})
+        #shift the CHAIN_END relationship to the segment that neighbours the inside of [a bubble that is inside] a chain
+        query = """
+                MATCH (a:Chain)-[r:CHAIN_END]-(e:Segment)<-[:COMPACT]-(c:Segment)-[:LINKS_TO]-(s:Segment)-[:INSIDE]->(b:Bubble)-[:INSIDE]->(a)
+                WHERE a.db = $db AND b.collection = $col AND c <> e
+                WITH DISTINCT a, r, c, startNode(r) AS from, endNode(r) AS to
+                DELETE r
+                FOREACH (_ IN CASE WHEN from = a THEN [1] ELSE [] END |
+                    CREATE (a)-[:CHAIN_END]->(c)
+                )
+                FOREACH (_ IN CASE WHEN to = a THEN [1] ELSE [] END |
+                    CREATE (c)-[:CHAIN_END]->(a)
+                )
+                """
+        session.run(query, {"db": db, "col": collection})
