@@ -1,45 +1,54 @@
-EXPLOSIVE_FORCE_INNER_RADIUS = 800
-EXPLOSIVE_FORCE_MAX_RADIUS = 3000
-EXPLOSIVE_FORCE_STRENGTH = 300
-
-function makeExplosionForce(bombX, bombY) {
-    return () => {
+function makeExplosionForce(graphNodes, protectedIds, centerX, centerY, strength) {
         return function explosionForce(alpha) {
-            for (const node of forceGraph.graphData().nodes) {
-                const dx = node.x - bombX;
-                const dy = node.y - bombY;
+            for (const node of graphNodes) {
+                if (protectedIds.has(node.__nodeid)) continue;
+
+                const dx = node.x - centerX;
+                const dy = node.y - centerY;
                 const dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < EXPLOSIVE_FORCE_MAX_RADIUS && dist > 0) {
-                    let pushRatio = 1;
+                if (dist === 0) continue;
 
-                    if (dist > EXPLOSIVE_FORCE_INNER_RADIUS) {
-                        const decayFactor = (dist - EXPLOSIVE_FORCE_INNER_RADIUS) /
-                                            (EXPLOSIVE_FORCE_MAX_RADIUS - EXPLOSIVE_FORCE_INNER_RADIUS);
-                        pushRatio = Math.exp(-2.5 * decayFactor); // try 1.5–3 for control
-                    }
+                //const decayFactor = dist / radius;
+                const decayFactor = 1;
+                const pushRatio = Math.exp(-2.5 * decayFactor);
 
-                    const pushStrength = EXPLOSIVE_FORCE_STRENGTH * pushRatio;
-                    const normX = dx / dist;
-                    const normY = dy / dist;
+                const normX = dx / dist;
+                const normY = dy / dist;
 
-                    node.vx += normX * pushStrength;
-                    node.vy += normY * pushStrength;
-                }
+                const pushStrength = strength * pushRatio;
+
+                node.vx += normX * pushStrength;
+                node.vy += normY * pushStrength;
             }
         };
-    };
 }
 
+function triggerExplosionForce(forceGraph, protectedNodes, centerX, centerY, force) {
+    function uuid() {
+        return 'explosion-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    }
 
-function triggerExplosion(forceGraph, x, y) {
-    console.log("triggerExplosion")
-    const bombForce = makeExplosionForce(x, y);
-    forceGraph.d3Force('explosion', bombForce());
-    // 🔥 Heat up the simulation
+    const strength = 200 * force;
+    //const radius = 5000 + 500 * (force - 1);
+
+    if (strength < 1){
+        return;
+    }
+
+    const protectedIds = new Set(protectedNodes.map(n => n.__nodeid));
+
+    const forceName = uuid();
+    const graphNodes = forceGraph.graphData().nodes;
+
+    forceGraph.d3Force(
+        forceName,
+        makeExplosionForce(graphNodes, protectedIds, centerX, centerY, strength)
+    );
+
     forceGraph.d3ReheatSimulation();
 
     setTimeout(() => {
-        forceGraph.d3Force('explosion', null);
-    }, 300); // Let it run for a short burst
+        forceGraph.d3Force(forceName, null);
+    }, 300);
 }

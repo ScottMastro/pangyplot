@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //data = {genome: "GRCh38", chrom:"chr5", start:470456, end:524449, genome: "GRCh38"};
 
     //full chr7
-    //data = {genome: "GRCh38", chrom:"chr7", start:1, end:1427745640, genome: "GRCh38"};
+    data = {genome: "GRCh38", chrom:"chr7", start:1, end:1427745640, genome: "GRCh38"};
 
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
