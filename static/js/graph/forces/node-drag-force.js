@@ -1,52 +1,84 @@
 let PREVIOUS_DRAGGED_POS_FORCE = { x: null, y: null };
-const DRAG_FORCE_BASE_STRENGTH=1
-var DRAG_FORCE_STRENGTH_DECAY=0.05
+const DRAG_FORCE_BASE_STRENGTH = 1;
+let DRAG_FORCE_STRENGTH_DECAY = 0.05;
+let DRAG_SELECTED_CACHE = null;
+
+function cacheDragSelectedForce(forceGraph, draggedNode) {
+    const nodes = forceGraph.graphData().nodes;
+    const links = forceGraph.graphData().links;
+
+    const visited = new Set();
+    const cache = [];
+
+    const queue = [{ node: draggedNode, depth: 0 }];
+    visited.add(draggedNode);
+
+    const maxDepth = 200;
+
+    while (queue.length > 0) {
+        const { node, depth } = queue.shift();
+        if (!node.isSelected){
+            cache.push({ node, depth });
+        }
+
+        if (depth >= maxDepth) continue;
+
+        for (const link of links) {
+            const neighbor =
+                link.source === node ? link.target :
+                link.target === node ? link.source : null;
+
+            if (neighbor && !visited.has(neighbor)) {
+                visited.add(neighbor);
+                queue.push({ node: neighbor, depth: depth + 1 });
+            }
+        }
+    }
+
+    for (const node of nodes) {
+        if (node.isSelected) {
+            cache.push({ node, depth: 0 });
+            console.log("SELECTED:",node)
+
+        }
+    }
+
+    return cache;
+}
+
 
 function pullNeighborsWhenDragging(alpha) {
 
     if (!dragManagerIsDragging()) {
         PREVIOUS_DRAGGED_POS_FORCE.x = null;
         PREVIOUS_DRAGGED_POS_FORCE.y = null;
+        DRAG_SELECTED_CACHE = null;
         return;
     }
 
     const dragged_node = dragManagerGetDraggedNode();
 
-    const { x: prevX, y: prevY } = PREVIOUS_DRAGGED_POS_FORCE;
-    PREVIOUS_DRAGGED_POS_FORCE.x = dragged_node.x;
-    PREVIOUS_DRAGGED_POS_FORCE.y = dragged_node.y;
+    if (DRAG_SELECTED_CACHE === null) {
+        DRAG_SELECTED_CACHE = cacheDragSelectedForce(forceGraph, dragged_node);
+    }
 
-    if (prevX == null || prevY == null) return;
+    const { x: prevX, y: prevY } = PREVIOUS_DRAGGED_POS_FORCE;
+    PREVIOUS_DRAGGED_POS_FORCE = { x: dragged_node.x, y: dragged_node.y };
+
+    if (prevX === null || prevY === null) return;
 
     const dx = dragged_node.x - prevX;
     const dy = dragged_node.y - prevY;
 
-    const dragVector = { dx, dy };
+    for (const { node, depth } of DRAG_SELECTED_CACHE) {
+        if (node === dragged_node) continue;
 
-    const links = forceGraph.graphData().links;
-    const visited = new Set();
-    const queue = [{ node: dragged_node, depth: 0 }];
-    const maxDepth = 200;
+        const strength = depth === 0
+            ? 1
+            : Math.max(0, DRAG_FORCE_BASE_STRENGTH - DRAG_FORCE_STRENGTH_DECAY * depth);
 
-    while (queue.length > 0) {
-        const { node, depth } = queue.shift();
-        if (visited.has(node) || depth > maxDepth) continue;
-        visited.add(node);
-
-        if (node !== dragged_node) {
-            const strength = Math.max(0, DRAG_FORCE_BASE_STRENGTH - DRAG_FORCE_STRENGTH_DECAY * depth);
-            node.x += dragVector.dx * strength;
-            node.y += dragVector.dy * strength;        
-        }
-
-
-        for (const link of links) {
-            if (link.source === node && !visited.has(link.target)) {
-                queue.push({ node: link.target, depth: depth + 1 });
-            } else if (link.target === node && !visited.has(link.source)) {
-                queue.push({ node: link.source, depth: depth + 1 });
-            }
-        }
+        node.x += dx * strength;
+        node.y += dy * strength;
     }
 }
 
