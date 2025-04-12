@@ -16,79 +16,39 @@ function dequeueSubgraph(nodeid) {
     }
 }
 
-function squishToBoundingBox(nodes, box) {
-    const bounds = findNodeBoundsInit(nodes);
-
-    const scaleX = box.width / (bounds.width+1);
-    const scaleY = box.height / (bounds.height+1);
-
-    nodes.forEach(node => {
-        const dx = ((node.x - bounds.x) * scaleX);
-        const dy = ((node.y - bounds.y) * scaleY);
-        node.x = box.x + dx;
-        node.y = box.y + dy;
-    });
-
-    return nodes;
-}
-
-function makeRoomForSubgraph(nodeResult, originNode, forceGraph, pushNodes){
+function explodeSubgraph(originNode, nodeResult, forceGraph) {
+    forceGraph.d3ReheatSimulation();
 
     const graphNodes = forceGraph.graphData().nodes;
     const originNodes = graphNodes.filter(n => n.nodeid === originNode.nodeid);
 
-    const nodeBox = findNodeBounds(originNodes)
-    const subgraphBox = findNodeBoundsInit(nodeResult.nodes);    
+    const nodeBox = findNodeBounds(originNodes);
+    const subgraphBox = findNodeBounds(nodeResult.nodes);
 
-    const expandX = subgraphBox.width - nodeBox.width;
-    const expandY = subgraphBox.height - nodeBox.height;
+    const centerX = nodeBox.x + nodeBox.width / 2;
+    const centerY = nodeBox.y + nodeBox.height / 2;
 
-    const rootX = nodeBox.x;
-    const rootY = nodeBox.y;
-
-    if (pushNodes){
-        graphNodes.forEach(node => {
-            if (node.x > rootX) {
-                node.x += expandX;
-            }
-            if (node.y > rootY) {
-                node.y += expandY;
-            }
-        });
-    }
-
-    const newBounds = { x: rootX, y: rootY, 
-        width: subgraphBox.width,
-        height: subgraphBox.height }
-
-    nodeResult.nodes = squishToBoundingBox(nodeResult.nodes, newBounds);
-    return nodeResult;
-}
-
-function shiftSubgraph(nodeResult, originNode, forceGraph) {
+    const subgraphCenter = {
+        x: subgraphBox.x + subgraphBox.width / 2,
+        y: subgraphBox.y + subgraphBox.height / 2
+    };
     
-    let totalShiftX = 0;
-    let totalShiftY = 0;
-    let count = 0;
-
-    forceGraph.graphData().nodes.forEach(node => {
-        if (node.initX !== undefined && node.initY !== undefined) {
-            totalShiftX += (node.x - node.initX);
-            totalShiftY += (node.y - node.initY);
-            count++;
-        }
-    });
-
-    const shiftX = count > 0 ? totalShiftX / count : 0;
-    const shiftY = count > 0 ? totalShiftY / count : 0;
-
+    const offsetX = centerX - subgraphCenter.x;
+    const offsetY = centerY - subgraphCenter.y;
+    
     nodeResult.nodes.forEach(node => {
-        node.x += shiftX;
-        node.y += shiftY;
+        node.x += offsetX;
+        node.y += offsetY;
     });
 
-    return nodeResult;
+    const widthRatio = subgraphBox.width / (nodeBox.width + 100);
+    const heightRatio = subgraphBox.height / (nodeBox.height + 100);
+    const scaleFactor = Math.max(widthRatio, heightRatio);
+
+    triggerExplosionForce(forceGraph, nodeResult.nodes, centerX, centerY, scaleFactor);
+
 }
+
 function findSubgraphs(nodeIds, adjacencyList) {
     const visited = new Set();
     const connectedComponents = [];
@@ -119,26 +79,26 @@ function findSubgraphs(nodeIds, adjacencyList) {
 }
 
 function processSubgraphData(subgraph, originNode, forceGraph){
-    const isSelected = originNode.isSelected;
     graphData = forceGraph.graphData();
 
-    graphData.nodes = graphData.nodes.filter(node => node.type != "collapse");
-    graphData.links = graphData.links.filter(link => link.type != "collapse");
+    //graphData.nodes = graphData.nodes.filter(node => node.type != "collapse");
+    //graphData.links = graphData.links.filter(link => link.type != "collapse");
 
-    if (graphData.hasOwnProperty('collapsed_nodes')){
-        graphData.nodes = [...graphData.nodes, ...graphData.collapsed_nodes];
-        graphData.links = [...graphData.links, ...graphData.collapsed_links];
-    }
+    //if (graphData.hasOwnProperty('collapsed_nodes')){
+    //    graphData.nodes = [...graphData.nodes, ...graphData.collapsed_nodes];
+    //    graphData.links = [...graphData.links, ...graphData.collapsed_links];
+    //}
 
     let nodeResult = processNodes(subgraph.nodes);
     //nodeResult = makeRoomForSubgraph(nodeResult, originNode, forceGraph, false);
-    nodeResult = shiftSubgraph(nodeResult, originNode, forceGraph);
+    //nodeResult = shiftSubgraph(nodeResult, originNode, forceGraph);
+    explodeSubgraph(originNode, nodeResult, forceGraph)
     
-    graphData = deleteNode(graphData, originNode.nodeid);
-    
-    if(isSelected){
+    if(originNode.isSelected){
         nodeResult.nodes.forEach(node => { node.isSelected = true });
     }
+
+    graphData = deleteNode(graphData, originNode.nodeid);
 
     const existingIds = new Set(graphData.nodes.map(n => n.nodeid));
     nodeResult.nodes = nodeResult.nodes.filter(n => !existingIds.has(n.nodeid));
