@@ -3,12 +3,14 @@ const DRAG_FORCE_BASE_STRENGTH=1
 var DRAG_FORCE_STRENGTH_DECAY=0.05
 
 function pullNeighborsWhenDragging(alpha) {
-    const dragged_node = inputManagerGetDraggedNode();
-    if (!dragged_node) {
+
+    if (!dragManagerIsDragging()) {
         PREVIOUS_DRAGGED_POS_FORCE.x = null;
         PREVIOUS_DRAGGED_POS_FORCE.y = null;
         return;
     }
+
+    const dragged_node = dragManagerGetDraggedNode();
 
     const { x: prevX, y: prevY } = PREVIOUS_DRAGGED_POS_FORCE;
     PREVIOUS_DRAGGED_POS_FORCE.x = dragged_node.x;
@@ -49,7 +51,7 @@ function pullNeighborsWhenDragging(alpha) {
 }
 
 document.addEventListener('wheel', (e) => {
-    if (!inputManagerGetDraggedNode()) return;
+    if (!dragManagerIsDragging()) return;
 
     if (e.deltaY > 0) {
         DRAG_FORCE_STRENGTH_DECAY = Math.max(DRAG_FORCE_STRENGTH_DECAY - 0.005, 0.01);
@@ -60,10 +62,10 @@ document.addEventListener('wheel', (e) => {
 
 
 function renderDragInfluenceCircle(ctx, viewport) {
-    const dragged_node = inputManagerGetDraggedNode();
-    if (!dragged_node) {
+    if (!dragManagerIsDragging()) {
         return;
     }
+    const dragged_node = dragManagerGetDraggedNode();
 
     // Desired visual radius in screen pixels (e.g. ~50px)
     const screenRadiusPixels = (1/DRAG_FORCE_STRENGTH_DECAY) * 2;
