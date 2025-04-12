@@ -108,8 +108,6 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
         selectionEnginePointerUp(event, forceGraph, canvasElement, canvas, coordinates, inputState);        
     });
 
-
-
     canvasElement.addEventListener('click', (event) => {
         if (!forceGraph){ return; }
         if (event.button !== 0) return;  // left-click only
@@ -122,14 +120,6 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
 
     });
 
-}
-
-function inputManagerNodeDragged(node, translate, forceGraph){
-    selectionEngineNodeDragged(node);
-}
-
-function inputManagerGetDraggedNode(){
-    return selectionEngineGetDraggedNode();
 }
 
 function inputManagerNodeClicked(node, event, forceGraph){

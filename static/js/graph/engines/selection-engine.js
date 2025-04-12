@@ -12,8 +12,7 @@ var BLOCK_SINGLE_SELECTION = false;
 var DRAW_HIGHLIGHT_ON_TOP = false;
 const HIGHLIGHT_COLOR = "#fab3ae";
 const SELECTED_COLOR = "#f44336";
-var DRAGGED_NODE = null;
-
+  
 
 function selectionEnginePointerDown(event, forceGraph, canvasElement, canvas, coordinates, inputState){
     if (inputState!=PAN_ZOOM_MODE) {
@@ -30,7 +29,6 @@ function selectionEnginePointerUp(event, forceGraph, canvasElement, canvas, coor
         DRAW_HIGHLIGHT_ON_TOP = false;
     }
 
-    DRAGGED_NODE = null;
     destroySelectionBox();
 }
 
@@ -74,7 +72,8 @@ function selectionEnginePointerMove(event, forceGraph, canvasElement, canvas, co
     } else { // highlight nearest node when not rectangle selecting
         forceGraph.graphData().nodes.forEach(node => node.isHighlighted = false);
         const nearestNode = findNearestNode(forceGraph.graphData().nodes, coordinates);
-        if(!DRAGGED_NODE && nearestNode){
+        
+        if(!dragManagerIsDragging() && nearestNode){
             normDist = findNormalizedDistance(nearestNode, coordinates, canvas);
             if (normDist < HIGHTLIGHT_RANGE){
                 nearestNode.isHighlighted = true;
@@ -116,15 +115,6 @@ document.addEventListener('inputModeChange', function(event) {
         destroySelectionBox();
     }
 });
-
-function selectionEngineNodeDragged(node){
-    DRAGGED_NODE = node;
-    destroySelectionBox();
-}
-
-function selectionEngineGetDraggedNode(){
-    return DRAGGED_NODE;
-}
 
 function nodesInSelectionBox(event, forceGraph){
     let left, bottom, top, right;

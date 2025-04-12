@@ -54,15 +54,12 @@ function renderGraph(graph){
             .d3VelocityDecay(0.1)
             .cooldownTicks(Infinity)
             .cooldownTime(Infinity)
-            .onNodeDragEnd(node => {
-                node.fx = node.x;
-                node.fy = node.y;
-            })
+            .onNodeDragEnd(node => dragManagerNodeDragEnd(node, forceGraph))
             .d3AlphaDecay(0.0228)
             .nodeCanvasObject((node, ctx) => renderManagerPaintNode(ctx, node)) 
             .linkCanvasObject((link, ctx) => renderManagerPaintLink(ctx, link)) 
             .nodeLabel("__nodeid")
-            .onNodeDrag((node, translate) => inputManagerNodeDragged(node, translate, forceGraph))
+            .onNodeDrag((node, translate) => dragManagerNodeDragged(node, translate, forceGraph))
             .onNodeClick((node, event) => inputManagerNodeClicked(node, event, forceGraph))
             .minZoom(1e-6) //default = 0.01
             .maxZoom(1000) //default = 1000
