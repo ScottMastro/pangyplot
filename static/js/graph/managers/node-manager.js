@@ -98,6 +98,8 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         class: (idx === 0 || idx === totalKinks - 1) ? "end" : "mid",
         x: coords.x,
         y: coords.y,
+        bubble: node.bubble ?? null,
+        chain: node.chain ?? null,
         initX: coords.x,
         initY: coords.y,
         type: node.type,
