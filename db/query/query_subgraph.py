@@ -2,44 +2,6 @@ from db.neo4j_db import get_session
 import db.utils.create_record as record
 import db.utils.integrity_check as integrity
 
-def get_subgraph_nodes_OLD(nodeid, genome, chrom, start, end):
-    nodes,links = [],[]
-    with get_session() as (db, session):
-
-        # todo: strict fails to get nodes w/o start and end positions (add genome)
-        #strict = "WHERE n.chrom = $chrom AND n.start <= $end AND n.end >= $start AND ID(t) = $i AND NOT EXISTS {"
-
-        query = """
-                MATCH (n)-[:INSIDE|CHAINED]->(t)
-                WHERE n.db = $db AND ID(t) = $i AND NOT EXISTS {
-                    MATCH (n)-[:INSIDE|CHAINED]->(m)
-                    WHERE ID(m) <> ID(t) AND (m)-[:INSIDE*|CHAINED*]->(t)
-                }
-                OPTIONAL MATCH (n)-[r1:END]-(s1:Segment)
-                OPTIONAL MATCH (n)-[r2:LINKS_TO]-(s2:Segment)
-                RETURN n, labels(n) AS type, collect(DISTINCT r1) AS endlinks, collect(DISTINCT r2) AS links
-                """
-
-        parameters = {"db": db, "i": nodeid, "start": start, "end": end, "genome": genome, "chrom": chrom}
-        results = session.run(query, parameters)
-
-        for result in results:
-            nodes.append( record.node_record(result["n"], result["type"][0]) )
-            
-            for link in result["endlinks"]:
-                if str(link.start_node.id) =="1907672" or str(link.end_node.id) == "1907672":
-                    print(link)    
-                links.extend([record.link_record(link)])
-
-            #links.extend( [record.link_record(r) for r in result["endlinks"]] )
-            links.extend( [record.link_record(r) for r in result["links"]] )
-
-    nodes = integrity.deduplicate_nodes(nodes)
-    links = integrity.deduplicate_links(links)
-    links = integrity.remove_invalid_links(nodes, links)
-
-    return nodes, links
-
 def get_node_type(nodeid):
     with get_session() as (db, session):
 
@@ -67,7 +29,7 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
 
         if node_type == "Bubble":
             query = """
-                    MATCH (n)-[:INSIDE]->(t:Bubble)
+                    MATCH (n)-[i:INSIDE]->(t:Bubble)
                     WHERE t.db = $db AND ID(t) = $i
 
                     OPTIONAL MATCH (n)-[l1:LINKS_TO]-(:Segment)
@@ -76,14 +38,17 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
                     OPTIONAL MATCH (e)-[:COMPACT]-(c:Segment)
                     OPTIONAL MATCH (c)-[l3:LINKS_TO]->(:Segment)
 
-                    RETURN n,  
+                    RETURN n, i, 
                         labels(n) AS type,
                         collect(DISTINCT l1) + collect(DISTINCT l2) + collect(DISTINCT l3) AS links,
                         collect(DISTINCT r) AS endlinks
                     """
             results = session.run(query, parameters)
             for result in results:
-                nodes.append(record.node_record(result["n"], result["type"][0]))
+                node = record.node_record(result["n"], result["type"][0])
+
+                node["bubble"] = nodeid
+                nodes.append(node)
 
                 for r in result["endlinks"] + result["links"]:
                     link = record.link_record(r)
@@ -109,10 +74,19 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
             results = session.run(query, parameters)
 
             for result in results:
-                nodes.append(record.bubble_record(result["b"]))
-                nodes.append(record.segment_record(result["e"]))
+                bubble = record.bubble_record(result["b"])
+                bubble["chain"] = nodeid
+                nodes.append(bubble)
+
+                node = record.segment_record(result["e"])
+                node["chain"] = nodeid
+                nodes.append(node)
+
                 compacted_segments = result["compacted_segments"] or []
-                nodes.extend([record.segment_record(seg) for seg in compacted_segments])
+                for seg in compacted_segments:
+                    cnode = record.segment_record(seg)
+                    cnode["chain"] = nodeid
+                    nodes.append(cnode)
 
                 for r in result["endlinks"]:
                     link = record.link_record(r)

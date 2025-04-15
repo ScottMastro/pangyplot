@@ -116,6 +116,11 @@ function renderGraph(graph){
 
         forceGraph.d3Force('dragRipple', pullNeighborsWhenDragging);
 
+
+        //forceGraph.d3Force('straightenX', xAxisStraighteningForce(0.02));
+        //forceGraph.d3Force('flattenY', yAxisDampeningForce(0.02));
+        //forceGraph.d3Force('bubbleRoundness', bubbleCohesionForce(forceGraph));
+
         //canvasElement.addEventListener("click", evt => {
         //    const rect = canvasElement.getBoundingClientRect();
         //    const mouseX = evt.clientX - rect.left;
@@ -143,6 +148,8 @@ function renderGraph(graph){
     setTimeout(() => {
         forceGraph.zoomToFit(200, 10, node => true);
     }, 500); // wait 0.5 seconds 
+    
+
     
     colorUpdateLegend();
 }
@@ -228,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function () {
     //data = {genome: "GRCh38", chrom:"chr5", start:470456, end:524449, genome: "GRCh38"};
 
     //full chr7
-    data = {genome: "GRCh38", chrom:"chr7", start:1, end:1427745640, genome: "GRCh38"};
+    //data = {genome: "GRCh38", chrom:"chr7", start:1, end:1427745640, genome: "GRCh38"};
 
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
