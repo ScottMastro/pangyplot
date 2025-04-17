@@ -118,7 +118,7 @@ function renderGraph(graph){
 
         //forceGraph.d3Force('straightenX', xAxisStraighteningForce(0.02));
         //forceGraph.d3Force('flattenY', yAxisDampeningForce(0.02));
-        //forceGraph.d3Force('bubbleRoundness', bubbleCohesionForce(forceGraph));
+        forceGraph.d3Force('bubbleRoundness', bubbleCircularForce(forceGraph));
 
         //canvasElement.addEventListener("click", evt => {
         //    const rect = canvasElement.getBoundingClientRect();

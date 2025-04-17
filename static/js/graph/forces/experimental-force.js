@@ -20,39 +20,75 @@ function groupNodesByBubble(nodes) {
             bubbleGroups[node.bubble].push(node);
         }
 
-
-        if (node.chain != null) {
-            if (!bubbleGroups[node.chain]) {
-                bubbleGroups[node.chain] = [];
-            }
-            //bubbleGroups[node.chain].push(node);
-        }
+        //if (node.chain != null) {
+        //    if (!bubbleGroups[node.chain]) {
+        //        bubbleGroups[node.chain] = [];
+        //    }
+        //    bubbleGroups[node.chain].push(node);
+        //}
     }
 
     return bubbleGroups;
 }
-function bubbleCohesionForce(forceGraph, strength = 0.02) {
-    return function cohesionForce(alpha) {
+function computeStableRadius(group, centroid, tolerance = 500) {
+    const distances = group.map(n => {
+        const dx = n.x - centroid.x;
+        const dy = n.y - centroid.y;
+        return Math.sqrt(dx * dx + dy * dy);
+    });
+
+    const avg = d3.mean(distances);
+    const stdDev = Math.sqrt(d3.mean(distances.map(d => Math.pow(d - avg, 2))));
+
+    // If variation is small enough, return avg.
+    if (stdDev <= tolerance) return avg;
+
+    // Otherwise, nudge radius outward slightly to help normalize spacing.
+    return avg + stdDev;
+}
+
+
+function bubbleCircularForce(forceGraph, strength = 0.01) {
+    return function circularForce(alpha) {
         const nodes = forceGraph.graphData().nodes;
         const bubbleGroups = groupNodesByBubble(nodes);
 
         for (const [bubbleId, group] of Object.entries(bubbleGroups)) {
-            if (group.length === 0) continue;
-            console.log(bubbleId, group);
+            if (group.length < 2) continue;
 
-            const centerX = d3.mean(group, n => n.x);
-            const centerY = d3.mean(group, n => n.y);
+            centroid = computeNodeCentroid(group);
+            
+            const avgRadius = d3.mean(group, n => {
+                const dx = n.x - centroid.x;
+                const dy = n.y - centroid.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            });
 
-            for (const node of group) {
-                const dx = centerX - node.x;
-                const dy = centerY - node.y;
+            //const stableRadius = computeStableRadius(group, centroid);
 
-                node.vx += -dx * strength * alpha;
-                node.vy += -dy * strength * alpha;
-            }
+            //average radius tries to simply put the nodes in a circle
+            //stable radius tries to make nodes equally distant from the center (ie perfect circle) 
+
+            const radius = avgRadius;
+
+            group.forEach((node, i) => {
+                const dx = node.x - centroid.x;
+                const dy = node.y - centroid.y;
+                const angle = Math.atan2(dy, dx);
+
+                const targetX = centroid.x + radius * Math.cos(angle);
+                const targetY = centroid.y + radius * Math.sin(angle);
+
+                const pullX = (targetX - node.x);
+                const pullY = (targetY - node.y);
+
+                node.vx += pullX * strength * alpha;
+                node.vy += pullY * strength * alpha;
+            });
         }
     };
 }
+
 
 function yAxisDampeningForce(strength = 0.02) {
     return () => {
