@@ -102,3 +102,16 @@ function findNearestNode(nodes, coordinates) {
 
     return nearestNode;
 }
+
+function computeNodeCentroid(nodes) {
+    const sum = nodes.reduce((acc, n) => {
+        acc.x += n.x;
+        acc.y += n.y;
+        return acc;
+    }, { x: 0, y: 0 });
+    
+    return {
+        x: sum.x / nodes.length,
+        y: sum.y / nodes.length
+    };
+}

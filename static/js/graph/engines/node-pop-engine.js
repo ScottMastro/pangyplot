@@ -33,20 +33,52 @@ function explodeSubgraph(originNode, nodeResult, forceGraph) {
         y: subgraphBox.y + subgraphBox.height / 2
     };
     
-    const offsetX = centerX - subgraphCenter.x;
-    const offsetY = centerY - subgraphCenter.y;
-    
+    const centroid = computeNodeCentroid(nodeResult.nodes);
+
+    const offsetX = centerX - centroid.x;
+    const offsetY = centerY - centroid.y;
+    centroid.x += offsetX;
+    centroid.y += offsetY;
+
     nodeResult.nodes.forEach(node => {
         node.x += offsetX;
         node.y += offsetY;
     });
 
-    const widthRatio = subgraphBox.width / (nodeBox.width + 100);
-    const heightRatio = subgraphBox.height / (nodeBox.height + 100);
-    const scaleFactor = Math.max(widthRatio, heightRatio);
+       
+    const widthBuffer = (subgraphBox.width - nodeBox.width) / 2;
+    const heightBuffer = (subgraphBox.height - nodeBox.height) / 2;
+    
+    if (widthBuffer > 50 || heightBuffer > 50){
 
-    triggerExplosionForce(forceGraph, nodeResult.nodes, centerX, centerY, scaleFactor);
+        forceGraph.graphData().nodes.forEach(node => {
 
+            const dx = node.x - centroid.x;
+            const dy = node.y - centroid.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist === 0) return;
+        
+            const normX = dx / dist;
+            const normY = dy / dist;
+        
+            const widthWeight = Math.abs(normX);
+            const heightWeight = Math.abs(normY);
+            const shift = widthBuffer * widthWeight + heightBuffer * heightWeight;
+            node.x += normX * shift;
+            node.y += normY * shift
+
+            //LERP nodes to make space for subgraph
+            // it may be overkill but I left the implementation in
+            //addLerp(node, normX * shift, normY * shift, 20);
+        });
+
+    }
+
+    // also may be overkill but I left the implementation in
+    //const widthRatio = subgraphBox.width / (nodeBox.width + 100);
+    //const heightRatio = subgraphBox.height / (nodeBox.height + 100);
+    //const scaleFactor = Math.max(widthRatio, heightRatio);
+    //triggerExplosionForce(forceGraph, nodeResult.nodes, centroid.x, centroid.y, scaleFactor);
 }
 
 function findSubgraphs(nodeIds, adjacencyList) {
