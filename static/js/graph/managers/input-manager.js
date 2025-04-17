@@ -28,12 +28,15 @@ function inputManagerSetupInputListeners(forceGraph, canvasElement){
             forceGraph.zoomToFit(200, 10, node => true); //todo: selected only?
         }
         if (event.code === 'Delete') {
-            console.log("dle")
-
-            deleteHighlighted(forceGraph);
+            //console.log("dle")
+            //deleteHighlighted(forceGraph);
         }
 
+        if (event.code === 'KeyZ') {
+            BUBBLE_MODE = !BUBBLE_MODE
+            console.log(BUBBLE_MODE)
 
+        }
         if (event.code === 'ArrowUp') {
 
             const nodes = forceGraph.graphData().nodes;

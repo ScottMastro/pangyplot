@@ -2,7 +2,8 @@ const SELECTION_MODE = 0;
 const PAN_ZOOM_MODE = 1;
 const NODE_POP_MODE = 2;
 
-var INPUT_STATE = SELECTION_MODE;
+let INPUT_STATE = SELECTION_MODE;
+let BUBBLE_MODE = false;
 
 function graphInputStateUpdate(event, forceGraph, canvasElement){
     
