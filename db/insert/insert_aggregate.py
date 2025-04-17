@@ -74,7 +74,7 @@ def insert_aggregate_links(bubbles, chains, batch_size):
                 insert_link(batch[i:i + batch_size], label_a, label_b, rel)
 
 
-def add_aggregate_properties(max_depth):
+def add_child_information(max_depth):
     with get_session(collection=True) as (db, collection, session):
         
         queries = [
@@ -89,7 +89,6 @@ def add_aggregate_properties(max_depth):
             "WITH a, SUM(n.gc_count) AS count SET a.gc_count = count",
         ]
 
-        print("      Calculating aggregate properties...")
 
         match_bubble = f"MATCH (n)-[:INSIDE]->(a:Bubble) WHERE a.db = $db AND a.collection = $col AND a.depth = $depth"
         match_chain = f"MATCH (n)-[:CHAINED]->(a:Chain) WHERE a.db = $db AND a.collection = $col AND a.depth = $depth"
@@ -99,6 +98,9 @@ def add_aggregate_properties(max_depth):
                 params = {"db": db, "col": collection, "depth": d}
                 session.run(f"{match_bubble} {query}", params)
                 session.run(f"{match_chain} {query}", params)
+
+def add_position_information(max_depth):
+    with get_session(collection=True) as (db, collection, session):
 
         match_bubble = "MATCH (n)-[:INSIDE]->(a:Bubble)"
         match_chain = "MATCH (n)-[:CHAINED]->(a:Chain)"
@@ -132,7 +134,76 @@ def add_aggregate_properties(max_depth):
             session.run(f"{match_bubble} {query}", params)
             session.run(f"{match_chain} {query}", params)
 
+def add_haplotype_information(max_depth):
+    with get_session(collection=True) as (db, collection, session):
+
+        hap_query_bubble = """
+            MATCH (s:Segment)-[l:LINKS_TO]-(s2), 
+                  (s)-[:INSIDE]->(a:Bubble)
+            WHERE a.db = $db AND a.collection = $col 
+              AND a.depth = $depth 
+              AND l.haplotype IS NOT NULL
+            RETURN ID(a) AS aid, l.haplotype AS hap
+
+            UNION ALL
+
+            MATCH (n)-[e:END]-(b:Bubble)-[:INSIDE]->(a:Bubble)
+            WHERE a.db = $db AND a.collection = $col 
+              AND a.depth = $depth 
+              AND e.haplotype IS NOT NULL
+            RETURN ID(a) AS aid, e.haplotype AS hap
+        """
+
+        hap_write_bubble = """
+            UNWIND $batch AS item
+            MATCH (a) WHERE ID(a) = item.id
+            MATCH (s:Segment)-[e:END]-(a)
+            SET e.haplotype = item.hap
+        """
+
+        hap_query_chain = """
+            MATCH (n)-[e:END]-(b:Bubble)-[:CHAINED]->(a:Chain)
+            WHERE a.db = $db AND a.collection = $col 
+              AND a.depth = $depth 
+              AND e.haplotype IS NOT NULL
+            RETURN ID(a) AS aid, e.haplotype AS hap
+        """
+
+        hap_write_chain = """
+            UNWIND $batch AS item
+            MATCH (a) WHERE ID(a) = item.id
+            MATCH (s:Segment)-[e:CHAIN_END]-(a)
+            SET e.haplotype = item.hap
+        """
+
+        def update_hap(search_query, update_query, batch_size=1000):
+            for d in range(max_depth + 1):
+                params = {"db": db, "col": collection, "depth": d}
+                result = session.run(search_query, params)
+
+                hap_map = defaultdict(int)
+
+                for record in result:
+                    aid = record["aid"]
+                    hap_hex = record["hap"]
+                    hap_map[aid] |= int(hap_hex, 16)
+
+                update_batch = []
+                for aid in hap_map:
+                    hmap = {"id": aid, "hap": hex(hap_map[aid])[2:]}
+                    update_batch.append(hmap)
+                
+                for i in range(0, len(update_batch), batch_size):
+                    batch = update_batch[i:i + batch_size]
+                    session.run(update_query, {"batch": batch})
+
+
+        update_hap(hap_query_bubble, hap_write_bubble, batch_size=1000)
+        update_hap(hap_query_chain, hap_write_chain, batch_size=1000)
+
+
 def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
+    
     if len(bubbles) == 0: return
     insert_aggregate_nodes(bubbles, "Bubble", batch_size)
     insert_aggregate_nodes(chains, "Chain", batch_size)
@@ -142,4 +213,8 @@ def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
 
     max_depth = max([x["depth"] for x in chains + bubbles])
 
-    add_aggregate_properties(max_depth)
+    print("      Calculating aggregate properties...")
+
+    add_child_information(max_depth)
+    add_position_information(max_depth)
+    add_haplotype_information(max_depth)
