@@ -30,6 +30,48 @@ function countNodeKinks(nodeid){
     return NODEIDS[nodeid].length;
 }
 
+function addLerp(node, dx, dy, duration = 10) {
+    if (!node.lerps) node.lerps = [];
+
+    node.lerps.push({
+        dx,
+        dy,
+        t: 0,
+        duration
+    });
+}
+
+function applyNodeLerps(nodes) {
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    for (const node of nodes) {
+        if (!node.lerps || node.lerps.length === 0) continue;
+
+        const remainingLerps = [];
+
+        for (const lerp of node.lerps) {
+            const progress = Math.min(lerp.t / lerp.duration, 1);
+            const easedProgress = easeOutCubic(progress);
+            const previousProgress = easeOutCubic((lerp.t - 1) / lerp.duration);
+            
+            const stepX = lerp.dx * (easedProgress - previousProgress);
+            const stepY = lerp.dy * (easedProgress - previousProgress);
+
+            node.x += stepX;
+            node.y += stepY;
+
+            lerp.t += 1;
+            if (lerp.t < lerp.duration) {
+                remainingLerps.push(lerp);
+            }
+        }
+
+        node.lerps = remainingLerps.length > 0 ? remainingLerps : undefined;
+    }
+}
+
 function calculateEffectiveNodePosition(node){
     if (!node.hasOwnProperty("start")){
         return null;

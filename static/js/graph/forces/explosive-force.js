@@ -24,14 +24,14 @@ function makeExplosionForce(graphNodes, protectedIds, centerX, centerY, strength
         };
 }
 
-function triggerExplosionForce(forceGraph, protectedNodes, centerX, centerY, force) {
+function triggerExplosionForce(forceGraph, protectedNodes, centerX, centerY, strength) {
     function uuid() {
         return 'explosion-' + Math.random().toString(36).slice(2) + Date.now().toString(36);
     }
 
-    const strength = 200 * force;
+    //const strength = 200 * force;
     //const radius = 5000 + 500 * (force - 1);
-
+    console.log(strength)
     if (strength < 1){
         return;
     }
