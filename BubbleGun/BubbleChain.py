@@ -100,7 +100,7 @@ class BubbleChain:
         """
         self.ends = [k for k, v in Counter([b.source.id for b in self.bubbles] + [b.sink.id for b in self.bubbles]).items() if v == 1]
 
-    def sort(self):
+    def sort_slow(self):
         """
         sorts the bubbles in the chain
         """
@@ -143,3 +143,48 @@ class BubbleChain:
                     self.sorted.append(all_ends[key])
                     break
             del all_keys[rm_key]
+
+    def sort(self):
+        """
+        sorts the bubbles in the chain
+        """
+
+        # Step 1: Build a mapping from each node ID to its connected bubbles
+        node_to_bubbles = dict()
+        for b in self.bubbles:
+            
+            for node_id in [str(b.source.id), str(b.sink.id)]:
+                if node_id not in node_to_bubbles:
+                    node_to_bubbles[node_id] = []
+                node_to_bubbles[node_id].append(b)
+
+        # Step 2: Start at one end of the chain
+        current_node = self.ends[0]
+        visited_bubbles = set()
+        self.sorted = []
+
+        # Step 3: Traverse the chain using bubble adjacency
+        while True:
+            candidates = node_to_bubbles.get(current_node, [])
+            next_bubble = None
+
+            for b in candidates:
+                if b not in visited_bubbles:
+                    next_bubble = b
+                    break
+
+            if next_bubble is None: #shouldn't happen in a valid chain
+                print("No unvisited bubble found: break in bubble chain. Stopping traversal.")
+                break
+
+            self.sorted.append(next_bubble)
+            visited_bubbles.add(next_bubble)
+
+            # Step 4: Move to the next node
+            if str(next_bubble.source.id) == current_node:
+                current_node = str(next_bubble.sink.id)
+            else:
+                current_node = str(next_bubble.source.id)
+
+            if len(self.sorted) == len(self.bubbles):
+                break
