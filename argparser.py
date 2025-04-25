@@ -38,7 +38,7 @@ def parse_args(app):
         parser_add.add_argument('--ref', help='Reference name', default=None, required=True)
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
-        parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=False)
+        parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=True)
 
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
         parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
@@ -49,10 +49,10 @@ def parse_args(app):
         parser_drop.add_argument('--annotations', help='Drop annotations.', action='store_true')
         parser_drop.add_argument('--all', help='Drop everything.', action='store_true')
 
-        parser_example = subparsers.add_parser('example', help='Adds exaple data.')
-        parser_example.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
-        parser_example.add_argument('--gencode', help='Add genocode annotations', action='store_true')
-        parser.add_argument('--drb1', help='Use DRB1 demo data', action='store_true')
+        #parser_example = subparsers.add_parser('example', help='Adds exaple data.')
+        #parser_example.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
+        #parser_example.add_argument('--gencode', help='Add genocode annotations', action='store_true')
+        #parser.add_argument('--drb1', help='Use DRB1 demo data', action='store_true')
 
         args = parser.parse_args()
 
@@ -96,6 +96,7 @@ def parse_args(app):
                 print("Nothing dropped. Please specify objects to drop.")
             exit()
 
+        #todo (add positions file)
         if args.command == "example":
             if args.gencode:
                 args.command = "annotate"
@@ -121,6 +122,7 @@ def parse_args(app):
             print("Adding annotations...")
             db.db_init(None)
             if args.gff3 and args.ref:
+                #todo: check if exists, check if should be dropped?
                 #drop.drop_annotations()
                 print("Parsing GFF3...")
                 parse_gff3(args.gff3, args.ref)
@@ -141,7 +143,7 @@ def parse_args(app):
                         exit(0)
 
             collection_id = metadata.insert_new_collection(args.gfa, args.ref)
-            db.initiate_collection(collection_id)
+            db.initiate_collection(1)
 
             positions = dict()
             if args.positions:
@@ -155,11 +157,15 @@ def parse_args(app):
                 print("Parsing GFA...")
                 parse_graph(args.gfa, args.ref, positions, layoutCoords)
                 
+                #debugging: 
                 #drop.drop_bubbles()
+                #drop.drop_anchors()
+                #drop.drop_subgraphs()
+
                 print("Calculating bubbles...")
                 bubble_gun.shoot(True)
 
-                print("Calculating clusters...")
+                #print("Calculating clusters...")
                 #cluster.generate_clusters()
 
                 print("Done.")

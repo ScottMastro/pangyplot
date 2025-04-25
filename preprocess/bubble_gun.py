@@ -184,11 +184,8 @@ def shoot(altgraphs):
     
     if altgraphs:
         print("   🌿 Building alternative path branches...")
-        #drop.drop_anchors()
-        #drop.drop_subgraphs()
         subgraphs = utils.create_alt_subgraphs(graph)
         insert_subgraphs(subgraphs)
-
         print("   ⚓ Anchoring alt branches...")
         modify.anchor_alternative_branches()
         drop.drop_subgraphs()
