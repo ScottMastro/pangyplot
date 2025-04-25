@@ -143,7 +143,7 @@ def parse_args(app):
                         exit(0)
 
             collection_id = metadata.insert_new_collection(args.gfa, args.ref)
-            db.initiate_collection(1)
+            db.initiate_collection(collection_id)
 
             positions = dict()
             if args.positions:
