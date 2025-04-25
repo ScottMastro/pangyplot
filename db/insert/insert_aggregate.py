@@ -102,7 +102,7 @@ def add_child_information(max_depth, batch_size=50000):
         match_bubble = f"UNWIND $batch AS aid MATCH (n)-[:INSIDE]->(a:Bubble) WHERE a.db = $db AND a.collection = $col AND a.id = aid"
         match_chain = f"UNWIND $batch AS aid MATCH (n)-[:CHAINED]->(a:Chain) WHERE a.db = $db AND a.collection = $col AND a.id = aid"
 
-        print("      👶 Adding child information to aggregate nodes...")
+        print("   👶 Adding child information to aggregate nodes...")
         for d in range(max_depth + 1):
             params = {"db": db, "col": collection, "depth": d}
             bubble_ids = get_ids_at_depth("Bubble", session, params)
@@ -147,7 +147,7 @@ def add_position_information(max_depth, batch_size=50000):
                     a.y2 = CASE WHEN avgY1 < avgY2 THEN maxY2 ELSE minY2 END                
                 """
         
-        print("      📍Adding position information to aggregate nodes...")
+        print("   📍Adding position information to aggregate nodes...")
 
         for d in range(max_depth + 1):
             params = {"db": db, "col": collection, "depth": d}
@@ -219,7 +219,7 @@ def add_haplotype_information(max_depth, batch_size=50000):
                     haps.append(hmap)
             return haps
 
-        print("      🪢Adding haplotype information to aggregate nodes...")
+        print("   🪢Adding haplotype information to aggregate nodes...")
 
         for d in range(max_depth + 1):
             params = {"db": db, "col": collection, "depth": d}
@@ -250,8 +250,6 @@ def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
     modify.adjust_compacted_nodes()
 
     max_depth = max([x["depth"] for x in chains + bubbles])
-
-    print("      Calculating aggregate properties...")
 
     add_child_information(max_depth)
     add_position_information(max_depth)
