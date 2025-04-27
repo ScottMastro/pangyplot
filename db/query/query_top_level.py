@@ -19,7 +19,7 @@ def get_top_level_data(genome, chrom, start, end):
                 OPTIONAL MATCH (n)-[r1:END]-(e:Segment)
                 OPTIONAL MATCH (n:Segment)-[r2:LINKS_TO]-(s:Segment)
 
-                RETURN n, e,s, labels(n) AS type,
+                RETURN n, labels(n) AS type,
                 collect(DISTINCT r1) AS endlinks,
                 collect(DISTINCT r2) AS links
                 """
@@ -42,10 +42,10 @@ def get_top_level_data(genome, chrom, start, end):
 
             OPTIONAL MATCH (n)-[r:CHAIN_END]-(e:Segment)
             OPTIONAL MATCH (e)-[:COMPACT]-(c1:Segment)
-            OPTIONAL MATCH (e)-[l1:LINKS_TO]->(s1:Segment)
-            OPTIONAL MATCH (c1)-[l2:LINKS_TO]->(s2:Segment)
+            OPTIONAL MATCH (e)-[l1:LINKS_TO]->(target1:Segment)
+            OPTIONAL MATCH (c1)-[l2:LINKS_TO]->(target2:Segment)
 
-            RETURN n, b, e, s1, s2,
+            RETURN n, b, e, 
                 collect(DISTINCT c1) AS compacted_segments,
                 collect(DISTINCT l1) + collect(DISTINCT l2) AS compactlinks,
                 collect(DISTINCT r) AS endlinks
@@ -78,7 +78,7 @@ def get_top_level_data(genome, chrom, start, end):
                 OPTIONAL MATCH (a)-[r1:END]-(e:Segment)
                 OPTIONAL MATCH (a:Segment)-[r2:LINKS_TO]-(s:Segment)
 
-                RETURN a, labels(a) AS type,
+                RETURN a,s, labels(a) AS type,
                 collect(DISTINCT r1) AS endlinks,
                 collect(DISTINCT r2) AS links
                 """
