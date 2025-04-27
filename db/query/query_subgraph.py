@@ -6,7 +6,7 @@ def get_node_type(nodeid):
     with get_session() as (db, session):
 
         node_type_query = """
-        MATCH (n) WHERE n.db = $db AND ID(n) = $i
+        MATCH (n) WHERE n.uuid = $i
         RETURN labels(n) AS labels
         """
         result = session.run(node_type_query, {"db": db, "i": nodeid,})
@@ -25,24 +25,27 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
         if node_type is None:
             return nodes, links
         
-        parameters = {"db": db, "i": nodeid, "start": start, "end": end, "genome": genome, "chrom": chrom}
+        parameters = {"db": db, "uuid": nodeid, "start": start, "end": end, "genome": genome, "chrom": chrom}
 
         if node_type == "Bubble":
             query = """
                     MATCH (n)-[i:INSIDE]->(t:Bubble)
-                    WHERE t.db = $db AND ID(t) = $i
+                    WHERE t.uuid = $uuid
 
-                    OPTIONAL MATCH (n)-[l1:LINKS_TO]-(:Segment)
+                    OPTIONAL MATCH (n)-[l1:LINKS_TO]-(s1:Segment)
                     OPTIONAL MATCH (n)-[r:END]-(e:Segment)
-                    OPTIONAL MATCH (e)-[l2:LINKS_TO]-(:Segment)
+                    OPTIONAL MATCH (e)-[l2:LINKS_TO]-(s2:Segment)
                     OPTIONAL MATCH (e)-[:COMPACT]-(c:Segment)
-                    OPTIONAL MATCH (c)-[l3:LINKS_TO]->(:Segment)
+                    OPTIONAL MATCH (c)-[l3:LINKS_TO]->(s3:Segment)
 
-                    RETURN n, i, 
+                    RETURN n, i, s1, s2, s3, e,
                         labels(n) AS type,
                         collect(DISTINCT l1) + collect(DISTINCT l2) + collect(DISTINCT l3) AS links,
                         collect(DISTINCT r) AS endlinks
                     """
+            # Note we return s1,s2,s3 so they are "touched" and their properties are included in the link relationship
+            # but we do not use them in the results below
+
             results = session.run(query, parameters)
             for result in results:
                 node = record.node_record(result["n"], result["type"][0])
@@ -52,21 +55,23 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
 
                 for r in result["endlinks"] + result["links"]:
                     link = record.link_record(r)
+
                     if link:
                         links.append(link)
 
         elif node_type == "Chain":
             query = """
                     MATCH (b:Bubble)-[:CHAINED]->(t:Chain)
-                    WHERE t.db = $db AND ID(t) = $i
+                    WHERE t.uuid = $uuid
                     WITH b, t
                     OPTIONAL MATCH (b)-[r1:END]-(e:Segment)
                     OPTIONAL MATCH (t)-[r2:CHAIN_END]-(s1:Segment)
                     OPTIONAL MATCH (e)-[:COMPACT]-(c:Segment)
-                    OPTIONAL MATCH (e)-[l1:LINKS_TO]->(target1:Segment)
-                    OPTIONAL MATCH (c)-[l2:LINKS_TO]->(target2:Segment)
+                    OPTIONAL MATCH (e)-[l1:LINKS_TO]->(s2:Segment)
+                    OPTIONAL MATCH (c)-[l2:LINKS_TO]->(s3:Segment)
 
-                    RETURN b, e, collect(DISTINCT c) AS compacted_segments,
+                    RETURN b, e, s1, s2, s3,
+                        collect(DISTINCT c) AS compacted_segments,
                         collect(DISTINCT r1) AS endlinks, collect(DISTINCT r2) AS chainlinks,
                         collect(DISTINCT l1) + collect(DISTINCT l2) AS compactlinks
                     """
@@ -105,38 +110,6 @@ def get_subgraph_nodes(nodeid, genome, chrom, start, end):
     links = integrity.deduplicate_links(links)
     #links = integrity.remove_invalid_links(nodes, links)
 
-    return nodes, links
-
-
-def get_subgraph_simple(nodeid):
-    nodes,links = [],[]
-    with get_session() as (db, session):
-
-        query = """
-                MATCH (t)<-[:INSIDE*]-(n)
-                WHERE n.db = $db AND ID(t) = $i AND n.subtype <> "super" AND NOT EXISTS {
-                    MATCH (n)-[:INSIDE]->(m)
-                    WHERE m.subtype <> "super"
-                }
-                OPTIONAL MATCH (n)-[r:END]-(s:Segment)
-                RETURN n, s, labels(n) AS type, collect(DISTINCT r) AS ends
-                """
-        results = session.run(query, {"db": db, "i": nodeid})
-
-        for result in results:
-            node = record.node_record(result["n"], result["type"][0])
-            if node is not None:
-                nodes.append(node)
-            node = record.segment_record(result["s"])
-            if node is not None:
-                nodes.append(node)
-
-
-            for result in results["ends"]:
-                link = record.link_record_simple(result)
-                links.append(link)
-
-    print("nnodes", len(nodes))
     return nodes, links
    
 

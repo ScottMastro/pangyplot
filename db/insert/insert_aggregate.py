@@ -9,6 +9,8 @@ def insert_aggregate_nodes(aggregates, type, batch_size):
     
     with get_session(collection=True) as (db, collection, session):
 
+        prefix = "b" if type.lower() == "bubble" else "c"    
+
         for i in range(0, total, batch_size):
             batch = aggregates[i:i + batch_size]
 
@@ -17,6 +19,7 @@ def insert_aggregate_nodes(aggregates, type, batch_size):
             query = f"""
                 UNWIND $aggregates AS agg
                 CREATE (:{type} {{
+                    uuid: $db + ':' + $col + ':' + '{prefix}' + toString(agg.id),
                     db: $db,
                     collection: $col,
                     id: toString(agg.id),
@@ -39,38 +42,47 @@ def insert_aggregate_links(bubbles, chains, batch_size):
         def insert_link(links, label_a, label_b, rel):
             query = f"""
                 UNWIND $links AS link
-                MATCH (a:{label_a} {{db: $db, collection: $col, id: toString(link.id_a)}}),
-                    (b:{label_b} {{db: $db, collection: $col, id: toString(link.id_b)}})
+                MATCH (a:{label_a} {{uuid: link.uuid_a}}),
+                      (b:{label_b} {{uuid: link.uuid_b}})
                 CREATE (a)-[:{rel}]->(b)
             """
-            session.run(query, {"links": links, "col": collection,  "db": db})
+            session.run(query, {"links": links})
 
         for bubble in bubbles:
-            bid = bubble["id"]
-            start_id, end_id = bubble["ends"]
+            bubble_uuid = f"{db}:{collection}:b{bubble['id']}"
+            start_uuid = f"{db}:{collection}:{bubble['ends'][0]}"
+            end_uuid = f"{db}:{collection}:{bubble['ends'][1]}"
 
-            linkmap["Segment.END.Bubble"].append({"id_a": start_id, "id_b": bid})
-            linkmap["Bubble.END.Segment"].append({"id_a": bid, "id_b": end_id})
+            linkmap["Segment.END.Bubble"].append({"uuid_a": start_uuid, "uuid_b": bubble_uuid})
+            linkmap["Bubble.END.Segment"].append({"uuid_a": bubble_uuid, "uuid_b": end_uuid})
 
             if bubble["sb"]:
-                linkmap["Bubble.INSIDE.Bubble"].append({"id_a": bid, "id_b": bubble["sb"]})
+                sb_uuid = f"{db}:{collection}:b{bubble['sb']}"
+                linkmap["Bubble.INSIDE.Bubble"].append({"uuid_a": bubble_uuid, "uuid_b": sb_uuid})
+
             for sid in bubble["inside"]:
-                linkmap["Segment.INSIDE.Bubble"].append({"id_a": sid, "id_b": bid})
+                inside_uuid = f"{db}:{collection}:{sid}"
+                linkmap["Segment.INSIDE.Bubble"].append({"uuid_a": inside_uuid, "uuid_b": bubble_uuid})
 
         for chain in chains:
-            cid = chain["id"]
-            start_id, end_id = chain["ends"]
+            chain_uuid = f"{db}:{collection}:c{chain['id']}"
+            start_uuid = f"{db}:{collection}:{chain['ends'][0]}"
+            end_uuid = f"{db}:{collection}:{chain['ends'][1]}"
 
-            linkmap["Segment.CHAIN_END.Chain"].append({"id_a": start_id, "id_b": cid})
-            linkmap["Chain.CHAIN_END.Segment"].append({"id_a": cid, "id_b": end_id})
+            linkmap["Segment.CHAIN_END.Chain"].append({"uuid_a": start_uuid, "uuid_b": chain_uuid})
+            linkmap["Chain.CHAIN_END.Segment"].append({"uuid_a": chain_uuid, "uuid_b": end_uuid})
 
             if chain["sb"]:
-                linkmap["Chain.PARENT_SB.Bubble"].append({"id_a": cid, "id_b": chain["sb"]})
+                sb_uuid = f"{db}:{collection}:b{chain['sb']}"
+                linkmap["Chain.PARENT_SB.Bubble"].append({"uuid_a": chain_uuid, "uuid_b": sb_uuid})
+
             for bid_inside in chain["inside"]:
-                linkmap["Bubble.CHAINED.Chain"].append({"id_a": bid_inside, "id_b": cid})
+                inside_uuid = f"{db}:{collection}:b{bid_inside}"
+                linkmap["Bubble.CHAINED.Chain"].append({"uuid_a": inside_uuid, "uuid_b": chain_uuid})
 
         for key, batch in linkmap.items():
-            if not batch: continue
+            if not batch:
+                continue
             label_a, rel, label_b = key.split('.')
             for i in range(0, len(batch), batch_size):
                 insert_link(batch[i:i + batch_size], label_a, label_b, rel)
@@ -79,10 +91,9 @@ def get_ids_at_depth(atype, session, params):
     id_query = """
         MATCH (a:"""+atype+""")
         WHERE a.db = $db AND a.collection = $col AND a.depth = $depth
-        RETURN a.id AS id
+        RETURN a.uuid AS uuid
     """
-    return [r["id"] for r in session.run(id_query, params)]
-
+    return [r["uuid"] for r in session.run(id_query, params)]
 
 def add_child_information(max_depth, batch_size=50000):
     with get_session(collection=True) as (db, collection, session):
@@ -99,8 +110,8 @@ def add_child_information(max_depth, batch_size=50000):
             "WITH a, SUM(n.gc_count) AS count SET a.gc_count = count",
         ]
 
-        match_bubble = f"UNWIND $batch AS aid MATCH (n)-[:INSIDE]->(a:Bubble) WHERE a.db = $db AND a.collection = $col AND a.id = aid"
-        match_chain = f"UNWIND $batch AS aid MATCH (n)-[:CHAINED]->(a:Chain) WHERE a.db = $db AND a.collection = $col AND a.id = aid"
+        match_bubble = f"UNWIND $batch AS uuid MATCH (n)-[:INSIDE]->(a:Bubble) WHERE a.uuid = uuid"
+        match_chain = f"UNWIND $batch AS uuid MATCH (n)-[:CHAINED]->(a:Chain) WHERE a.uuid = uuid"
 
         print("   👶 Adding child information to aggregate nodes...")
 
@@ -122,12 +133,10 @@ def add_child_information(max_depth, batch_size=50000):
 def add_position_information(max_depth, batch_size=50000):
     with get_session(collection=True) as (db, collection, session):
 
-        match_bubble = "UNWIND $batch AS aid MATCH (n)-[:INSIDE]->(a:Bubble)"
-        match_chain = "UNWIND $batch AS aid MATCH (n)-[:CHAINED]->(a:Chain)"
+        match_bubble = "UNWIND $batch AS uuid MATCH (n)-[:INSIDE]->(a:Bubble) WHERE a.uuid = uuid"
+        match_chain = "UNWIND $batch AS uuid MATCH (n)-[:CHAINED]->(a:Chain) WHERE a.uuid = uuid"
 
         query = """
-                WHERE a.db = $db AND a.collection = $col AND a.id = aid
-
                 WITH a,
                     avg(n.x1) AS avgX1,
                     avg(n.x2) AS avgX2,
@@ -167,42 +176,42 @@ def add_haplotype_information(max_depth, batch_size=50000):
     with get_session(collection=True) as (db, collection, session):
 
         hap_query_bubble_links_to = """
-            UNWIND $batch AS id
+            UNWIND $batch AS uuid
             MATCH (s:Segment)-[l:LINKS_TO]-(s2), 
                   (s)-[:INSIDE]->(a:Bubble)
-            WHERE a.db = $db AND a.collection = $col AND a.id = id
+            WHERE a.uuid = uuid
               AND l.haplotype IS NOT NULL
-            RETURN a.id AS aid, l.haplotype AS hap
+            RETURN a.uuid AS uuid, l.haplotype AS hap
         """
 
         hap_query_bubble_end = """
-            UNWIND $batch AS id
+            UNWIND $batch AS uuid
             MATCH (n)-[e:END]-(b:Bubble)-[:INSIDE]->(a:Bubble)
-            WHERE a.db = $db AND a.collection = $col AND a.id = id
+            WHERE a.uuid = uuid
               AND e.haplotype IS NOT NULL
-            RETURN a.id AS aid, e.haplotype AS hap
+            RETURN a.uuid AS uuid, e.haplotype AS hap
         """
 
         hap_write_bubble = """
             UNWIND $batch AS item
             MATCH (a:Bubble)
-            WHERE a.db = $db AND a.collection = $col AND a.id = item.id
+            WHERE a.uuid = item.uuid
             MATCH (s:Segment)-[e:END]-(a)
             SET e.haplotype = item.hap
         """
 
         hap_query_chain = """
-            UNWIND $batch AS id
+            UNWIND $batch AS uuid
             MATCH (n)-[e:END]-(b:Bubble)-[:CHAINED]->(a:Chain)
-            WHERE a.db = $db AND a.collection = $col AND a.id = id
+            WHERE a.uuid = uuid
               AND e.haplotype IS NOT NULL
-            RETURN a.id AS aid, e.haplotype AS hap
+            RETURN a.uuid AS uuid, e.haplotype AS hap
         """
 
         hap_write_chain = """
             UNWIND $batch AS item
             MATCH (a:Chain)
-            WHERE a.db = $db AND a.collection = $col AND a.id = item.id
+            WHERE a.uuid = item.uuid
             MATCH (s:Segment)-[e:CHAIN_END]-(a)
             SET e.haplotype = item.hap
         """
@@ -211,13 +220,13 @@ def add_haplotype_information(max_depth, batch_size=50000):
             hap_map = defaultdict(int)
             for result in results:
                 for record in result:
-                    aid = record["aid"]
+                    uuid = record["uuid"]
                     hap_hex = record["hap"]
-                    hap_map[aid] |= int(hap_hex, 16)
+                    hap_map[uuid] |= int(hap_hex, 16)
 
                 haps = []
-                for aid in hap_map:
-                    hmap = {"id": aid, "hap": hex(hap_map[aid])[2:]}
+                for uuid in hap_map:
+                    hmap = {"uuid": uuid, "hap": hex(hap_map[uuid])[2:]}
                     haps.append(hmap)
             return haps
 

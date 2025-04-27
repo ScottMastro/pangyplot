@@ -2,7 +2,7 @@ from db.neo4j_db import get_session
 import db.utils.create_record as record
 import db.utils.integrity_check as integrity
 
-def get_top_level_data( genome, chrom, start, end):
+def get_top_level_data(genome, chrom, start, end):
     nodes,links = [],[]
 
     with get_session() as (db, session):

@@ -1,7 +1,5 @@
 from db.neo4j_db import get_session
 
-#todo: handle situation where different chromosomes have the same segment ids
-
 def insert_segments(segments, batch_size=10000):
     if len(segments) == 0: 
         return
@@ -13,6 +11,7 @@ def insert_segments(segments, batch_size=10000):
             query = """
                 UNWIND $batch AS segment
                 CREATE (:Segment {
+                    uuid: $db + ':' + $col + ':' + segment.id,
                     id: segment.id,
                     collection: $col,
                     db: $db,
@@ -34,15 +33,22 @@ def insert_segments(segments, batch_size=10000):
             session.run(query, parameters={"col": collection, "batch": batch, "db": db})
 
 def insert_segment_links(links, batch_size=10000):
-    if len(links) == 0: return
+    if len(links) == 0:
+        return
+
     with get_session(collection=True) as (db, collection, session):
 
         for i in range(0, len(links), batch_size):
             batch = links[i:i + batch_size]
+
+            for link in batch:
+                link["from_uuid"] = f"{db}:{collection}:{link['from_id']}"
+                link["to_uuid"] = f"{db}:{collection}:{link['to_id']}"
+
             query = """
                 UNWIND $batch AS link
-                MATCH (a:Segment {db: $db, collection: $col, id: link.from_id}),
-                      (b:Segment {db: $db, collection: $col, id: link.to_id})
+                MATCH (a:Segment {uuid: link.from_uuid}),
+                      (b:Segment {uuid: link.to_uuid})
                 CREATE (a)-[:LINKS_TO {
                     from_strand: link.from_strand,
                     to_strand: link.to_strand,
@@ -51,8 +57,5 @@ def insert_segment_links(links, batch_size=10000):
                     frequency: link.frequency,
                     is_ref: link.is_ref
                 }]->(b)
-                
             """
-            session.run(query, {"col": collection, "batch": batch, "db": db})
-
-
+            session.run(query, {"batch": batch})
