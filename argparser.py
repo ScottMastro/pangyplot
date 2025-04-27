@@ -131,14 +131,15 @@ def parse_args(app):
             exists = db.db_init(args.db)
             
             if exists:
-                delete_response = input(f'Database "{args.db}" already contains data. Drop and recreate it? [y/n]: ').strip().lower()
 
-                if delete_response == 'y':
-                    print(f'Dropping "{args.db}" data...')
-                    drop.drop_db(args.db)
-                else:
-                    add_response = input(f'Add data to existing database "{args.db}"? [y/n]: ').strip().lower()
-                    if add_response != 'y':
+                add_response = input(f'Add data to existing database "{args.db}"? [y/n]: ').strip().lower()
+                if add_response != 'y':
+                    delete_response = input(f'Database "{args.db}" already contains data. Drop and recreate it? [y/n]: ').strip().lower()
+
+                    if delete_response == 'y':
+                        print(f'Dropping "{args.db}" data...')
+                        drop.drop_db(args.db)
+                    else:
                         print("Exiting. No changes made.")
                         exit(0)
 
