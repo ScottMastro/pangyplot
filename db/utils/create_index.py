@@ -1,8 +1,11 @@
 from neo4j import exceptions
 
 def create_index(session, type, properties):
+    if isinstance(properties, str):
+        properties = [properties]
+
+    properties_str = ', '.join([f'n.{prop}' for prop in properties])
     try:
-        properties_str = ", ".join(f"n.{prop}" for prop in properties)
         session.run(f"CREATE INDEX FOR (n:{type}) ON ({properties_str})")
     except exceptions.ClientError as e:
         if "EquivalentSchemaRuleAlreadyExists" in e.code:

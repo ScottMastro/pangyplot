@@ -9,6 +9,8 @@ def insert_aggregate_nodes(aggregates, type, batch_size):
     
     with get_session(collection=True) as (db, collection, session):
 
+        prefix = "b" if type.lower() == "bubble" else "c"
+        
         for i in range(0, total, batch_size):
             batch = aggregates[i:i + batch_size]
 
@@ -17,6 +19,7 @@ def insert_aggregate_nodes(aggregates, type, batch_size):
             query = f"""
                 UNWIND $aggregates AS agg
                 CREATE (:{type} {{
+                    uuid: $db + ':' + $col + ':' + '{prefix}' + toString(agg.id),
                     db: $db,
                     collection: $col,
                     id: toString(agg.id),

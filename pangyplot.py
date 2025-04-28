@@ -98,7 +98,7 @@ def genes():
 
 @app.route('/subgraph', methods=["GET"])
 def subgraph():
-    nodeid = request.args.get("nodeid")
+    uuid = request.args.get("uuid")
     genome = request.args.get("genome")
     chrom = request.args.get("chromosome")
     start = request.args.get("start")
@@ -107,10 +107,9 @@ def subgraph():
     start = int(start)
     end = int(end)
 
-    print(f"Getting subgraph for {nodeid}...")
+    print(f"Getting subgraph for {uuid}...")
 
-    nodeid = int(nodeid)
-    resultDict = get_subgraph(nodeid, genome, chrom, start, end)
+    resultDict = get_subgraph(uuid, genome, chrom, start, end)
     return resultDict, 200
 
 @app.route('/chromosomes', methods=["GET"])
