@@ -1,22 +1,25 @@
 
 def chain_record(record):
     chain = {k: record[k] for k in record.keys()}
-    chain["nodeid"] = chain.pop("uuid", None)
     chain["type"] = "chain"
+    # NOTE: r.id is the neo4j node id and r["id"] is the chain id
+    chain["nodeid"] = record.id
     return chain
 
 def bubble_record(record):
     bubble = {k: record[k] for k in record.keys()}
-    bubble["nodeid"] = bubble.pop("uuid", None)
     bubble["type"] = "bubble"
+    # NOTE: r.id is the neo4j node id and r["id"] is the bubble id
+    bubble["nodeid"] = record.id
     return bubble
 
 def segment_record(record):
     segment = {k: record[k] for k in record.keys()}
-    segment["nodeid"] = segment.pop("uuid", None)
     segment["type"] = "segment"
     if segment["length"] == 0: 
-        segment["type"] = "null"
+        segment["type"] = "null" 
+    # NOTE: r.id is the neo4j node id and r["id"] is the gfa id
+    segment["nodeid"] = record.id
     return segment
 
 def cluster_record(record):
@@ -40,8 +43,8 @@ def link_record_simple(record):
     return link
 
 def link_record(record):
-    link = {"source": record.start_node["uuid"],
-            "target": record.end_node["uuid"],
+    link = {"source": record.start_node.id,
+            "target": record.end_node.id,
             "from_strand": record["from_strand"],
             "to_strand": record["to_strand"],
             "frequency": record["frequency"],
@@ -51,7 +54,7 @@ def link_record(record):
             "is_del": record["is_del"],
             "class": "edge"}
     if link["haplotype"] is None:
-        link["haplotype"] = "0"
+        link["haplotype"] = "0";
     return link
 
 
