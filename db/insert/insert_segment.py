@@ -13,6 +13,7 @@ def insert_segments(segments, batch_size=10000):
             query = """
                 UNWIND $batch AS segment
                 CREATE (:Segment {
+                    uuid: $db + ':' + $col + ':' + segment.id,
                     id: segment.id,
                     collection: $col,
                     db: $db,
@@ -28,7 +29,6 @@ def insert_segments(segments, batch_size=10000):
                     sequence: segment.seq,
                     gc_count: segment.gc_count,
                     is_ref: segment.is_ref
-
                 })
             """
             session.run(query, parameters={"col": collection, "batch": batch, "db": db})

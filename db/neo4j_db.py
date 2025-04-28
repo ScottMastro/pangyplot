@@ -91,9 +91,9 @@ def db_init(dbName=None):
         compoundCollection = ["db", "collection", "id"]
 
         for x in ["Segment", "Bubble", "Chain"]:
-            index.create_restraint(session, x, ["db", "collection", "id"])
-            index.create_index(session, x, compoundPosition)
+            index.create_restraint(session, x, "uuid")
             index.create_index(session, x, compoundCollection)
+            index.create_index(session, x, compoundPosition)
 
         index.create_restraint(session, "Subgraph", ["db", "collection", "id"])
 

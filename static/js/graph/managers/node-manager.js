@@ -137,6 +137,7 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         nodeid,
         __nodeid: `${nodeid}#${idx}`,
         __nodeidx: idx,
+        uuid: node.uuid,
         class: (idx === 0 || idx === totalKinks - 1) ? "end" : "mid",
         x: coords.x,
         y: coords.y,
