@@ -109,6 +109,7 @@ def subgraph():
 
     print(f"Getting subgraph for {nodeid}...")
 
+    nodeid = int(nodeid)
     resultDict = get_subgraph(nodeid, genome, chrom, start, end)
     return resultDict, 200
 
