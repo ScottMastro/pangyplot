@@ -236,6 +236,32 @@ function processNodes(rawNodes) {
     return { nodes: nodes, nodeLinks: nodeLinks };
 }
 
+function anchorEndpointNodes(nodes, links) {
+    const outgoing = new Map();
+    const incoming = new Map();
+
+    for (const link of links) {
+        if (!outgoing.has(link.sourceid)) outgoing.set(link.sourceid, []);
+        if (!incoming.has(link.targetid)) incoming.set(link.targetid, []);
+
+        outgoing.get(link.sourceid).push(link);
+        incoming.get(link.targetid).push(link);
+    }
+
+    for (const node of nodes) {
+        const id = node.nodeid;
+
+        const hasOutgoing = outgoing.has(id);
+        const hasIncoming = incoming.has(id);
+
+        if (!hasIncoming || !hasOutgoing) {
+            console.log(node)
+            node.fx = node.x;
+            node.fy = node.y;
+        }
+    }
+}
+
 const XSCALE_NODE = 1
 const YSCALE_NODE = 1
 

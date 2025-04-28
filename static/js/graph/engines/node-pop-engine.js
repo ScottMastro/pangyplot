@@ -64,9 +64,14 @@ function explodeSubgraph(originNode, nodeResult, forceGraph) {
             const widthWeight = Math.abs(normX);
             const heightWeight = Math.abs(normY);
             const shift = widthBuffer * widthWeight + heightBuffer * heightWeight;
-            node.x += normX * shift;
-            node.y += normY * shift
-
+            
+            if (node.fx != null && node.fy != null) {
+                node.fx += normX * shift;
+                node.fy += normY * shift;
+            } else {
+                node.x += normX * shift;
+                node.y += normY * shift;
+            }
             //LERP nodes to make space for subgraph
             // it may be overkill but I left the implementation in
             //addLerp(node, normX * shift, normY * shift, 20);
