@@ -48,6 +48,7 @@ def drop_db(db):
 
 
 def drop_collection(cid):
+    cid = int(cid)
     with get_session() as (_, session):
 
         def delete_in_batches(tx, batch_size):
