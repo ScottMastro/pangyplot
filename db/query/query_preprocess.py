@@ -5,6 +5,7 @@ def all_segment_summary():
     batch_size=100000
     nodes = []
     startTime = time.time()
+    rate = 0
 
     with get_session(collection=True) as (db, collection, session):
         skip = 0
@@ -26,8 +27,11 @@ def all_segment_summary():
             
             elapsed = time.time() - startTime
             rate = len(nodes) / elapsed if elapsed > 0 else 0
-            sys.stdout.write(f"\r      Read {len(nodes):,} segments at {rate:,.1f}/sec.")
-    
+            if sys.stdout.isatty():
+                sys.stdout.write(f"\r      Read {len(nodes):,} segments at {rate:,.1f}/sec.")
+                sys.stdout.flush()
+
+    sys.stdout.write(f"\r      Read {len(nodes):,} segments at {rate:,.1f}/sec.")
     print()
     return nodes
 
@@ -35,7 +39,8 @@ def all_link_summary():
     batch_size=100000
     links = []
     startTime = time.time()
-    
+    rate = 0
+
     with get_session(collection=True) as (db, collection, session):
         skip = 0
         while True:
@@ -57,7 +62,10 @@ def all_link_summary():
     
             elapsed = time.time() - startTime
             rate = len(links) / elapsed if elapsed > 0 else 0
-            sys.stdout.write(f"\r      Read {len(links):,} segments at {rate:,.1f}/sec.")
+            if sys.stdout.isatty():
+                sys.stdout.write(f"\r      Read {len(links):,} segments at {rate:,.1f}/sec.")
+                sys.stdout.flush()
 
+    sys.stdout.write(f"\r      Read {len(links):,} segments at {rate:,.1f}/sec.")
     print()
     return links

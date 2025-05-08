@@ -13,8 +13,8 @@ def insert_aggregate_nodes(aggregates, type, batch_size):
         
         for i in range(0, total, batch_size):
             batch = aggregates[i:i + batch_size]
-
-            sys.stdout.write(f"\r      Inserting {type}s: {min(i + batch_size, total)}/{total}.")
+            if sys.stdout.isatty():
+                sys.stdout.write(f"\r      Inserting {type}s: {min(i + batch_size, total)}/{total}.")
 
             query = f"""
                 UNWIND $aggregates AS agg
