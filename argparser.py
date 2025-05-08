@@ -46,6 +46,8 @@ def parse_args(app):
 
         parser_drop = subparsers.add_parser('drop', help='Drop data tables')
         parser_drop.add_argument('--db', help='Drop from only one database (provide name).', default=DEFAULT_DB)
+        parser_drop.add_argument('--collection', help='Drop from only one collection (provide collection id).', required=False)
+
         parser_drop.add_argument('--annotations', help='Drop annotations.', action='store_true')
         parser_drop.add_argument('--all', help='Drop everything.', action='store_true')
 
@@ -87,6 +89,12 @@ def parse_args(app):
                 print(f'Dropping "{args.db}" data...')
                 drop.drop_db(args.db)
                 flag = True
+
+            if args.collection:
+                print(f'Dropping where collection="{args.collection}" data...')
+                drop.drop_collection(args.collection)
+                flag = True
+
 
             if args.annotations:
                 drop.drop_annotations()
