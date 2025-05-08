@@ -195,10 +195,11 @@ def parse_graph(gfa, ref, positions, layoutCoords):
         
         elapsed = time.time() - startTime
         rate = counter / elapsed
-        
-        sys.stdout.write( f"\r      Read {counter:,} {printType} at {rate:,.1f}/sec." )
-        sys.stdout.flush()
+        if sys.stdout.isatty():
+            sys.stdout.write( f"\r      Read {counter:,} {printType} at {rate:,.1f}/sec." )
+            sys.stdout.flush()
         if terminate:
+            sys.stdout.write( f"\r      Read {counter:,} {printType} at {rate:,.1f}/sec." )
             print()
 
     # ==== PATHS ====
