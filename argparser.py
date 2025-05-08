@@ -39,6 +39,7 @@ def parse_args(app):
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
         parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=True)
+        parser_add.add_argument('--update', help='If database name already exists, add to it.', required=False)
 
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
         parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
@@ -151,7 +152,7 @@ def parse_args(app):
         if args.command == "add":
             exists = db.db_init(args.db)
             
-            if exists:
+            if exists and not args.update:
 
                 add_response = input(f'Add data to existing database "{args.db}"? [y/n]: ').strip().lower()
                 if add_response != 'y':
