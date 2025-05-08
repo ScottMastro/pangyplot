@@ -48,17 +48,16 @@ def drop_db(db):
 
 
 def drop_collection(cid):
-   
-   with get_session() as (_, session):
+    with get_session() as (_, session):
 
         def delete_in_batches(tx, batch_size):
-            query = f"""
-                MATCH (n) WHERE n.collection = "{cid}"
+            query = """
+                MATCH (n) WHERE n.collection = $cid
                 WITH n LIMIT $batchSize
                 DETACH DELETE n
-                RETURN count(n) as deletedCount"""
-            
-            result = tx.run(query, batchSize=batch_size)
+                RETURN count(n) as deletedCount
+            """
+            result = tx.run(query, cid=cid, batchSize=batch_size)
             return result.single()[0]
 
         total_deleted = 0
@@ -76,6 +75,7 @@ def drop_collection(cid):
             """, cid=cid)
 
         print("Deletion complete.")
+
 
 def drop_node_type(session, type, db=None, print_info=True):
 
