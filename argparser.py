@@ -45,11 +45,11 @@ def parse_args(app):
         parser_annotate.add_argument('--gff3', help='Path to the GFF3 file', default=None, required=True)
 
         parser_drop = subparsers.add_parser('drop', help='Drop data tables')
-        parser_drop.add_argument('--db', help='Drop from only one database (provide name).', default=DEFAULT_DB)
+        parser_drop.add_argument('--db', help='Drop from this database.', default=DEFAULT_DB)
+        parser_drop.add_argument('--drop-db', help='Drop the full database.', required=False)
         parser_drop.add_argument('--collection', help='Drop from only one collection (provide collection id).', required=False)
-
         parser_drop.add_argument('--annotations', help='Drop annotations.', action='store_true')
-        parser_drop.add_argument('--all', help='Drop everything.', action='store_true')
+        parser_drop.add_argument('--all', help='Drop all data from neo4j.', action='store_true')
 
         #parser_example = subparsers.add_parser('example', help='Adds exaple data.')
         #parser_example.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
@@ -78,30 +78,43 @@ def parse_args(app):
         if args.command == 'drop':
             db.db_init(args.db)
 
-            flag = False
-
             if args.all:
+                confirm = input("Are you sure you want to drop EVERYTHING? [y/N]: ")
+                if confirm.lower() != 'y':
+                    print("Aborted.")
+                    exit()
                 print(f"Dropping everything...")
                 drop.drop_all()
-                flag = True
+                exit()
 
-            if args.db:
+            if args.drop_db:
+                confirm = input(f"""Are you sure you want to drop the entire db "{args.db}"? [y/N]: """)
+                if confirm.lower() != 'y':
+                    print("Aborted.")
+                    exit()
                 print(f'Dropping "{args.db}" data...')
                 drop.drop_db(args.db)
-                flag = True
+                exit()
 
             if args.collection:
-                print(f'Dropping where collection="{args.collection}" data...')
+                confirm = input(f"""Are you sure you want to drop the entire collection "{args.collection}"? [y/N]: """)
+                if confirm.lower() != 'y':
+                    print("Aborted.")
+                    exit()
+                print(f'Dropping where collection={args.collection} in db {args.db}...')
                 drop.drop_collection(args.collection)
-                flag = True
+                exit()
 
 
             if args.annotations:
+                confirm = input(f"""Are you sure you want to drop all annotations? [y/N]: """)
+                if confirm.lower() != 'y':
+                    print("Aborted.")
+                    exit()
                 drop.drop_annotations()
-                flag = True
+                exit()
 
-            if not flag:
-                print("Nothing dropped. Please specify objects to drop.")
+            print("Nothing dropped. Please specify objects to drop.")
             exit()
 
         #todo (add positions file)
