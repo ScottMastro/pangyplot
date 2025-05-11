@@ -21,21 +21,45 @@ def create_compact_links(merged_map):
             session.run(query, {"links": batch, "col": collection, "db": db})
     
 def chain_intermediate_segments():
-    with get_session(collection=True) as (db, collection, session):
-        query = """
-                MATCH (s:Segment)-[:END]-(b:Bubble)-[:CHAINED]-(c:Chain)
-                WHERE c.db = $db AND c.collection = $col
-                AND NOT (s)-[:CHAIN_END]-(c)
+    batch_size=100000
 
-                WITH s, c
-                OPTIONAL MATCH (other:Segment)-[:COMPACT]->(s)
-                WITH collect(DISTINCT other) + collect(s) AS segment_lists, c
-                UNWIND segment_lists AS seg_list
-                UNWIND seg_list AS seg
-                WITH DISTINCT seg, c
-                MERGE (seg)-[:CHAINED]->(c)
-                """
-        session.run(query, {"db": db, "col": collection})
+    def get_segment_ids(tx, db, col, skip, limit):
+        query = """
+        MATCH (s:Segment)-[:END]-(b:Bubble)-[:CHAINED]-(c:Chain)
+        WHERE c.db = $db AND c.collection = $col
+        AND NOT (s)-[:CHAIN_END]-(c)
+        RETURN s.id AS id
+        SKIP $skip LIMIT $limit
+        """
+        result = tx.run(query, db=db, col=col, skip=skip, limit=limit)
+        return [record["id"] for record in result]
+
+
+    def process_segments(tx, db, col, segment_ids):
+        query = """
+        UNWIND $segment_ids AS sid
+        MATCH (s:Segment)-[:END]-(b:Bubble)-[:CHAINED]-(c:Chain)
+        WHERE s.db = $db AND s.collection = $col AND s.id = sid AND NOT (s)-[:CHAIN_END]-(c)
+        OPTIONAL MATCH (other:Segment)-[:COMPACT]->(s)
+        WITH collect(DISTINCT other) + collect(s) AS segment_lists, c
+        UNWIND segment_lists AS seg_list
+        UNWIND seg_list AS seg
+        WITH DISTINCT seg, c
+        MERGE (seg)-[:CHAINED]->(c)
+        """
+        tx.run(query, db=db, col=col, segment_ids=segment_ids)
+
+    with get_session(collection=True) as (db, collection, session):
+        skip = 0
+        while True:
+            segment_ids = session.read_transaction(get_segment_ids, db, collection, skip, batch_size)
+            if not segment_ids:
+                break
+            print(skip)
+            session.write_transaction(process_segments, db, collection, segment_ids)
+            skip += batch_size
+            print(f"Processed batch starting at offset {skip}")
+
 
 def annotate_deletions_simple():
     with get_session(collection=True) as (db, collection, session):
