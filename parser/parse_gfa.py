@@ -38,7 +38,7 @@ def parse_line_S(line, ref, positions):
     for col in cols[3:]:
         if col.startswith("SN:"):
             tigId = col.split(":")[-1]
-            result = utils.parse_reference_string(tigId, ref=None)
+            result = utils.parse_reference_string(tigId)
             genome = result["genome"]
             chrom = result["chrome"]
 
