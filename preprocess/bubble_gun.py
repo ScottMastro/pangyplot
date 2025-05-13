@@ -121,8 +121,9 @@ def insert_all(graph, merged_map):
             if len(chunk_bubbles) < 2:
                 continue
 
-            chain_source = chunk_bubbles[-1].source.id
-            chain_sink = chunk_bubbles[0].sink.id
+            utils.normalize_chain_direction(graph, chunk_bubbles)
+            chain_source = chunk_bubbles[0].source.id
+            chain_sink = chunk_bubbles[-1].sink.id
 
             chains.append({
                 "id": f"{chain.id}.{chain_id_counter}" if len(split_chunks) > 1 else chain.id,

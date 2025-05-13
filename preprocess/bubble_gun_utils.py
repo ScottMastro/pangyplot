@@ -121,6 +121,25 @@ def normalize_bubble_direction(graph, bubble):
     else: # flip back
         bubble.source, bubble.sink = bubble.sink, bubble.source
 
+
+def normalize_chain_direction(graph, bubble_list):
+    score = 0
+    for i in range(len(bubble_list) - 1):
+        b1 = bubble_list[i]
+        b2 = bubble_list[i+1]
+
+        # ✅ Favor: b1.sink is b2.source (i.e., bubbles are chained)
+        if b1.sink.id == b2.source.id:
+            score += 1
+
+        # ❌ Penalize: backward chain — b2.sink precedes b1.source
+        if b2.sink.id == b1.source.id:
+            score -= 1
+
+    if score < 0:
+        bubble_list.reverse()
+
+
 def split_chain(chain, max_bubbles=100):
     if not chain.sorted:
         chain.sort()
