@@ -91,7 +91,6 @@ def parse_args(app):
                 parser.error("Both --cytoband and --canonical must be provided together if using a custom cytoband file.")
                 exit(0)
 
-                
             cytoband.set_cytoband(args.organism, args.cytoband, args.canonical)
 
             db.db_init(args.db)
