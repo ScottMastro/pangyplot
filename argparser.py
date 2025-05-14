@@ -14,6 +14,10 @@ import preprocess.bubble_gun as bubble_gun
 from db.utils.check_status import get_status
 import db.insert.insert_metadata as metadata
 
+from db.modify.preprocess_modifications import chain_intermediate_segments
+
+import cytoband
+
 def parse_args(app):
 
     DEFAULT_DB = "default"
@@ -33,6 +37,13 @@ def parse_args(app):
         parser_run.add_argument('--db', help='Database name', default=DEFAULT_DB)
         parser_run.add_argument('--port', help='Port to run the app on', default=DEFAULT_PORT, type=int, required=False)
         
+        parser_run.add_argument('--organism', type=str, choices=[
+                'none', 'human', 'mouse', 'fruitfly', 'zebrafish', 'chicken', 'rabbit','dog'
+            ], default='human', help='Organism for predefined cytoband file (default: human)')
+
+        parser_run.add_argument('--cytoband', type=str, help='Path to custom cytoband file.')
+        parser_run.add_argument('--canonical', type=str, help='Path to custom canonical chromosome file.')
+
         parser_add = subparsers.add_parser('add', help='Add a dataset.')
         parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB)
         parser_add.add_argument('--ref', help='Reference name', default=None, required=True)
@@ -44,6 +55,7 @@ def parse_args(app):
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
         parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
         parser_annotate.add_argument('--gff3', help='Path to the GFF3 file', default=None, required=True)
+
 
         parser_drop = subparsers.add_parser('drop', help='Drop data tables')
         parser_drop.add_argument('--db', help='Drop from this database.', default=DEFAULT_DB)
@@ -59,6 +71,7 @@ def parse_args(app):
 
         args = parser.parse_args()
 
+
         if args.command == 'setup':
             setup.handle_setup_env()
             exit()
@@ -68,8 +81,21 @@ def parse_args(app):
             get_status()
             exit()
 
+        if args.command == 'cytoband':
+            setup.handle_setup_env()
+            exit()
+
         if args.command == 'run':
+
+            if (args.cytoband and not args.canonical) or (args.canonical and not args.cytoband):
+                parser.error("Both --cytoband and --canonical must be provided together if using a custom cytoband file.")
+                exit(0)
+
+                
+            cytoband.set_cytoband(args.organism, args.cytoband, args.canonical)
+
             db.db_init(args.db)
+
             port = args.port if args.port else DEFAULT_PORT
             print(f"Starting PangyPlot... http://127.0.0.1:{port}")
            
@@ -177,6 +203,7 @@ def parse_args(app):
 
                 print("Parsing layout...")
                 layoutCoords = parse_layout(args.layout)
+                print(len(layoutCoords))
                 print("Parsing GFA...")
                 parse_graph(args.gfa, args.ref, positions, layoutCoords)
                 

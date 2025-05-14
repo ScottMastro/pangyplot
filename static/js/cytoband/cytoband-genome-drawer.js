@@ -7,7 +7,7 @@ function drawGenomeCytoband(data, chromOrder) {
             .append("svg")
             .attr("id", "cytoband-genome-canvas")
             .attr("width", "100%")
-            .attr("height", "auto")
+            .attr("height", dim.chrFullHeight)
             .attr("viewBox", viewBoxValue);
     }
 

@@ -1,0 +1,511 @@
+chr1	0	76608038	p	gneg
+chr1	76608038	76858038	cen	acen
+chr1	76858038	77108038	cen	acen
+chr1	77108038	197608386	q	gneg
+chr10	0	250000	cen	acen
+chr10	250000	500000	cen	acen
+chr10	500000	21119840	q	gneg
+chr11	0	2730744	p	gneg
+chr11	2730744	2980744	cen	acen
+chr11	2980744	3230744	cen	acen
+chr11	3230744	20200042	q	gneg
+chr12	0	20387278		gneg
+chr13	0	250000	cen	acen
+chr13	250000	500000	cen	acen
+chr13	500000	19166714	q	gneg
+chr13_NW_020109755v1_random	0	2157		gneg
+chr14	0	15478998	p	gneg
+chr14	15478998	15728998	cen	acen
+chr14	15728998	15978998	cen	acen
+chr14	15978998	16219308	q	gneg
+chr14_NW_020109756v1_random	0	765		gneg
+chr15	0	13062184		gneg
+chr15_NW_020109757v1_random	0	2034		gneg
+chr16	0	250000	cen	acen
+chr16	250000	500000	cen	acen
+chr16	500000	2844601	q	gneg
+chr16_NW_020109758v1_random	0	149503		gneg
+chr17	0	250000	cen	acen
+chr17	250000	500000	cen	acen
+chr17	500000	10762512	q	gneg
+chr18	0	11373140		gneg
+chr19	0	10323212		gneg
+chr19_NW_020109759v1_random	0	1131		gneg
+chr1_NW_020109737v1_random	0	1765		gneg
+chr1_NW_020109738v1_random	0	2384		gneg
+chr1_NW_020109739v1_random	0	4675		gneg
+chr1_NW_020109740v1_random	0	5861		gneg
+chr1_NW_020109741v1_random	0	10869		gneg
+chr1_NW_020109742v1_random	0	21511		gneg
+chr1_NW_020109743v1_random	0	22289		gneg
+chr2	0	52151238	p	gneg
+chr2	52151238	52401238	cen	acen
+chr2	52401238	52651238	cen	acen
+chr2	52651238	149682049	q	gneg
+chr20	0	13897287		gneg
+chr21	0	6844979		gneg
+chr22	0	3070996	p	gneg
+chr22	3070996	3320996	cen	acen
+chr22	3320996	3570996	cen	acen
+chr22	3570996	5459462	q	gneg
+chr22_NW_020109760v1_random	0	918		gneg
+chr23	0	6149580		gneg
+chr23_NW_020109761v1_random	0	322		gneg
+chr23_NW_020109762v1_random	0	1264		gneg
+chr23_NW_020109763v1_random	0	1662		gneg
+chr23_NW_020109764v1_random	0	15003		gneg
+chr23_NW_020109765v1_random	0	16157		gneg
+chr23_NW_020109766v1_random	0	18922		gneg
+chr24	0	6491222		gneg
+chr25	0	740762	p	gneg
+chr25	740762	990762	cen	acen
+chr25	990762	1240762	cen	acen
+chr25	1240762	3980610	q	gneg
+chr25_NW_020109767v1_random	0	1884		gneg
+chr26	0	5555710	p	gneg
+chr26	5555710	5805710	cen	acen
+chr26	5805710	6055710	cen	acen
+chr27	0	8080432		gneg
+chr28	0	5116882		gneg
+chr28_NW_020109768v1_random	0	1519		gneg
+chr3	0	5801976	p	gneg
+chr3	5801976	6051976	cen	acen
+chr3	6051976	6301976	cen	acen
+chr3	6301976	110838418	q	gneg
+chr30	0	1818525		gneg
+chr31	0	6153034		gneg
+chr31_NW_020109769v1_random	0	9481		gneg
+chr31_NW_020109770v1_random	0	11305		gneg
+chr31_NW_020109771v1_random	0	11340		gneg
+chr32	0	725831		gneg
+chr33	0	7821666		gneg
+chr33_NW_020109772v1_random	0	182		gneg
+chr3_NW_020109744v1_random	0	509		gneg
+chr3_NW_020109745v1_random	0	1783		gneg
+chr3_NW_020109746v1_random	0	6272		gneg
+chr3_NW_020109747v1_random	0	7246		gneg
+chr4	0	18761804	p	gneg
+chr4	18761804	19011804	cen	acen
+chr4	19011804	19261804	cen	acen
+chr4	19261804	91315245	q	gneg
+chr5	0	6009601	p	gneg
+chr5	6009601	6259601	cen	acen
+chr5	6259601	6509601	cen	acen
+chr5	6509601	59809098	q	gneg
+chr6	0	250000	cen	acen
+chr6	250000	500000	cen	acen
+chr6	500000	36374701	q	gneg
+chr6_NW_020109748v1_random	0	4087		gneg
+chr6_NW_020109749v1_random	0	4448		gneg
+chr6_NW_020109750v1_random	0	5224		gneg
+chr6_NW_020109751v1_random	0	10724		gneg
+chr6_NW_020109752v1_random	0	10928		gneg
+chr6_NW_020109753v1_random	0	18845		gneg
+chr7	0	7331533	p	gneg
+chr7	7331533	7581533	cen	acen
+chr7	7581533	7831533	cen	acen
+chr7	7831533	36742308	q	gneg
+chr8	0	9326743	p	gneg
+chr8	9326743	9576743	cen	acen
+chr8	9576743	9826743	cen	acen
+chr8	9826743	30219446	q	gneg
+chr9	0	250000	cen	acen
+chr9	250000	500000	cen	acen
+chr9	500000	24153086	q	gneg
+chr9_NW_020109754v1_random	0	27963		gneg
+chrM	0	16775		gneg
+chrUn_NW_020109830v1	0	27104		gneg
+chrUn_NW_020109831v1	0	27130		gneg
+chrUn_NW_020109832v1	0	27830		gneg
+chrUn_NW_020109833v1	0	28243		gneg
+chrUn_NW_020109834v1	0	29697		gneg
+chrUn_NW_020109835v1	0	30157		gneg
+chrUn_NW_020109836v1	0	30225		gneg
+chrUn_NW_020109837v1	0	30439		gneg
+chrUn_NW_020109838v1	0	30818		gneg
+chrUn_NW_020109839v1	0	33030		gneg
+chrUn_NW_020109840v1	0	33083		gneg
+chrUn_NW_020109841v1	0	33731		gneg
+chrUn_NW_020109842v1	0	33531		gneg
+chrUn_NW_020109843v1	0	33802		gneg
+chrUn_NW_020109844v1	0	87		gneg
+chrUn_NW_020109845v1	0	246		gneg
+chrUn_NW_020109846v1	0	195		gneg
+chrUn_NW_020109847v1	0	345		gneg
+chrUn_NW_020109848v1	0	342		gneg
+chrUn_NW_020109849v1	0	579		gneg
+chrUn_NW_020109850v1	0	555		gneg
+chrUn_NW_020109851v1	0	623		gneg
+chrUn_NW_020109852v1	0	597		gneg
+chrUn_NW_020109853v1	0	676		gneg
+chrUn_NW_020109854v1	0	644		gneg
+chrUn_NW_020109855v1	0	678		gneg
+chrUn_NW_020109856v1	0	677		gneg
+chrUn_NW_020109857v1	0	806		gneg
+chrUn_NW_020109858v1	0	791		gneg
+chrUn_NW_020109859v1	0	950		gneg
+chrUn_NW_020109860v1	0	848		gneg
+chrUn_NW_020109861v1	0	966		gneg
+chrUn_NW_020109862v1	0	955		gneg
+chrUn_NW_020109863v1	0	1115		gneg
+chrUn_NW_020109864v1	0	1086		gneg
+chrUn_NW_020109865v1	0	1173		gneg
+chrUn_NW_020109866v1	0	1167		gneg
+chrUn_NW_020109867v1	0	1381		gneg
+chrUn_NW_020109868v1	0	1367		gneg
+chrUn_NW_020109869v1	0	1453		gneg
+chrUn_NW_020109870v1	0	1394		gneg
+chrUn_NW_020109871v1	0	1579		gneg
+chrUn_NW_020109872v1	0	1547		gneg
+chrUn_NW_020109873v1	0	1643		gneg
+chrUn_NW_020109874v1	0	1589		gneg
+chrUn_NW_020109875v1	0	1748		gneg
+chrUn_NW_020109876v1	0	1664		gneg
+chrUn_NW_020109877v1	0	1756		gneg
+chrUn_NW_020109878v1	0	1752		gneg
+chrUn_NW_020109879v1	0	1800		gneg
+chrUn_NW_020109880v1	0	1782		gneg
+chrUn_NW_020109881v1	0	1840		gneg
+chrUn_NW_020109882v1	0	1834		gneg
+chrUn_NW_020109883v1	0	1935		gneg
+chrUn_NW_020109884v1	0	1908		gneg
+chrUn_NW_020109885v1	0	2071		gneg
+chrUn_NW_020109886v1	0	2033		gneg
+chrUn_NW_020109887v1	0	2149		gneg
+chrUn_NW_020109888v1	0	2087		gneg
+chrUn_NW_020109889v1	0	2260		gneg
+chrUn_NW_020109890v1	0	2214		gneg
+chrUn_NW_020109891v1	0	2308		gneg
+chrUn_NW_020109892v1	0	2262		gneg
+chrUn_NW_020109893v1	0	2462		gneg
+chrUn_NW_020109894v1	0	2402		gneg
+chrUn_NW_020109895v1	0	2520		gneg
+chrUn_NW_020109896v1	0	2481		gneg
+chrUn_NW_020109897v1	0	2566		gneg
+chrUn_NW_020109898v1	0	2555		gneg
+chrUn_NW_020109899v1	0	2599		gneg
+chrUn_NW_020109900v1	0	2568		gneg
+chrUn_NW_020109901v1	0	2615		gneg
+chrUn_NW_020109902v1	0	2610		gneg
+chrUn_NW_020109903v1	0	2758		gneg
+chrUn_NW_020109904v1	0	2663		gneg
+chrUn_NW_020109905v1	0	2898		gneg
+chrUn_NW_020109906v1	0	2883		gneg
+chrUn_NW_020109907v1	0	2928		gneg
+chrUn_NW_020109908v1	0	2902		gneg
+chrUn_NW_020109909v1	0	2979		gneg
+chrUn_NW_020109910v1	0	2948		gneg
+chrUn_NW_020109911v1	0	2991		gneg
+chrUn_NW_020109912v1	0	2985		gneg
+chrUn_NW_020109913v1	0	3346		gneg
+chrUn_NW_020109914v1	0	3019		gneg
+chrUn_NW_020109915v1	0	3504		gneg
+chrUn_NW_020109916v1	0	3436		gneg
+chrUn_NW_020109917v1	0	3531		gneg
+chrUn_NW_020109918v1	0	3516		gneg
+chrUn_NW_020109919v1	0	3584		gneg
+chrUn_NW_020109920v1	0	3581		gneg
+chrUn_NW_020109921v1	0	3657		gneg
+chrUn_NW_020109922v1	0	3647		gneg
+chrUn_NW_020109923v1	0	3680		gneg
+chrUn_NW_020109924v1	0	3660		gneg
+chrUn_NW_020109925v1	0	3847		gneg
+chrUn_NW_020109926v1	0	3687		gneg
+chrUn_NW_020109927v1	0	3973		gneg
+chrUn_NW_020109928v1	0	3863		gneg
+chrUn_NW_020109929v1	0	4040		gneg
+chrUn_NW_020109930v1	0	4037		gneg
+chrUn_NW_020109931v1	0	4198		gneg
+chrUn_NW_020109932v1	0	4154		gneg
+chrUn_NW_020109933v1	0	4245		gneg
+chrUn_NW_020109934v1	0	4206		gneg
+chrUn_NW_020109935v1	0	4359		gneg
+chrUn_NW_020109936v1	0	4266		gneg
+chrUn_NW_020109937v1	0	4511		gneg
+chrUn_NW_020109938v1	0	4451		gneg
+chrUn_NW_020109939v1	0	4621		gneg
+chrUn_NW_020109940v1	0	4617		gneg
+chrUn_NW_020109941v1	0	4685		gneg
+chrUn_NW_020109942v1	0	4652		gneg
+chrUn_NW_020109943v1	0	4766		gneg
+chrUn_NW_020109944v1	0	4730		gneg
+chrUn_NW_020109945v1	0	4808		gneg
+chrUn_NW_020109946v1	0	4777		gneg
+chrUn_NW_020109947v1	0	5075		gneg
+chrUn_NW_020109948v1	0	5044		gneg
+chrUn_NW_020109949v1	0	5230		gneg
+chrUn_NW_020109950v1	0	5199		gneg
+chrUn_NW_020109951v1	0	5419		gneg
+chrUn_NW_020109952v1	0	5289		gneg
+chrUn_NW_020109953v1	0	5637		gneg
+chrUn_NW_020109954v1	0	5521		gneg
+chrUn_NW_020109955v1	0	5685		gneg
+chrUn_NW_020109956v1	0	5662		gneg
+chrUn_NW_020109957v1	0	5791		gneg
+chrUn_NW_020109958v1	0	5694		gneg
+chrUn_NW_020109959v1	0	6042		gneg
+chrUn_NW_020109960v1	0	5955		gneg
+chrUn_NW_020109961v1	0	6185		gneg
+chrUn_NW_020109962v1	0	6066		gneg
+chrUn_NW_020109963v1	0	6269		gneg
+chrUn_NW_020109964v1	0	6243		gneg
+chrUn_NW_020109965v1	0	6324		gneg
+chrUn_NW_020109966v1	0	6318		gneg
+chrUn_NW_020109967v1	0	6378		gneg
+chrUn_NW_020109968v1	0	6349		gneg
+chrUn_NW_020109969v1	0	6539		gneg
+chrUn_NW_020109970v1	0	6414		gneg
+chrUn_NW_020109971v1	0	6586		gneg
+chrUn_NW_020109972v1	0	6564		gneg
+chrUn_NW_020109973v1	0	6698		gneg
+chrUn_NW_020109974v1	0	6638		gneg
+chrUn_NW_020109975v1	0	6808		gneg
+chrUn_NW_020109976v1	0	6764		gneg
+chrUn_NW_020109977v1	0	6824		gneg
+chrUn_NW_020109978v1	0	6814		gneg
+chrUn_NW_020109979v1	0	6881		gneg
+chrUn_NW_020109980v1	0	6824		gneg
+chrUn_NW_020109981v1	0	6925		gneg
+chrUn_NW_020109982v1	0	6885		gneg
+chrUn_NW_020109983v1	0	7090		gneg
+chrUn_NW_020109984v1	0	6958		gneg
+chrUn_NW_020109985v1	0	7336		gneg
+chrUn_NW_020109986v1	0	7298		gneg
+chrUn_NW_020109987v1	0	7621		gneg
+chrUn_NW_020109988v1	0	7511		gneg
+chrUn_NW_020109989v1	0	7675		gneg
+chrUn_NW_020109990v1	0	7655		gneg
+chrUn_NW_020109991v1	0	7923		gneg
+chrUn_NW_020109992v1	0	7918		gneg
+chrUn_NW_020109993v1	0	8038		gneg
+chrUn_NW_020109994v1	0	8025		gneg
+chrUn_NW_020109995v1	0	8118		gneg
+chrUn_NW_020109996v1	0	8110		gneg
+chrUn_NW_020109997v1	0	8180		gneg
+chrUn_NW_020109998v1	0	8152		gneg
+chrUn_NW_020109999v1	0	8242		gneg
+chrUn_NW_020110000v1	0	8189		gneg
+chrUn_NW_020110001v1	0	8294		gneg
+chrUn_NW_020110002v1	0	8247		gneg
+chrUn_NW_020110003v1	0	8516		gneg
+chrUn_NW_020110004v1	0	8464		gneg
+chrUn_NW_020110005v1	0	8656		gneg
+chrUn_NW_020110006v1	0	8637		gneg
+chrUn_NW_020110007v1	0	8749		gneg
+chrUn_NW_020110008v1	0	8722		gneg
+chrUn_NW_020110009v1	0	8846		gneg
+chrUn_NW_020110010v1	0	8788		gneg
+chrUn_NW_020110011v1	0	8913		gneg
+chrUn_NW_020110012v1	0	8891		gneg
+chrUn_NW_020110013v1	0	8999		gneg
+chrUn_NW_020110014v1	0	8915		gneg
+chrUn_NW_020110015v1	0	9118		gneg
+chrUn_NW_020110016v1	0	9032		gneg
+chrUn_NW_020110017v1	0	9308		gneg
+chrUn_NW_020110018v1	0	9172		gneg
+chrUn_NW_020110019v1	0	9568		gneg
+chrUn_NW_020110020v1	0	9469		gneg
+chrUn_NW_020110021v1	0	9617		gneg
+chrUn_NW_020110022v1	0	9579		gneg
+chrUn_NW_020110023v1	0	9688		gneg
+chrUn_NW_020110024v1	0	9619		gneg
+chrUn_NW_020110025v1	0	9858		gneg
+chrUn_NW_020110026v1	0	9696		gneg
+chrUn_NW_020110027v1	0	9935		gneg
+chrUn_NW_020110028v1	0	9888		gneg
+chrUn_NW_020110029v1	0	10056		gneg
+chrUn_NW_020110030v1	0	10010		gneg
+chrUn_NW_020110031v1	0	10371		gneg
+chrUn_NW_020110032v1	0	10066		gneg
+chrUn_NW_020110033v1	0	10691		gneg
+chrUn_NW_020110034v1	0	10473		gneg
+chrUn_NW_020110035v1	0	10984		gneg
+chrUn_NW_020110036v1	0	10816		gneg
+chrUn_NW_020110037v1	0	11066		gneg
+chrUn_NW_020110038v1	0	10993		gneg
+chrUn_NW_020110039v1	0	11212		gneg
+chrUn_NW_020110040v1	0	11204		gneg
+chrUn_NW_020110041v1	0	11376		gneg
+chrUn_NW_020110042v1	0	11254		gneg
+chrUn_NW_020110043v1	0	11663		gneg
+chrUn_NW_020110044v1	0	11473		gneg
+chrUn_NW_020110045v1	0	11891		gneg
+chrUn_NW_020110046v1	0	11743		gneg
+chrUn_NW_020110047v1	0	11985		gneg
+chrUn_NW_020110048v1	0	11970		gneg
+chrUn_NW_020110049v1	0	12125		gneg
+chrUn_NW_020110050v1	0	12040		gneg
+chrUn_NW_020110051v1	0	12152		gneg
+chrUn_NW_020110052v1	0	12129		gneg
+chrUn_NW_020110053v1	0	12430		gneg
+chrUn_NW_020110054v1	0	12389		gneg
+chrUn_NW_020110055v1	0	12562		gneg
+chrUn_NW_020110056v1	0	12537		gneg
+chrUn_NW_020110057v1	0	12789		gneg
+chrUn_NW_020110058v1	0	12721		gneg
+chrUn_NW_020110059v1	0	12987		gneg
+chrUn_NW_020110060v1	0	12986		gneg
+chrUn_NW_020110061v1	0	13139		gneg
+chrUn_NW_020110062v1	0	13021		gneg
+chrUn_NW_020110063v1	0	13224		gneg
+chrUn_NW_020110064v1	0	13157		gneg
+chrUn_NW_020110065v1	0	13513		gneg
+chrUn_NW_020110066v1	0	13240		gneg
+chrUn_NW_020110067v1	0	13671		gneg
+chrUn_NW_020110068v1	0	13599		gneg
+chrUn_NW_020110069v1	0	13798		gneg
+chrUn_NW_020110070v1	0	13793		gneg
+chrUn_NW_020110071v1	0	13985		gneg
+chrUn_NW_020110072v1	0	13913		gneg
+chrUn_NW_020110073v1	0	14131		gneg
+chrUn_NW_020110074v1	0	14086		gneg
+chrUn_NW_020110075v1	0	14298		gneg
+chrUn_NW_020110076v1	0	14205		gneg
+chrUn_NW_020110077v1	0	14604		gneg
+chrUn_NW_020110078v1	0	14494		gneg
+chrUn_NW_020110079v1	0	14655		gneg
+chrUn_NW_020110080v1	0	14613		gneg
+chrUn_NW_020110081v1	0	14773		gneg
+chrUn_NW_020110082v1	0	14715		gneg
+chrUn_NW_020110083v1	0	15132		gneg
+chrUn_NW_020110084v1	0	15049		gneg
+chrUn_NW_020110085v1	0	15167		gneg
+chrUn_NW_020110086v1	0	15134		gneg
+chrUn_NW_020110087v1	0	15417		gneg
+chrUn_NW_020110088v1	0	15387		gneg
+chrUn_NW_020110089v1	0	15638		gneg
+chrUn_NW_020110090v1	0	15492		gneg
+chrUn_NW_020110091v1	0	15680		gneg
+chrUn_NW_020110092v1	0	15663		gneg
+chrUn_NW_020110093v1	0	16031		gneg
+chrUn_NW_020110094v1	0	15929		gneg
+chrUn_NW_020110095v1	0	16129		gneg
+chrUn_NW_020110096v1	0	16106		gneg
+chrUn_NW_020110097v1	0	16233		gneg
+chrUn_NW_020110098v1	0	16140		gneg
+chrUn_NW_020110099v1	0	16464		gneg
+chrUn_NW_020110100v1	0	16245		gneg
+chrUn_NW_020110101v1	0	17007		gneg
+chrUn_NW_020110102v1	0	16505		gneg
+chrUn_NW_020110103v1	0	17402		gneg
+chrUn_NW_020110104v1	0	17237		gneg
+chrUn_NW_020110105v1	0	18101		gneg
+chrUn_NW_020110106v1	0	18034		gneg
+chrUn_NW_020110107v1	0	18412		gneg
+chrUn_NW_020110108v1	0	18344		gneg
+chrUn_NW_020110109v1	0	18705		gneg
+chrUn_NW_020110110v1	0	18507		gneg
+chrUn_NW_020110111v1	0	19095		gneg
+chrUn_NW_020110112v1	0	18989		gneg
+chrUn_NW_020110113v1	0	19903		gneg
+chrUn_NW_020110114v1	0	19536		gneg
+chrUn_NW_020110115v1	0	20494		gneg
+chrUn_NW_020110116v1	0	20270		gneg
+chrUn_NW_020110117v1	0	20717		gneg
+chrUn_NW_020110118v1	0	20496		gneg
+chrUn_NW_020110119v1	0	21427		gneg
+chrUn_NW_020110120v1	0	21266		gneg
+chrUn_NW_020110121v1	0	21586		gneg
+chrUn_NW_020110122v1	0	21580		gneg
+chrUn_NW_020110123v1	0	21699		gneg
+chrUn_NW_020110124v1	0	21677		gneg
+chrUn_NW_020110125v1	0	22379		gneg
+chrUn_NW_020110126v1	0	21751		gneg
+chrUn_NW_020110127v1	0	22621		gneg
+chrUn_NW_020110128v1	0	22381		gneg
+chrUn_NW_020110129v1	0	22982		gneg
+chrUn_NW_020110130v1	0	22641		gneg
+chrUn_NW_020110131v1	0	23748		gneg
+chrUn_NW_020110132v1	0	23190		gneg
+chrUn_NW_020110133v1	0	23907		gneg
+chrUn_NW_020110134v1	0	23766		gneg
+chrUn_NW_020110135v1	0	24315		gneg
+chrUn_NW_020110136v1	0	24179		gneg
+chrUn_NW_020110137v1	0	25301		gneg
+chrUn_NW_020110138v1	0	24712		gneg
+chrUn_NW_020110139v1	0	25466		gneg
+chrUn_NW_020110140v1	0	25409		gneg
+chrUn_NW_020110141v1	0	26131		gneg
+chrUn_NW_020110142v1	0	25700		gneg
+chrUn_NW_020110143v1	0	26298		gneg
+chrUn_NW_020110144v1	0	26150		gneg
+chrUn_NW_020110145v1	0	26595		gneg
+chrUn_NW_020110146v1	0	26310		gneg
+chrUn_NW_020110147v1	0	26960		gneg
+chrUn_NW_020110148v1	0	34471		gneg
+chrUn_NW_020110149v1	0	34291		gneg
+chrUn_NW_020110150v1	0	42067		gneg
+chrUn_NW_020110151v1	0	39545		gneg
+chrUn_NW_020110152v1	0	52554		gneg
+chrUn_NW_020110153v1	0	48347		gneg
+chrUn_NW_020110154v1	0	61939		gneg
+chrUn_NW_020110155v1	0	53716		gneg
+chrUn_NW_020110156v1	0	177577		gneg
+chrUn_NW_020110157v1	0	94788		gneg
+chrUn_NW_020110158v1	0	468536		gneg
+chrUn_NW_020110159v1	0	199634		gneg
+chrUn_NW_020110160v1	0	696307		gneg
+chrUn_NW_020110161v1	0	665899		gneg
+chrUn_NW_020110162v1	0	1222195		gneg
+chrUn_NW_020110163v1	0	900507		gneg
+chrUn_NW_020110164v1	0	2003471		gneg
+chrUn_NW_020110165v1	0	1977309		gneg
+chrUn_NW_020110166v1	0	4360		gneg
+chrUn_NW_020110167v1	0	2023903		gneg
+chrUn_NW_020110168v1	0	7419		gneg
+chrUn_NW_020110169v1	0	4840		gneg
+chrW	0	6813114		gneg
+chrW_NW_020109775v1_random	0	1568		gneg
+chrW_NW_020109776v1_random	0	2003		gneg
+chrW_NW_020109777v1_random	0	2092		gneg
+chrW_NW_020109778v1_random	0	3094		gneg
+chrW_NW_020109779v1_random	0	5587		gneg
+chrW_NW_020109780v1_random	0	6668		gneg
+chrW_NW_020109781v1_random	0	6830		gneg
+chrW_NW_020109782v1_random	0	6929		gneg
+chrW_NW_020109783v1_random	0	7074		gneg
+chrW_NW_020109784v1_random	0	7765		gneg
+chrW_NW_020109785v1_random	0	7878		gneg
+chrW_NW_020109786v1_random	0	8166		gneg
+chrW_NW_020109787v1_random	0	8267		gneg
+chrW_NW_020109788v1_random	0	8275		gneg
+chrW_NW_020109789v1_random	0	8559		gneg
+chrW_NW_020109790v1_random	0	8909		gneg
+chrW_NW_020109791v1_random	0	9034		gneg
+chrW_NW_020109792v1_random	0	9182		gneg
+chrW_NW_020109793v1_random	0	9607		gneg
+chrW_NW_020109794v1_random	0	10106		gneg
+chrW_NW_020109795v1_random	0	10162		gneg
+chrW_NW_020109796v1_random	0	10224		gneg
+chrW_NW_020109797v1_random	0	10371		gneg
+chrW_NW_020109798v1_random	0	10551		gneg
+chrW_NW_020109799v1_random	0	10871		gneg
+chrW_NW_020109800v1_random	0	11068		gneg
+chrW_NW_020109801v1_random	0	12127		gneg
+chrW_NW_020109802v1_random	0	12728		gneg
+chrW_NW_020109803v1_random	0	13691		gneg
+chrW_NW_020109804v1_random	0	13829		gneg
+chrW_NW_020109805v1_random	0	14047		gneg
+chrW_NW_020109806v1_random	0	14330		gneg
+chrW_NW_020109807v1_random	0	14810		gneg
+chrW_NW_020109808v1_random	0	15438		gneg
+chrW_NW_020109809v1_random	0	16043		gneg
+chrW_NW_020109810v1_random	0	16320		gneg
+chrW_NW_020109811v1_random	0	17217		gneg
+chrW_NW_020109812v1_random	0	17224		gneg
+chrW_NW_020109813v1_random	0	17321		gneg
+chrW_NW_020109814v1_random	0	17442		gneg
+chrW_NW_020109815v1_random	0	18028		gneg
+chrW_NW_020109816v1_random	0	19032		gneg
+chrW_NW_020109817v1_random	0	19204		gneg
+chrW_NW_020109818v1_random	0	19471		gneg
+chrW_NW_020109819v1_random	0	19721		gneg
+chrW_NW_020109820v1_random	0	19850		gneg
+chrW_NW_020109821v1_random	0	19928		gneg
+chrW_NW_020109822v1_random	0	22964		gneg
+chrW_NW_020109823v1_random	0	23209		gneg
+chrW_NW_020109824v1_random	0	24105		gneg
+chrW_NW_020109825v1_random	0	27808		gneg
+chrW_NW_020109826v1_random	0	28212		gneg
+chrZ	0	82529921		gneg
+chrZ_NW_020109829v1_random	0	15587		gneg
