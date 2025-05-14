@@ -29,7 +29,26 @@ function genomeCytobandDimensions() {
     };
 }
 
-function updateGenomeCytoband(genomeData, chromOrder, initialChrom) {
+const organismToEmoji = {
+    //human: "🧍",
+    dog: "🐕",
+    mouse: "🐁",
+    fruitfly: "🪰",
+    zebrafish: "🐠",
+    chicken: "🐓",
+    rabbit: "🐇"
+};
+
+
+
+function updateGenomeCytoband(genomeData, chromOrder, initialChrom, organism) {
+
+    let indicator = document.getElementsByClassName("organism-indicator");
+    for (let i = 0; i < indicator.length; i++) {
+        indicator[i].textContent = organismToEmoji[organism] || "";
+        indicator[i].title = organism;
+        indicator[i].style.display = "block";
+        }
 
     NUMBER_CHROMOSOMES = Object.keys(genomeData).length;
     const svg = drawGenomeCytoband(genomeData, chromOrder)

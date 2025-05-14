@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, make_response
-from cytoband import get_cytoband 
+import cytoband 
 from db.query.query_top_level import get_top_level
 from db.query.query_annotation import query_gene_range,text_search_gene
 from db.query.query_subgraph import get_subgraph
@@ -116,19 +116,13 @@ def subgraph():
 def chromosomes():
     genome = request.args.get("genome")
 
-    canonical = [f"chr{n}" for n in range(1, 23)] + ["chrX", "chrY"]
+    canonical = cytoband.get_canonical()
     noncanonicalOnly = request.args.get('noncanonical', 'false').lower() == 'true'
     
     chromosomes = query_all_chromosomes()
     if noncanonicalOnly:
         chromosomes = [chrom for chrom in chromosomes if chrom.split("#")[-1] not in canonical]
-    
-    # TODO: make real
-    noncanon_path = os.path.join(script_dir, "static", "annotations", "noncanonical.txt")
-    with open(noncanon_path) as file:
-        for line in file.readlines():
-            chromosomes.append(line)
-    
+        
     return chromosomes, 200
 
 @app.route('/search')
@@ -149,9 +143,8 @@ def search():
 @app.route('/cytoband', methods=["GET"])
 def cytobands():
     chromosome = request.args.get("chromosome")
-    include_order = request.args.get("include_order")
 
-    resultDict = get_cytoband(chromosome, include_order)
+    resultDict = cytoband.get_cytoband(chromosome)
     return resultDict, 200
 
 @app.route('/')

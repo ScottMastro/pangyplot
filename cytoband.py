@@ -1,7 +1,8 @@
 import os
 
 CHR_LIST = []
-CYTOBAND_DICT = dict()
+CYTOBANDS = []
+ORGANISM=None
 
 COLOR_MAP = {
     "acen": "#CC0000",
@@ -15,7 +16,7 @@ COLOR_MAP = {
 }
 
 def set_cytoband(organism, cytoband=None, canonical=None):
-    global CHR_LIST, CYTOBAND_DICT
+    global ORGANISM, CHR_LIST, CYTOBAND_DICT
 
     organism_to_genome = {
         "human": "hg38",
@@ -26,10 +27,11 @@ def set_cytoband(organism, cytoband=None, canonical=None):
         "chicken": "galGal6",
         "rabbit": "oryCun2"
     }
-
+    
     if not cytoband:
         genome = organism_to_genome.get(organism)
         if genome:
+            ORGANISM=organism
             script_dir = os.path.dirname(os.path.realpath(__file__))
             cytoband = os.path.join(script_dir, "static", "cytoband", f"{genome}.cytoBand.txt")
             canonical = os.path.join(script_dir, "static", "cytoband", f"{genome}.canonical.txt")
@@ -42,6 +44,7 @@ def set_cytoband(organism, cytoband=None, canonical=None):
 
     # Load and parse cytoband data
     CYTOBAND_DICT = {}
+    noncanonical = set()
     if cytoband:
         with open(cytoband, 'r') as file:
             for line in file:
@@ -76,12 +79,11 @@ def set_cytoband(organism, cytoband=None, canonical=None):
                 band["size"] = (band["end"] - band["start"]) / total_size
                 band["x"] = band["start"] / total_size
 
-        CYTOBAND_DICT["order"] = CHR_LIST
-
-def get_cytoband(chromosome=None, include_order=None):
+def get_cytoband(chromosome=None):
     if chromosome:
-        return {chromosome: CYTOBAND_DICT.get(chromosome, [])}
-    elif include_order:
-        return CYTOBAND_DICT
+        return {"chromosome": CYTOBAND_DICT.get(chromosome, [])}
     else:
-        return {chr: bands for chr, bands in CYTOBAND_DICT.items() if chr != "order"}
+        return {"chromosome": CYTOBAND_DICT, "order": CHR_LIST, "organism" : ORGANISM}
+
+def get_canonical():
+    return CHR_LIST
