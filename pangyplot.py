@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, jsonify, make_response
 import cytoband 
 from db.query.query_top_level import get_top_level
 from db.query.query_annotation import query_gene_range,text_search_gene
-from db.query.query_subgraph import get_subgraph
+from db.query.query_subgraph import get_subgraph, get_segments_in_range
 from db.query.query_all import query_all_chromosomes, query_all_genome
 from db.query.query_metadata import query_samples
 
@@ -146,6 +146,33 @@ def cytobands():
 
     resultDict = cytoband.get_cytoband(chromosome)
     return resultDict, 200
+
+@app.route('/gfa', methods=["GET"])
+def gfa():
+    genome = request.args.get("genome")
+    chromosome = request.args.get("chromosome")
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    nodes, links = get_segments_in_range(genome, chromosome, start, end)
+
+    gfa_lines = ["H\tVN:Z:1.0"]
+
+    for n in nodes:
+        # Fallback to `*` if sequence is missing
+        seq = n.get("sequence", "*")
+        line = f"S\t{n['id']}\t{seq}"
+        gfa_lines.append(line)
+
+    for l in links:
+        gfa_lines.append(f"L\t{l['source']}\t{l['from_strand']}\t{l['target']}\t{l['to_strand']}\t*")
+
+    gfa_text = "\n".join(gfa_lines) + "\n"
+
+    response = make_response(gfa_text)
+    response.headers['Content-Type'] = 'text/plain'
+    response.headers['Content-Disposition'] = 'attachment; filename=graph.gfa'
+    return response
 
 @app.route('/')
 def index():
