@@ -24,6 +24,41 @@ def get_node_type(uuid):
     return "Segment"
 
 
+def get_segments_in_range(genome, chrom, start, end):
+    nodes,links = [],[]
+
+    with get_session() as (db, session):
+
+        parameters = {"start": int(start), "end": int(end), "db": db, "genome": genome, "chrom": chrom}
+
+        segment_query = """
+                // 1. Match all segments in range
+                MATCH (n:Segment)
+                WHERE n.db = $db AND n.genome = $genome AND n.chrom = $chrom 
+                    AND n.start <= $end AND n.end >= $start
+
+                // 2. Collect any segments anchored to them (optionally)
+                OPTIONAL MATCH (n)<-[:ANCHOR]-(a:Segment)
+                WITH collect(DISTINCT n) + collect(DISTINCT a) AS nodes
+
+                // 3. Find all LINKS_TO relationships involving these nodes
+                UNWIND nodes AS s
+                OPTIONAL MATCH (s)-[r:LINKS_TO]-(:Segment)
+
+                // 4. Return all relevant nodes and links
+                RETURN collect(DISTINCT s) AS segments, 
+                    collect(DISTINCT r) AS links
+                """
+
+        results = session.run(segment_query, parameters)
+
+        for result in results:
+            nodes.extend([record.segment_record(n) for n in result["segments"]])
+            links.extend([record.link_record(r) for r in result["links"]])
+
+    return nodes, links
+
+
 def get_subgraph_nodes(uuid, genome, chrom, start, end):
     nodes, links = [], []
     node_type = get_node_type(uuid)
