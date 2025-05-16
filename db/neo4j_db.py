@@ -108,6 +108,5 @@ def db_init(dbName=None):
 
         index.create_fulltext_node_index(session, "Gene", GENE_TEXT_INDEX, ["gene", "id"])
 
-        print(alreadyExists)
         return alreadyExists
         
