@@ -13,12 +13,12 @@ def all_segment_summary():
             query = """
                     MATCH (s:Segment)
                     WHERE s.db = $db AND s.collection = $col
-                    RETURN s.id, s.length, s.start
+                    RETURN s.id, s.length, s.is_ref
                     SKIP $skip
                     LIMIT $limit
                     """
             results = session.run(query, parameters={"db": db, "col": collection}, skip=skip, limit=batch_size)
-            batch = [(result['s.id'], result['s.length'], result["s.start"] is not None) for result in results]
+            batch = [(result['s.id'], result['s.length'], result["s.is_ref"]) for result in results]
 
             if not batch:
                 break
