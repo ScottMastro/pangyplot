@@ -17,7 +17,7 @@ from db.insert.insert_subgraph import insert_subgraphs
 
 from collections import defaultdict
 
-import time
+import time, pickle
 
 def read_from_db():
     nodes = dict()
@@ -140,7 +140,7 @@ def insert_all(graph, merged_map):
     insert_bubbles_and_chains(bubbles, chains)
 
 
-def shoot(altgraphs):
+def shoot(add_to_db=True):
 
     graph = BubbleGunGraph.Graph()
     graph.nodes = read_from_db()
@@ -148,7 +148,8 @@ def shoot(altgraphs):
     print("   🗜️ Compacting graph...")
     before = len(graph.nodes)
     merged_map = compacter.compact_graph(graph)
-    modify.create_compact_links(merged_map)
+    if add_to_db:
+        modify.create_compact_links(merged_map)
     after = len(graph.nodes)
     print(f"      Segments compacted; Total: {before} ➜ {after}.")
 
@@ -173,17 +174,17 @@ def shoot(altgraphs):
     bubbleCount = graph.bubble_number()
     print("   🔘 Simple Bubbles: {}, Superbubbles: {}, Insertions: {}".format(bubbleCount[0], bubbleCount[1], bubbleCount[2]))
 
-    print("   🗃️ Adding to database...")
-    start_time = time.time()
-    insert_all(graph, merged_map)
-    end_time = time.time()
-    print(f"      Took {round(end_time - start_time,1)} seconds.")
+    if add_to_db:
+        print("   🗃️ Adding to database...")
+        start_time = time.time()
+        insert_all(graph, merged_map)
+        end_time = time.time()
+        print(f"      Took {round(end_time - start_time,1)} seconds.")
 
-    print("   🚩 Annotating deletions...")
-    modify.annotate_deletions()
-    modify.chain_intermediate_segments()
+        print("   🚩 Annotating deletions...")
+        modify.annotate_deletions()
+        modify.chain_intermediate_segments()
     
-    if altgraphs:
         print("   🌿 Building alternative path branches...")
         subgraphs = utils.create_alt_subgraphs(graph)
         insert_subgraphs(subgraphs)
@@ -192,3 +193,4 @@ def shoot(altgraphs):
         drop.drop_subgraphs()
     
     print("   Done.")
+    return graph

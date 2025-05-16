@@ -14,22 +14,6 @@ from argparser import parse_args
 app = Flask(__name__)
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-'''
-@app.route('/dbset')
-def set_db():
-    db = request.args.get("db")
-    update_db(db)
-    return
-
-@app.route('/dboptions')
-def get_db_options():
-    dbs = query_all_db()
-    if len(dbs)> 0:
-        update_db(dbs[0])
-
-    return jsonify(dbs)
-'''
-
 @app.context_processor
 def inject_ga_tag_id():
     load_dotenv()

@@ -212,7 +212,7 @@ def parse_args(app):
                 #drop.drop_subgraphs()
 
                 print("Calculating bubbles...")
-                bubble_gun.shoot(True)
+                bubble_gun.shoot()
 
                 #print("Calculating clusters...")
                 #cluster.generate_clusters()

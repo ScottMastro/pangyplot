@@ -228,13 +228,13 @@ document.addEventListener('DOMContentLoaded', function () {
     let data = {genome: "GRCh38", chrom:"chr18", start:63466958, end:63515085, genome: "GRCh38"};
 
     // PRSS1-PRSS2 chr7:142745398-142775564
-    //data = {genome: "GRCh38", chrom:"chr7", start:142760398-15000, end:142774564+1000, genome: "GRCh38"};
+    data = {genome: "GRCh38", chrom:"chr7", start:142760398-15000, end:142774564+1000, genome: "GRCh38"};
     
     // SLC9A3
     //data = {genome: "GRCh38", chrom:"chr5", start:470456, end:524449, genome: "GRCh38"};
 
     //full chr7
-    data = {genome: "GRCh38", chrom:"chr7", start:1, end:1427745640, genome: "GRCh38"};
+    //data = {genome: "GRCh38", chrom:"chr7", start:1, end:1427745640, genome: "GRCh38"};
 
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
