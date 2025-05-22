@@ -1,5 +1,5 @@
 function fetchAndDrawGenome(initialChrom) {
-    let url = "/cytoband?include_order=true";
+    let url = "/cytoband";
 
     return fetch(url)
         .then(response => {
@@ -9,13 +9,14 @@ function fetchAndDrawGenome(initialChrom) {
             return response.json();
         })
         .then(data => {
+
             const chromOrder = data.order;
             if (initialChrom == null && data.order.length > 0){
                 initialChrom = data.order[0];
             }
             delete data.order;
 
-            updateGenomeCytoband(data, chromOrder, initialChrom);
+            updateGenomeCytoband(data.chromosome, chromOrder, initialChrom, data.organism);
 
             if (initialChrom != null){
                 fetchAndDrawChromosomeData(initialChrom);
@@ -35,7 +36,6 @@ function fetchAndDrawChromosomeData(chromName, chromStart, chromEnd) {
     }
 
     let url = `/cytoband?chromosome=${chromName}`;
-    
     return fetch(url)
         .then(response => {
             if (!response.ok) {
@@ -44,8 +44,8 @@ function fetchAndDrawChromosomeData(chromName, chromStart, chromEnd) {
             return response.json();
         })
         .then(data => {
-            CACHED_CHROMOSOME_DATA[chromName] = data[chromName];
-            updateChromosomeCytoband(data[chromName], chromName, chromStart, chromEnd);
+            CACHED_CHROMOSOME_DATA[chromName] = data.chromosome;
+            updateChromosomeCytoband(data.chromosome, chromName, chromStart, chromEnd);
         })
         .catch(error => {
             console.error('Fetch error:', error);

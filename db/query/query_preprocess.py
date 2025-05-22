@@ -5,6 +5,7 @@ def all_segment_summary():
     batch_size=100000
     nodes = []
     startTime = time.time()
+    rate = 0
 
     with get_session(collection=True) as (db, collection, session):
         skip = 0
@@ -12,12 +13,23 @@ def all_segment_summary():
             query = """
                     MATCH (s:Segment)
                     WHERE s.db = $db AND s.collection = $col
-                    RETURN s.id, s.length, s.start
+                    RETURN s
                     SKIP $skip
                     LIMIT $limit
                     """
             results = session.run(query, parameters={"db": db, "col": collection}, skip=skip, limit=batch_size)
-            batch = [(result['s.id'], result['s.length'], result["s.start"] is not None) for result in results]
+            batch = []
+            for record in results:
+                result = record["s"]
+                node = {"id": result['id'],
+                        "genome": result['genome'],
+                        "chrom": result['chrom'],
+                        "start": result['start'],
+                        "end": result['end'],
+                        "length": result['length'],
+                        "is_ref": result['is_ref'],
+                        "gc_count": result['gc_count']}
+                batch.append(node)
 
             if not batch:
                 break
@@ -26,8 +38,11 @@ def all_segment_summary():
             
             elapsed = time.time() - startTime
             rate = len(nodes) / elapsed if elapsed > 0 else 0
-            sys.stdout.write(f"\r      Read {len(nodes):,} segments at {rate:,.1f}/sec.")
-    
+            if sys.stdout.isatty():
+                sys.stdout.write(f"\r      Read {len(nodes):,} segments at {rate:,.1f}/sec.")
+                sys.stdout.flush()
+
+    sys.stdout.write(f"\r      Read {len(nodes):,} segments at {rate:,.1f}/sec.")
     print()
     return nodes
 
@@ -35,7 +50,8 @@ def all_link_summary():
     batch_size=100000
     links = []
     startTime = time.time()
-    
+    rate = 0
+
     with get_session(collection=True) as (db, collection, session):
         skip = 0
         while True:
@@ -57,7 +73,10 @@ def all_link_summary():
     
             elapsed = time.time() - startTime
             rate = len(links) / elapsed if elapsed > 0 else 0
-            sys.stdout.write(f"\r      Read {len(links):,} segments at {rate:,.1f}/sec.")
+            if sys.stdout.isatty():
+                sys.stdout.write(f"\r      Read {len(links):,} segments at {rate:,.1f}/sec.")
+                sys.stdout.flush()
 
+    sys.stdout.write(f"\r      Read {len(links):,} segments at {rate:,.1f}/sec.")
     print()
     return links

@@ -53,7 +53,7 @@ function colorManagerLinkColor(link){
         case "gc_content":
             return colorByGC(link.source.gcCount, link.source.seqLen);
         case "position":
-            return colorByPosition(link.source.start, link.source.end);  
+            return colorByPosition(link.source.start, link.source.end, link);  
         case "solid":
             return NODE_COLOR1;
         default:
@@ -74,7 +74,7 @@ function colorManagerNodeColor(node){
         case "gc_content": 
             return colorByGC(node.gcCount, node.seqLen);
         case "position":
-            return colorByPosition(node.start, node.end);
+            return colorByPosition(node.start, node.end, node);
         case "solid":
                 return NODE_COLOR1;    
         default:
@@ -95,8 +95,8 @@ function colorByGC(count, total){
     return color;
 }
 
-function colorByPosition(start, end){
-    if (start == null || isNaN(start) || end == null || isNaN(end)) {
+function colorByPosition(start, end, object){
+    if ( start == null || isNaN(start) || end == null || isNaN(end)) {
         return NULL_COLOR;
     }
     const position = (start+end)/2;

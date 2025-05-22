@@ -75,37 +75,48 @@ function drawChromosomeCytoband(data) {
         }
     }
 
-    function addChromosomeAnnotations(svg) {
-        function direction(i){
-            if (i % 2 === 0) return(1);
-            return(-1);
-        }
-        function y_start(i){
-            let h = dim.heightBuffer + dim.annotationHeight;
-            if (i % 2 === 0) {
-                return(h + dim.chrHeight);
+    function addChromosomeAnnotations(svg, maxDensity = 0.01) {
+        const minSeparation = maxDensity;
+        let lastX = -Infinity;
+        const annotations = [];
+
+        data.forEach((item) => {
+            const bandCenter = item.x + item.size / 2;
+
+            if (bandCenter - lastX >= minSeparation) {
+                lastX = bandCenter;
+                annotations.push(item);
             }
-            return(h);
-        } 
-        function dy(i) {
-            let remainder = i % 6
-            if (remainder <= 1) { return dim.annotationHeight/3 }
-            if (remainder <= 3) { return dim.annotationHeight*2/3 }
-            if (remainder <= 5) { return dim.annotationHeight }
-            return dim.annotationHeight/3;
-        }
-        
-        const annotations =  data.map((item, i) => ({
+        });
+
+        // Now stagger based on filtered annotations only
+        const annotationObjects = annotations.map((item, i) => {
+            const bandCenter = item.x + item.size / 2;
+            const isUp = i % 2 === 0;
+            let baseY = dim.heightBuffer + dim.annotationHeight;
+            let y = isUp
+                ? baseY + dim.chrHeight
+                : baseY;
+
+            function dy(j) {
+                let remainder = j % 6;
+                if (remainder <= 1) return dim.annotationHeight / 3;
+                if (remainder <= 3) return dim.annotationHeight * 2 / 3;
+                return dim.annotationHeight;
+            }
+
+            return {
                 note: { label: `${item.name}` },
-                x: dim.widthPad + (item.x * dim.chrWidth) + (item.size * dim.chrWidth) / 2,
-                y: y_start(i),
-                dy: direction(i)*(dy(i)),
+                x: dim.widthPad + bandCenter * dim.chrWidth,
+                y: y,
+                dy: isUp ? dy(i) : -dy(i),
                 dx: 0
-        }));
+            };
+        });
 
         const makeAnnotations = d3.annotation()
             .type(d3.annotationLabel)
-            .annotations(annotations);
+            .annotations(annotationObjects);
 
         svg.append("g")
             .attr("class", "cytoband-chromosome-annotation")
@@ -114,6 +125,7 @@ function drawChromosomeCytoband(data) {
         svg.selectAll('.annotation text')
             .attr('class', 'cytoband-chromosome-text');
     }
+
 
     const svg = createSvgCanvas();
     drawChromosomeBackground(svg);

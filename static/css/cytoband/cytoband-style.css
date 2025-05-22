@@ -52,8 +52,14 @@
 .cytoband-gpos25 {
     fill: #8AD4AB; /* #CCCCCC */
 }
+.cytoband-gpos33 {
+    fill: #8AD4AB; /* #CCCCCC */
+}
 .cytoband-gpos50 {
     fill: #539971; /* #7F7F7F */
+}
+.cytoband-gpos66 {
+    fill: #2A7D4F; /* #333333 */
 }
 .cytoband-gpos75 {
     fill: #2A7D4F; /* #333333 */

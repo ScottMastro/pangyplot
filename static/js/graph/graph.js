@@ -157,8 +157,11 @@ function processGraphData(rawGraph){
 
     const nodeResult = processNodes(rawGraph.nodes);
     const links = processLinks(rawGraph.links);
-    
+
+    anchorEndpointNodes(nodeResult.nodes, links)
+
     let graph = {"nodes": nodeResult.nodes, "links": links.concat(nodeResult.nodeLinks)}
+
     const normalizedGraph = normalizeGraph(graph);
 
     renderGraph(normalizedGraph);

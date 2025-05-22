@@ -6,6 +6,13 @@ def insert_segments(segments, batch_size=10000):
     if len(segments) == 0: 
         return
     
+    for seg in segments:
+        if not seg['is_ref']:
+            seg['genome'] = None
+            seg['chrom'] = None
+            seg['start'] = None
+            seg['end'] = None
+
     with get_session(collection=True) as (db, collection, session):
 
         for i in range(0, len(segments), batch_size):
@@ -13,6 +20,7 @@ def insert_segments(segments, batch_size=10000):
             query = """
                 UNWIND $batch AS segment
                 CREATE (:Segment {
+                    uuid: $db + ':' + $col + ':' + segment.id,
                     id: segment.id,
                     collection: $col,
                     db: $db,
@@ -28,7 +36,6 @@ def insert_segments(segments, batch_size=10000):
                     sequence: segment.seq,
                     gc_count: segment.gc_count,
                     is_ref: segment.is_ref
-
                 })
             """
             session.run(query, parameters={"col": collection, "batch": batch, "db": db})
