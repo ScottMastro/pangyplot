@@ -14,6 +14,10 @@ import preprocess.bubble_gun as bubble_gun
 from db.utils.check_status import get_status
 import db.insert.insert_metadata as metadata
 
+from db.modify.preprocess_modifications import chain_intermediate_segments
+
+import cytoband
+
 def parse_args(app):
 
     DEFAULT_DB = "default"
@@ -33,21 +37,32 @@ def parse_args(app):
         parser_run.add_argument('--db', help='Database name', default=DEFAULT_DB)
         parser_run.add_argument('--port', help='Port to run the app on', default=DEFAULT_PORT, type=int, required=False)
         
+        parser_run.add_argument('--organism', type=str, choices=[
+                'none', 'human', 'mouse', 'fruitfly', 'zebrafish', 'chicken', 'rabbit','dog'
+            ], default='human', help='Organism for predefined cytoband file (default: human)')
+
+        parser_run.add_argument('--cytoband', type=str, help='Path to custom cytoband file.')
+        parser_run.add_argument('--canonical', type=str, help='Path to custom canonical chromosome file.')
+
         parser_add = subparsers.add_parser('add', help='Add a dataset.')
         parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB)
         parser_add.add_argument('--ref', help='Reference name', default=None, required=True)
         parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
         parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=True)
+        parser_add.add_argument('--update', help='If database name already exists, add to it.', action='store_true')
 
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
         parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
         parser_annotate.add_argument('--gff3', help='Path to the GFF3 file', default=None, required=True)
 
+
         parser_drop = subparsers.add_parser('drop', help='Drop data tables')
-        parser_drop.add_argument('--db', help='Drop from only one database (provide name).', default=DEFAULT_DB)
+        parser_drop.add_argument('--db', help='Drop from this database.', default=DEFAULT_DB)
+        parser_drop.add_argument('--drop-db', help='Drop the full database.', action='store_true')
+        parser_drop.add_argument('--collection', help='Drop from only one collection (provide collection id).', required=False)
         parser_drop.add_argument('--annotations', help='Drop annotations.', action='store_true')
-        parser_drop.add_argument('--all', help='Drop everything.', action='store_true')
+        parser_drop.add_argument('--all', help='Drop all data from neo4j.', action='store_true')
 
         #parser_example = subparsers.add_parser('example', help='Adds exaple data.')
         #parser_example.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
@@ -55,6 +70,7 @@ def parse_args(app):
         #parser.add_argument('--drb1', help='Use DRB1 demo data', action='store_true')
 
         args = parser.parse_args()
+
 
         if args.command == 'setup':
             setup.handle_setup_env()
@@ -65,8 +81,20 @@ def parse_args(app):
             get_status()
             exit()
 
+        if args.command == 'cytoband':
+            setup.handle_setup_env()
+            exit()
+
         if args.command == 'run':
+
+            if (args.cytoband and not args.canonical) or (args.canonical and not args.cytoband):
+                parser.error("Both --cytoband and --canonical must be provided together if using a custom cytoband file.")
+                exit(0)
+
+            cytoband.set_cytoband(args.organism, args.cytoband, args.canonical)
+
             db.db_init(args.db)
+
             port = args.port if args.port else DEFAULT_PORT
             print(f"Starting PangyPlot... http://127.0.0.1:{port}")
            
@@ -76,24 +104,43 @@ def parse_args(app):
         if args.command == 'drop':
             db.db_init(args.db)
 
-            flag = False
-
             if args.all:
+                confirm = input("Are you sure you want to drop EVERYTHING? [y/N]: ")
+                if confirm.lower() != 'y':
+                    print("Aborted.")
+                    exit()
                 print(f"Dropping everything...")
                 drop.drop_all()
-                flag = True
+                exit()
 
-            if args.db:
+            if args.drop_db:
+                confirm = input(f"""Are you sure you want to drop the entire db "{args.db}"? [y/N]: """)
+                if confirm.lower() != 'y':
+                    print("Aborted.")
+                    exit()
                 print(f'Dropping "{args.db}" data...')
                 drop.drop_db(args.db)
-                flag = True
+                exit()
+
+            if args.collection:
+                confirm = input(f"""Are you sure you want to drop the entire collection "{args.collection}"? [y/N]: """)
+                if confirm.lower() != 'y':
+                    print("Aborted.")
+                    exit()
+                print(f'Dropping where collection={args.collection} in db {args.db}...')
+                drop.drop_collection(args.collection)
+                exit()
+
 
             if args.annotations:
+                confirm = input(f"""Are you sure you want to drop all annotations? [y/N]: """)
+                if confirm.lower() != 'y':
+                    print("Aborted.")
+                    exit()
                 drop.drop_annotations()
-                flag = True
+                exit()
 
-            if not flag:
-                print("Nothing dropped. Please specify objects to drop.")
+            print("Nothing dropped. Please specify objects to drop.")
             exit()
 
         #todo (add positions file)
@@ -130,15 +177,16 @@ def parse_args(app):
         if args.command == "add":
             exists = db.db_init(args.db)
             
-            if exists:
-                delete_response = input(f'Database "{args.db}" already contains data. Drop and recreate it? [y/n]: ').strip().lower()
+            if exists and not args.update:
 
-                if delete_response == 'y':
-                    print(f'Dropping "{args.db}" data...')
-                    drop.drop_db(args.db)
-                else:
-                    add_response = input(f'Add data to existing database "{args.db}"? [y/n]: ').strip().lower()
-                    if add_response != 'y':
+                add_response = input(f'Database "{args.db}" already contains data. Add data to existing database? [y/n]: ').strip().lower()
+                if add_response != 'y':
+                    delete_response = input(f'Drop and recreate {args.db}? [y/n]: ').strip().lower()
+
+                    if delete_response == 'y':
+                        print(f'Dropping "{args.db}" data...')
+                        drop.drop_db(args.db)
+                    else:
                         print("Exiting. No changes made.")
                         exit(0)
 
@@ -154,6 +202,7 @@ def parse_args(app):
 
                 print("Parsing layout...")
                 layoutCoords = parse_layout(args.layout)
+
                 print("Parsing GFA...")
                 parse_graph(args.gfa, args.ref, positions, layoutCoords)
                 
@@ -163,7 +212,7 @@ def parse_args(app):
                 #drop.drop_subgraphs()
 
                 print("Calculating bubbles...")
-                bubble_gun.shoot(True)
+                bubble_gun.shoot()
 
                 #print("Calculating clusters...")
                 #cluster.generate_clusters()

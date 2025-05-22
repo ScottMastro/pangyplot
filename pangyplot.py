@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, make_response
-from cytoband import get_cytoband 
+import cytoband 
 from db.query.query_top_level import get_top_level
 from db.query.query_annotation import query_gene_range,text_search_gene
-from db.query.query_subgraph import get_subgraph
+from db.query.query_subgraph import get_subgraph, get_segments_in_range
 from db.query.query_all import query_all_chromosomes, query_all_genome
 from db.query.query_metadata import query_samples
 
@@ -13,22 +13,6 @@ from argparser import parse_args
 
 app = Flask(__name__)
 script_dir = os.path.dirname(os.path.realpath(__file__))
-
-'''
-@app.route('/dbset')
-def set_db():
-    db = request.args.get("db")
-    update_db(db)
-    return
-
-@app.route('/dboptions')
-def get_db_options():
-    dbs = query_all_db()
-    if len(dbs)> 0:
-        update_db(dbs[0])
-
-    return jsonify(dbs)
-'''
 
 @app.context_processor
 def inject_ga_tag_id():
@@ -98,7 +82,7 @@ def genes():
 
 @app.route('/subgraph', methods=["GET"])
 def subgraph():
-    nodeid = request.args.get("nodeid")
+    uuid = request.args.get("uuid")
     genome = request.args.get("genome")
     chrom = request.args.get("chromosome")
     start = request.args.get("start")
@@ -107,29 +91,22 @@ def subgraph():
     start = int(start)
     end = int(end)
 
-    print(f"Getting subgraph for {nodeid}...")
+    print(f"Getting subgraph for {uuid}...")
 
-    nodeid = int(nodeid)
-    resultDict = get_subgraph(nodeid, genome, chrom, start, end)
+    resultDict = get_subgraph(uuid, genome, chrom, start, end)
     return resultDict, 200
 
 @app.route('/chromosomes', methods=["GET"])
 def chromosomes():
     genome = request.args.get("genome")
 
-    canonical = [f"chr{n}" for n in range(1, 23)] + ["chrX", "chrY"]
+    canonical = cytoband.get_canonical()
     noncanonicalOnly = request.args.get('noncanonical', 'false').lower() == 'true'
     
     chromosomes = query_all_chromosomes()
     if noncanonicalOnly:
         chromosomes = [chrom for chrom in chromosomes if chrom.split("#")[-1] not in canonical]
-    
-    # TODO: make real
-    noncanon_path = os.path.join(script_dir, "static", "annotations", "noncanonical.txt")
-    with open(noncanon_path) as file:
-        for line in file.readlines():
-            chromosomes.append(line)
-    
+        
     return chromosomes, 200
 
 @app.route('/search')
@@ -150,10 +127,36 @@ def search():
 @app.route('/cytoband', methods=["GET"])
 def cytobands():
     chromosome = request.args.get("chromosome")
-    include_order = request.args.get("include_order")
 
-    resultDict = get_cytoband(chromosome, include_order)
+    resultDict = cytoband.get_cytoband(chromosome)
     return resultDict, 200
+
+@app.route('/gfa', methods=["GET"])
+def gfa():
+    genome = request.args.get("genome")
+    chromosome = request.args.get("chromosome")
+    start = request.args.get("start")
+    end = request.args.get("end")
+
+    nodes, links = get_segments_in_range(genome, chromosome, start, end)
+
+    gfa_lines = ["H\tVN:Z:1.0"]
+
+    for n in nodes:
+        # Fallback to `*` if sequence is missing
+        seq = n.get("sequence", "*")
+        line = f"S\t{n['id']}\t{seq}"
+        gfa_lines.append(line)
+
+    for l in links:
+        gfa_lines.append(f"L\t{l['source']}\t{l['from_strand']}\t{l['target']}\t{l['to_strand']}\t*")
+
+    gfa_text = "\n".join(gfa_lines) + "\n"
+
+    response = make_response(gfa_text)
+    response.headers['Content-Type'] = 'text/plain'
+    response.headers['Content-Disposition'] = 'attachment; filename=graph.gfa'
+    return response
 
 @app.route('/')
 def index():

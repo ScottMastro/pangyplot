@@ -1,5 +1,5 @@
 
-def parse_reference_string(str, ref=None):
+def parse_reference_string(str):
 
     if "|" in str:
         chrom = str.split("|")[-1]
@@ -11,7 +11,7 @@ def parse_reference_string(str, ref=None):
         chrom = str.split("#")[-1]
     else:
         genome = ref
-        chrom = str
+        chrom = ref
 
     return {"chrom": chrom, "genome": genome}
 
@@ -49,7 +49,7 @@ def pound_separated(reference_str, start=0):
 
     return {"chrom": chrom, "genome": genome, "hap":hap, "start": start}
 
-def parse_id_string(reference_str, ref=None):
+def parse_id_string(reference_str):
     chrom = None
     genome = None
     hap = None
@@ -70,7 +70,7 @@ def parse_id_string(reference_str, ref=None):
             if genome.startswith("id="):
                 genome = genome[3:]
         else:
-            genome = ref
+            genome = reference_str
             chrom = reference_str
     
-    return {"chrom": chrom, "genome": genome, "hap":hap, "start": start}
+    return {"chrom": chrom, "genome": genome, "hap": hap, "start": start}

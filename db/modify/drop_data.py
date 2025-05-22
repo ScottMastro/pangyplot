@@ -46,6 +46,38 @@ def drop_db(db):
             print(f"Deleted {total_deleted} nodes so far...")
         print("Deletion complete.")
 
+
+def drop_collection(cid):
+    cid = int(cid)
+    with get_session() as (_, session):
+
+        def delete_in_batches(tx, batch_size):
+            query = """
+                MATCH (n) WHERE n.collection = $cid
+                WITH n LIMIT $batchSize
+                DETACH DELETE n
+                RETURN count(n) as deletedCount
+            """
+            result = tx.run(query, cid=cid, batchSize=batch_size)
+            return result.single()[0]
+
+        total_deleted = 0
+        while True:
+            deleted = session.write_transaction(delete_in_batches, batch_size=10000)
+            if deleted == 0:
+                break
+            total_deleted += deleted
+            print(f"Deleted {total_deleted} nodes so far...")
+
+        with session.begin_transaction() as tx:
+            tx.run("""
+                MATCH (c:Collection {id: $cid})
+                DETACH DELETE c
+            """, cid=cid)
+
+        print("Deletion complete.")
+
+
 def drop_node_type(session, type, db=None, print_info=True):
 
     db_clause = f'WHERE n.db = "{db}"' if db else ''

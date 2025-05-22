@@ -148,6 +148,17 @@ function rightClickManagerSetup(forceGraph){
       RIGHT_CLICK_MANAGER.addOption('arrows-to-circle', 'Recenter Graph', 'general', () => {
         forceGraph.zoomToFit(200, 10, node => true);
       });
+
+      RIGHT_CLICK_MANAGER.addOption('download', 'Download GFA', 'general', () => {
+          const coords = getGraphCoordinates();
+
+          const url = new URL('/gfa', window.location.origin);
+          for (const [key, val] of Object.entries(coords)) {
+              url.searchParams.set(key, val);
+          }
+
+          window.location.href = url.toString();
+      });
       
       RIGHT_CLICK_MANAGER.addOption('download', 'Download PNG', 'general', () => {
         downloadGraphImage();

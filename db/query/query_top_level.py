@@ -78,7 +78,7 @@ def get_top_level_data( genome, chrom, start, end):
                 OPTIONAL MATCH (a)-[r1:END]-(e:Segment)
                 OPTIONAL MATCH (a:Segment)-[r2:LINKS_TO]-(s:Segment)
 
-                RETURN a, labels(a) AS type,
+                RETURN a,s, labels(a) AS type,
                 collect(DISTINCT r1) AS endlinks,
                 collect(DISTINCT r2) AS links
                 """
