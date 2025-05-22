@@ -179,9 +179,9 @@ def parse_args(app):
             
             if exists and not args.update:
 
-                add_response = input(f'Add data to existing database "{args.db}"? [y/n]: ').strip().lower()
+                add_response = input(f'Database "{args.db}" already contains data. Add data to existing database? [y/n]: ').strip().lower()
                 if add_response != 'y':
-                    delete_response = input(f'Database "{args.db}" already contains data. Drop and recreate it? [y/n]: ').strip().lower()
+                    delete_response = input(f'Drop and recreate {args.db}? [y/n]: ').strip().lower()
 
                     if delete_response == 'y':
                         print(f'Dropping "{args.db}" data...')
@@ -202,7 +202,7 @@ def parse_args(app):
 
                 print("Parsing layout...")
                 layoutCoords = parse_layout(args.layout)
-                print(len(layoutCoords))
+
                 print("Parsing GFA...")
                 parse_graph(args.gfa, args.ref, positions, layoutCoords)
                 

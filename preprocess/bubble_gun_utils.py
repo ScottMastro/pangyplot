@@ -75,7 +75,7 @@ def create_alt_subgraphs(graph):
         for v in subgraph["graph"]:
             visited.add(v)
 
-        if len(subgraph["graph"]) > 1:
+        if len(subgraph["graph"]) > 0:
             subgraphs.append(subgraph)
 
     return subgraphs
@@ -161,3 +161,182 @@ def split_chain(chain, max_bubbles=100):
         start = end
 
     return chunks
+
+def compute_bubble_properties(graph, bubble):
+    inside_nodes = [graph.nodes[nid] for nid in [n.id for n in bubble.inside]]
+
+    left_node = graph.nodes[bubble.source.id]
+    right_node = graph.nodes[bubble.sink.id]
+
+    left_chrom = left_node.optional_info.get("chrom")
+    right_chrom = right_node.optional_info.get("chrom")
+    left_genome = left_node.optional_info.get("genome")
+    right_genome = right_node.optional_info.get("genome")
+
+    chrom = left_chrom if left_chrom is not None else right_chrom
+    genome = left_genome if left_genome is not None else right_genome
+    
+    if chrom is None or genome is None:
+        return None
+
+    if left_chrom is not None and right_chrom is not None and left_chrom != right_chrom:
+        print(f"⚠️ WARNING: Bubble {bubble.id} spans chromosomes: {left_chrom} → {right_chrom}")
+        return None
+
+    if left_genome is not None and right_genome is not None and left_genome != right_genome:
+        print(f"⚠️ WARNING: Bubble {bubble.id} spans genomes: {left_genome} → {right_genome}")
+        return None
+
+    left_pos = left_node.optional_info.get("end")
+    right_pos = right_node.optional_info.get("start")
+
+    flipped = False
+    if left_pos is not None and right_pos is not None and left_pos > right_pos:
+        left_node, right_node = right_node, left_node
+        left_pos = left_node.optional_info.get("end")
+        right_pos = right_node.optional_info.get("start")
+        flipped = True
+
+    bubble_left, bubble_right = None, None
+    if left_pos is not None and right_pos is not None:
+        bubble_left = left_pos + 1
+        bubble_right = right_pos - 1
+
+    # Inside stats
+    lengths = [n.seq_len for n in inside_nodes]
+    gc_counts = [n.optional_info.get("gc_count", 0) for n in inside_nodes]
+
+    inside_starts = [n.optional_info.get("start") for n in inside_nodes if n.optional_info.get("ref")]
+    inside_ends = [n.optional_info.get("end") for n in inside_nodes if n.optional_info.get("ref")]
+    inside_left = min(inside_starts) if inside_starts else None
+    inside_right = max(inside_ends) if inside_ends else None
+
+    left, right = None, None
+    if bubble_left is not None:
+         left, right = bubble_left, bubble_right
+    elif inside_left is not None and inside_right is not None:
+        left, right = inside_left, inside_right
+
+    properties ={
+        "start": left,
+        "end": bubble_right,
+        "chrom": chrom,
+        "genome": genome,
+        "length": sum(lengths),
+        "largest_child": max(lengths) if lengths else 0,
+        "children": len(inside_nodes),
+        "gc_count": sum(gc_counts),
+        "ref": any(n.optional_info.get("ref") for n in inside_nodes)
+    }
+
+    return properties
+
+
+def compute_chain_properties(graph, chain, chain_bubbles):
+    first_bubble = chain_bubbles[0]
+    last_bubble = chain_bubbles[-1]
+
+    left_node = graph.nodes[first_bubble.source.id]
+    right_node = graph.nodes[last_bubble.sink.id]
+
+    left_chrom = left_node.optional_info.get("chrom")
+    right_chrom = right_node.optional_info.get("chrom")
+    left_genome = left_node.optional_info.get("genome")
+    right_genome = right_node.optional_info.get("genome")
+
+    chrom = left_chrom if left_chrom is not None else right_chrom
+    genome = left_genome if left_genome is not None else right_genome
+
+    if chrom is None or genome is None:
+        return None
+
+    if left_chrom is not None and right_chrom is not None and left_chrom != right_chrom:
+        print(f"⚠️ WARNING: Chain {chain.id} spans chromosomes: {left_chrom} → {right_chrom}")
+        return None
+
+    if left_genome is not None and right_genome is not None and left_genome != right_genome:
+        print(f"⚠️ WARNING: Chain {chain.id} spans genomes: {left_genome} → {right_genome}")
+        return None
+
+    left_pos = left_node.optional_info.get("end")
+    right_pos = right_node.optional_info.get("start")
+
+    flipped = False
+    if left_pos is not None and right_pos is not None and left_pos > right_pos:
+        left_node, right_node = right_node, left_node
+        left_pos = left_node.optional_info.get("end")
+        right_pos = right_node.optional_info.get("start")
+        flipped = True
+
+    chain_left = left_pos if left_pos is not None else None
+    chain_right = right_pos if right_pos is not None else None
+
+    # Flatten segments from all bubbles in the chain
+    inside_ids = set()
+    for bubble in chain_bubbles:
+        inside_ids.update(seg.id for seg in bubble.inside)
+        inside_ids.add(bubble.source.id)
+        inside_ids.add(bubble.sink.id)
+
+    inside_ids.discard(left_node)
+    inside_ids.discard(right_node)
+
+    inside_nodes = [graph.nodes[nid] for nid in inside_ids]
+
+    lengths = [n.seq_len for n in inside_nodes]
+    gc_counts = [n.optional_info.get("gc_count", 0) for n in inside_nodes]
+
+    inside_starts = [n.optional_info.get("start") for n in inside_nodes if n.optional_info.get("ref")]
+    inside_ends = [n.optional_info.get("end") for n in inside_nodes if n.optional_info.get("ref")]
+    inside_left = min(inside_starts) if inside_starts else None
+    inside_right = max(inside_ends) if inside_ends else None
+
+    left, right = None, None
+    if chain_left is not None:
+        left, right = chain_left, chain_right
+    elif inside_left is not None and inside_right is not None:
+        left, right = inside_left, inside_right
+
+    return {
+        "start": left,
+        "end": right,
+        "chrom": chrom,
+        "genome": genome,
+        "length": sum(lengths),
+        "largest_child": max(lengths) if lengths else 0,
+        "children": len(inside_nodes),
+        "gc_count": sum(gc_counts),
+        "ref": any(n.optional_info.get("ref") for n in inside_nodes)
+    }
+    
+    
+def propagate_optional_info(graph, merged_map, original_info):
+    for compacted_id, original_ids in merged_map.items():
+        original_infos = [original_info[oid] for oid in original_ids if oid in original_info]
+
+        if compacted_id in original_info:
+            original_infos.append(original_info[compacted_id])
+
+        if not original_infos:
+            continue
+
+        genomes = {info.get("genome") for info in original_infos if info.get("genome") is not None}
+        chroms = {info.get("chrom") for info in original_infos if info.get("chrom") is not None}
+        starts = [info.get("start") for info in original_infos if info.get("start") is not None]
+        ends = [info.get("end") for info in original_infos if info.get("end") is not None]
+        gc_total = sum(info.get("gc_count", 0) for info in original_infos)
+        is_ref = any(info.get("ref") for info in original_infos)
+
+        genome = genomes.pop() if len(genomes) == 1 else None
+        chrom = chroms.pop() if len(chroms) == 1 else None
+        start = min(starts) if starts else None
+        end = max(ends) if ends else None
+
+        graph.nodes[compacted_id].optional_info = {
+            "genome": genome,
+            "chrom": chrom,
+            "start": start,
+            "end": end,
+            "ref": is_ref,
+            "gc_count": gc_total
+        }
