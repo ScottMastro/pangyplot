@@ -25,7 +25,16 @@ def insert_aggregate_nodes(aggregates, type, batch_size):
                     id: toString(agg.id),
                     subtype: agg.subtype,
                     nesting_level: agg.nesting_level,
-                    depth: agg.depth
+                    depth: agg.depth,
+                    start: agg.start,
+                    end: agg.end,
+                    chrom: agg.chrom,
+                    genome: agg.genome,
+                    length: agg.length,
+                    largest_child: agg.largest_child,
+                    children: agg.children,
+                    gc_count: agg.gc_count,
+                    ref: agg.ref
                 }})
             """
             session.run(query, {"aggregates": batch, "col": collection, "db": db})
@@ -258,6 +267,6 @@ def insert_bubbles_and_chains(bubbles, chains, batch_size=10000):
 
     print("      Calculating aggregate properties...")
 
-    add_child_information(max_depth)
+    #add_child_information(max_depth)
     add_position_information(max_depth)
     add_haplotype_information(max_depth)

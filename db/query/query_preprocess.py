@@ -13,12 +13,23 @@ def all_segment_summary():
             query = """
                     MATCH (s:Segment)
                     WHERE s.db = $db AND s.collection = $col
-                    RETURN s.id, s.length, s.is_ref
+                    RETURN s
                     SKIP $skip
                     LIMIT $limit
                     """
             results = session.run(query, parameters={"db": db, "col": collection}, skip=skip, limit=batch_size)
-            batch = [(result['s.id'], result['s.length'], result["s.is_ref"]) for result in results]
+            batch = []
+            for record in results:
+                result = record["s"]
+                node = {"id": result['id'],
+                        "genome": result['genome'],
+                        "chrom": result['chrom'],
+                        "start": result['start'],
+                        "end": result['end'],
+                        "length": result['length'],
+                        "is_ref": result['is_ref'],
+                        "gc_count": result['gc_count']}
+                batch.append(node)
 
             if not batch:
                 break

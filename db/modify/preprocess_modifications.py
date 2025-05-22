@@ -55,10 +55,8 @@ def chain_intermediate_segments():
             segment_ids = session.read_transaction(get_segment_ids, db, collection, skip, batch_size)
             if not segment_ids:
                 break
-            print(skip)
             session.write_transaction(process_segments, db, collection, segment_ids)
             skip += batch_size
-            print(f"Processed batch starting at offset {skip}")
 
 
 def annotate_deletions_simple():

@@ -6,6 +6,13 @@ def insert_segments(segments, batch_size=10000):
     if len(segments) == 0: 
         return
     
+    for seg in segments:
+        if not seg['is_ref']:
+            seg['genome'] = None
+            seg['chrom'] = None
+            seg['start'] = None
+            seg['end'] = None
+
     with get_session(collection=True) as (db, collection, session):
 
         for i in range(0, len(segments), batch_size):
