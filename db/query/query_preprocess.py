@@ -27,7 +27,7 @@ def all_segment_summary():
                         "start": result['start'],
                         "end": result['end'],
                         "length": result['length'],
-                        "is_ref": result['is_ref'],
+                        "ref": result['ref'],
                         "gc_count": result['gc_count']}
                 batch.append(node)
 

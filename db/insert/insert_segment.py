@@ -7,7 +7,7 @@ def insert_segments(segments, batch_size=10000):
         return
     
     for seg in segments:
-        if not seg['is_ref']:
+        if not seg['ref']:
             seg['genome'] = None
             seg['chrom'] = None
             seg['start'] = None
@@ -35,7 +35,7 @@ def insert_segments(segments, batch_size=10000):
                     length: segment.length,
                     sequence: segment.seq,
                     gc_count: segment.gc_count,
-                    is_ref: segment.is_ref
+                    ref: segment.ref
                 })
             """
             session.run(query, parameters={"col": collection, "batch": batch, "db": db})
@@ -56,7 +56,7 @@ def insert_segment_links(links, batch_size=10000):
                     haplotype: link.haplotype,
                     reverse: link.reverse,
                     frequency: link.frequency,
-                    is_ref: link.is_ref
+                    ref: link.ref
                 }]->(b)
                 
             """
