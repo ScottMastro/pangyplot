@@ -141,10 +141,10 @@ function searchSequenceEngineUpdate(ctx, forceGraph, svg=false) {
                             fill: SEQUENCE_SEARCH_COLOR[sequence],
                             x: node.x,
                             y: node.y,
-                            size: node.size*0.8
+                            size: node.width*0.8
                         });
                     } else {
-                        drawSquare(ctx, node.x, node.y, node.size*0.8, SEQUENCE_SEARCH_COLOR[sequence]);
+                        drawSquare(ctx, node.x, node.y, node.width*0.8, SEQUENCE_SEARCH_COLOR[sequence]);
                     }
 
                 });

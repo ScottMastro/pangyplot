@@ -5,10 +5,6 @@
     position: relative;
 }
 
-#info-copy-sequence {
-    margin-left: 5px;
-    cursor: pointer;
-}
 #box-selection {
     position: absolute;
     z-index: 100;

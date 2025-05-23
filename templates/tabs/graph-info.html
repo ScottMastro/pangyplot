@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/information-panel.css') }}">
+
 <div class="tab-header">Graph Information</div>
 <hr>
 
@@ -8,32 +9,46 @@
 </div>
 {% endmacro %}
 
-<div id="graph-info" class="flex-1">
-    <div id="info-debug-container">
-        <div style="font-weight: bold;">DEBUG INFO (experimental)</div>
-        {{ info_label('FPS', 'info-fps') }}
-        {{ info_label('Screen', 'info-screen-coordinates') }}
-        {{ info_label('Canvas', 'info-canvas-coordinates') }}
-        {{ info_label('Nodes Drawn', 'info-graph-nodes') }}
-        {{ info_label('Edges Drawn', 'info-graph-links') }}
-        <button id="info-neo4j-link" title="Neo4j Browser" class="info-value">Neo4j Browser</button>
 
+
+<div class="flex-col">
+    <div id="info-node-section" class="info-row flex-1" style="display: none;">
+        <button id="info-copy-id" class="info-copy-btn"><i class="fa fa-copy"></i></button>
+        <strong>Node:</strong> <span id="info-node-type"></span><br>
+        <span id="info-node-id" class="info-content"></span>
+    </div>
+    <div id="info-position-section" class="info-row flex-1" style="display: none;">
+        <button id="info-copy-position" class="info-copy-btn"><i class="fa fa-copy"></i></button>
+        <strong>Position:</strong><br>
+        <span id="info-position" class="info-content"></span>
+    </div>
+    <div id="info-sequence-section" class="info-row flex-1" style="display: none;">
+        <button id="info-copy-sequence" class="info-copy-btn"><i class="fa fa-copy"></i></button>
+        <strong>Sequence:</strong><br>
+        <span id="info-length" class="info-content"></span>
+        <div id="info-full-sequence-container">
+        <div class="info-sequence-wrapper">
+            <pre><code id="info-sequence-full"></code></pre>
+        </div>
+        </div>
+    </div>
+    <div id="info-n-inside-container" class="info-row flex-1" style="display: none;">
+        <strong>Nodes Inside:</strong><br>
+        <span id="info-number-inside" class="info-content"></span>
     </div>
 
-      {{ info_label('Node ID', 'info-node-id') }}
-      {{ info_label('Node Type', 'info-node-type') }}
-      {{ info_label('Chromosome', 'info-chromosome') }}
-      {{ info_label('Start', 'info-start') }}
-      {{ info_label('End', 'info-end') }}
-      {{ info_label('Length', 'info-length') }}
-      {{ info_label('Sequence', 'info-sequence') }}        
-      <button id="info-copy-sequence" title="Copy sequence" class="info-value"><i class="fa fa-copy"></i></button>
-
-      <!-- For optional labels -->
-      {{ info_label('Size', 'info-size') }}
-      {{ info_label('Subtype', 'info-subtype') }}
-      {{ info_label('Number Inside', 'info-number-inside') }}
-
+    <div id="graph-info" class="flex-4">
+        <div id="info-debug-container">
+            <div style="font-weight: bold;">DEBUG INFO (experimental)</div>
+            {{ info_label('FPS', 'info-fps') }}
+            {{ info_label('Screen', 'info-screen-coordinates') }}
+            {{ info_label('Canvas', 'info-canvas-coordinates') }}
+            {{ info_label('Nodes Drawn', 'info-graph-nodes') }}
+            {{ info_label('Edges Drawn', 'info-graph-links') }}
+            <button id="info-neo4j-link" title="Neo4j Browser" class="info-neo4j-button">Neo4j Browser</button>
+        </div>
+    </div>
 </div>
+
 
 <script src="{{url_for('static', filename='js/ui/tabs/information-panel.js')}}"></script>

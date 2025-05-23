@@ -64,7 +64,7 @@ function exportForceGraphToSVG(forceGraph) {
             const circle = document.createElementNS(svgNS, "circle");
             circle.setAttribute("cx", item.element.x);
             circle.setAttribute("cy", item.element.y);
-            circle.setAttribute("r", item.size/2);
+            circle.setAttribute("r", item.width/2);
             circle.setAttribute("fill", item.color);
             geneGroup.appendChild(circle);
         } else if (item.type === 'link') {
@@ -107,7 +107,7 @@ function exportForceGraphToSVG(forceGraph) {
         const circle = document.createElementNS(svgNS, "circle");
         circle.setAttribute("cx", n.cx);
         circle.setAttribute("cy", n.cy);
-        circle.setAttribute("r", n.size/2);
+        circle.setAttribute("r", n.width/2);
         circle.setAttribute("fill", n.fill);
 
         if (n.stroke) {
@@ -124,10 +124,10 @@ function exportForceGraphToSVG(forceGraph) {
     sequenceSearch.forEach(element => {
         if (element.type === 'square') {
             const rect = document.createElementNS(svgNS, "rect");
-            rect.setAttribute("x", element.x - element.size / 2);
-            rect.setAttribute("y", element.y - element.size / 2);
-            rect.setAttribute("width", element.size);
-            rect.setAttribute("height", element.size);
+            rect.setAttribute("x", element.x - element.width / 2);
+            rect.setAttribute("y", element.y - element.width / 2);
+            rect.setAttribute("width", element.width);
+            rect.setAttribute("height", element.width);
             rect.setAttribute("fill", element.fill);
             sequenceSearchGroup.appendChild(rect);
         } else if (element.type === 'path') {

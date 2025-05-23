@@ -7,11 +7,46 @@
     margin-bottom: 5px;
     margin-right: 1em;
 }
-.info-value {
+
+.info-neo4j-button {
     font-weight: bold;
     margin-left: 3px;
 }
 
+.info-content {
+    margin-left: 1em;
+}
+
 .info-optional{
     display: none;
+}
+
+.button-copy-sequence {
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+#graph-info {
+    margin-top: auto;
+}
+
+#info-full-sequence-container{
+    margin-top: 0.5em;
+    max-height: 100px;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.info-sequence-wrapper {
+    background-color: var(--site-background);
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+}
+
+.info-sequence-wrapper pre {
+    text-align: left;
+    margin: 0;
 }
