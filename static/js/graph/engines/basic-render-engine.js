@@ -3,7 +3,7 @@ function basicRenderPaintNode(ctx, node, svg=false) {
 
     const zoomFactor = ctx.canvas.__zoom["k"];
     const color = colorManagerNodeColor(node);
-    const nodesize = node.size + 3/zoomFactor;
+    const nodesize = node.width + 3/zoomFactor;
     if (svg) {
         return {
             cx: node.x,

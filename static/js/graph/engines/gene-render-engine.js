@@ -13,7 +13,7 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
     //todo: don't loop if no genes are visible
     graphData.nodes.forEach(node => {
         if (node.isVisible && node.isDrawn) {
-            let hsize = Math.max(100,node.size) + 10/zoomFactor;
+            let hsize = Math.max(100,node.width) + 10/zoomFactor;
 
             const annotations = annotationManagerGetNodeAnnotations(node); 
             let n = 1; 
@@ -57,7 +57,7 @@ function geneRenderEngineDraw(ctx, graphData, svg=false){
     } else; {
         renderQueue.forEach(item => {
             if (item.type === 'node') {
-                outlineNode(item.element, ctx, 0, item.size, item.color);
+                outlineNode(item.element, ctx, 0, item.width, item.color);
             } else if (item.type === 'link') {
                 outlineLink(item.element, ctx, 0, item.width, item.color);
             }

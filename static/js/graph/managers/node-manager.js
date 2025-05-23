@@ -117,7 +117,7 @@ function getCoordinates(node, n=1, i=0){
 
 function getNodeLength(node) {
     if (node.length != null) return node.length;
-    if (node.size != null) return node.size;
+    if (node.width != null) return node.width;
     return 1;
 }
 
@@ -129,7 +129,7 @@ function calculateNumberOfKinks(nodeLength) {
 function createNewNode(node, nodeid, idx, totalKinks) {
     let coords = getCoordinates(node, totalKinks, idx);
     let seqLength = node.length;
-    let largestChild = 0;
+    let largestChild = null;
 
     if (node.type != "segment") {
         largestChild = node.largest_child;
@@ -153,7 +153,8 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         isSelected: false,
         isVisible: true,
         isDrawn: true,
-        size: NODE_WIDTH,
+        width: NODE_WIDTH,
+        children: node.children ?? null,
         largestChild: largestChild,
         isSingleton: totalKinks === 1,
         isRef: node.ref,
@@ -217,7 +218,6 @@ function processNodes(rawNodes) {
 
     rawNodes.forEach(rawNode => {
         const nodeLength = getNodeLength(rawNode);
-        console.log("nodeLength", nodeLength, rawNode);
         const numberOfKinks = calculateNumberOfKinks(nodeLength);
         const nodeid = String(rawNode.nodeid);
 
@@ -258,7 +258,6 @@ function anchorEndpointNodes(nodes, links) {
         const hasIncoming = incoming.has(id);
 
         if (!hasIncoming || !hasOutgoing) {
-            console.log(node)
             node.fx = node.x;
             node.fy = node.y;
         }

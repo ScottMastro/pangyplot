@@ -1,48 +1,69 @@
 var fullSequence ="";
+
 function updateGraphInfo(nodeid) {
-    //todo: avoid using this directly
-    nodeInfo = getNodeInformation(nodeid);
-    document.getElementById('info-node-id').textContent = nodeInfo.id || '';
-    document.getElementById('info-node-type').textContent = nodeInfo.type || '';
-    document.getElementById('info-chromosome').textContent = nodeInfo.chrom || '';
-    document.getElementById('info-start').textContent = nodeInfo.start || '';
-    document.getElementById('info-end').textContent = nodeInfo.end || '';
-    document.getElementById('info-length').textContent = nodeInfo.length || '';
+  const nodeInfo = getNodeInformation(nodeid);
 
-    goToNeo4jBrowser(nodeInfo.type, nodeInfo.id)
+  const typeEmoji = {
+    segment: '⚪',
+    bubble: '🫧',
+    chain: '🔗'
+  };
 
+  const emoji = typeEmoji[nodeInfo.type] || '🔹';
+  const typeDisplay = nodeInfo.type ? `${emoji} ${nodeInfo.type.charAt(0).toUpperCase()}${nodeInfo.type.slice(1)}` : '';
+  document.getElementById('info-node-id').textContent = nodeInfo.id || '';
+  document.getElementById('info-node-type').textContent = typeDisplay;
+  document.getElementById('info-node-section').style.display = (nodeInfo.id || nodeInfo.type) ? 'block' : 'none';
+
+  // Position
+  const hasPosition = nodeInfo.chrom && nodeInfo.start != null && nodeInfo.end != null;
+  const positionText = hasPosition ? `${nodeInfo.chrom}:${nodeInfo.start}-${nodeInfo.end}` : '';
+  document.getElementById('info-position').textContent = positionText;
+  document.getElementById('info-position-section').style.display = hasPosition ? 'block' : 'none';
+
+  // Length
+  const showLength = nodeInfo.length != null && nodeInfo.type === "segment";
+  document.getElementById('info-length').textContent = showLength ? `${nodeInfo.length} bp` : '';
+  document.getElementById('info-sequence-section').style.display = showLength ? 'block' : 'none';
+
+  // Neo4j link
+  goToNeo4jBrowser(nodeInfo.type, nodeInfo.id);
+
+  // Sequence or Nodes Inside
+  const type = nodeInfo.type;
+  if (type === "segment") {
     fullSequence = nodeInfo.sequence || '';
-    const truncatedSequence = fullSequence.slice(0, 10);
-    let seq = truncatedSequence + (fullSequence.length > 10 ? '...' : '');
-    document.getElementById('info-sequence').textContent = seq;
-
-
-    if ('subtype' in nodeInfo) {
-      document.getElementById('info-subtype').textContent = nodeInfo.subtype;
-    } else {
-      document.getElementById('info-subtype').textContent = '';
-    }
-
-    if ('size' in nodeInfo) {
-      document.getElementById('info-size').textContent = nodeInfo.size;
-    } else {
-      document.getElementById('info-size').textContent = '';
-    }
-
-    if ('n' in nodeInfo) {
-      document.getElementById('info-number-inside').textContent = nodeInfo.n;
-    } else {
-      document.getElementById('info-number-inside').textContent = '';
-    }
+    const formattedSequence = fullSequence.match(/.{1,40}/g)?.join('\n') || '';
+    document.getElementById('info-sequence-full').textContent = formattedSequence;
+    document.getElementById('info-full-sequence-container').style.display = fullSequence ? "block" : "none";
+    document.getElementById('info-n-inside-container').style.display = "none";
+  } else if (type === "bubble" || type === "chain") {
+    const children = nodeInfo.children != null ? nodeInfo.children : '';
+    console.log("nInside", children);
+    document.getElementById('info-number-inside').textContent = children;
+    document.getElementById('info-n-inside-container').style.display = children ? "block" : "none";
+    document.getElementById('info-full-sequence-container').style.display = "none";
+  } else {
+    document.getElementById('info-full-sequence-container').style.display = "none";
+    document.getElementById('info-n-inside-container').style.display = "none";
   }
-  
-document.getElementById('info-copy-sequence').addEventListener('click', function() {
-  navigator.clipboard.writeText(fullSequence).then(() => {
-      console.log('Sequence copied to clipboard');
-  }).catch(err => {
-      console.error('Error copying text: ', err);
-  });
+}
+
+document.getElementById('info-copy-id').addEventListener('click', function () {
+  const text = `${document.getElementById('info-node-id').textContent}`;
+  navigator.clipboard.writeText(text);
 });
+
+document.getElementById('info-copy-position').addEventListener('click', function () {
+  const text = `${document.getElementById('info-position').textContent}`;
+  navigator.clipboard.writeText(text);
+});
+
+document.getElementById('info-copy-sequence').addEventListener('click', function () {
+  const text = `${fullSequence}`;
+  navigator.clipboard.writeText(text);
+});
+
 
 let frameTimes = [];
 //average across last [maxFrames] frames

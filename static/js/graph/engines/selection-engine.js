@@ -177,7 +177,7 @@ function selectionEngineDraw(ctx, graphData) {
 
     graphData.nodes.forEach(node => {
         if (node.isSingleton) {
-            let hsize = node.size+50 + 3/zoomFactor;
+            let hsize = node.width+50 + 3/zoomFactor;
 
             if (highlightNodeIds.has(node.nodeid) && (!selectedNodeIds.has(node.nodeid) || DRAW_HIGHLIGHT_ON_TOP)){
                 outlineNode(node, ctx, 0, hsize, HIGHLIGHT_COLOR);
