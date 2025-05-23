@@ -50,7 +50,7 @@ def link_record(record):
             "frequency": record["frequency"],
             "haplotype": record["haplotype"],
             "reverse": record["reverse"],
-            "is_ref": record["is_ref"],
+            "ref": record["ref"],
             "is_del": record["is_del"],
             "class": "edge"}
     if link["haplotype"] is None:

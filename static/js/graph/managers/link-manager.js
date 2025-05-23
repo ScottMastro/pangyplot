@@ -29,8 +29,9 @@ function decodeHaplotypeMask(hexString) {
 
 
 function processLinks(rawLinks) {
+    console.log("before filtering links", rawLinks);
     rawLinks = filterBadLinks(rawLinks);
-    
+
     let links = rawLinks.map(rawLink => ({
         source: nodeSourceId(rawLink["source"]),
         target: nodeTargetId(rawLink["target"]),
@@ -39,7 +40,7 @@ function processLinks(rawLinks) {
         sourceid: String(rawLink["source"]),
         targetid: String(rawLink["target"]),
         haplotype: decodeHaplotypeMask(rawLink["haplotype"]),
-        isRef: rawLink.is_ref,
+        isRef: rawLink.ref,
         isDel: rawLink.is_del,
         isVisible: true,
         isDrawn: true,
@@ -49,6 +50,7 @@ function processLinks(rawLinks) {
         width: LINK_WIDTH,
         annotations: []
     }));
+    console.log("after filtering links", links);
 
     // Flip for -+ or -- direction          
     const adjustedLinks = links.map(link => {

@@ -116,7 +116,9 @@ function getCoordinates(node, n=1, i=0){
 }
 
 function getNodeLength(node) {
-    return node.hasOwnProperty("length") ? node["length"] : node["size"];
+    if (node.length != null) return node.length;
+    if (node.size != null) return node.size;
+    return 1;
 }
 
 function calculateNumberOfKinks(nodeLength) {
@@ -154,7 +156,7 @@ function createNewNode(node, nodeid, idx, totalKinks) {
         size: NODE_WIDTH,
         largestChild: largestChild,
         isSingleton: totalKinks === 1,
-        isRef: node.is_ref,
+        isRef: node.ref,
         gcCount: node.gc_count,
         annotations: []
     };
@@ -215,6 +217,7 @@ function processNodes(rawNodes) {
 
     rawNodes.forEach(rawNode => {
         const nodeLength = getNodeLength(rawNode);
+        console.log("nodeLength", nodeLength, rawNode);
         const numberOfKinks = calculateNumberOfKinks(nodeLength);
         const nodeid = String(rawNode.nodeid);
 

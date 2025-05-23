@@ -13,7 +13,7 @@ def deduplicate_nodes(nodes):
     nodeSet = set()
     dedup = []
     for node in nodes:
-        if node["nodeid"] in nodeSet:
+        if node is None or node["nodeid"] in nodeSet:
             continue
         nodeSet.add(node["nodeid"])
         dedup.append(node)
@@ -27,3 +27,4 @@ def remove_invalid_links(nodes, links):
             continue
         keepLinks.append(link)
     return keepLinks
+

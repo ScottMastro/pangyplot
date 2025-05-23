@@ -36,7 +36,7 @@ def read_from_db():
             "chrom": s["chrom"],
             "start": s["start"],
             "end": s["end"],
-            "ref": s["is_ref"],
+            "ref": s["ref"],
             "gc_count": s["gc_count"]}
         nodes[nid].optional_info = info
 

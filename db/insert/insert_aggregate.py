@@ -107,7 +107,7 @@ def add_child_information(max_depth, batch_size=50000):
             "WITH a, COUNT(*) AS children SET a.children = children",
             "WITH a, head(collect(n.genome)) AS genome SET a.genome = genome",
             "WITH a, head(collect(n.chrom)) AS chrom SET a.chrom = chrom",
-            "WITH a, SUM(CASE WHEN n.is_ref THEN 1 ELSE 0 END) > 0 AS has_ref SET a.is_ref = has_ref",
+            "WITH a, SUM(CASE WHEN n.ref THEN 1 ELSE 0 END) > 0 AS has_ref SET a.ref = has_ref",
             "WITH a, SUM(n.gc_count) AS count SET a.gc_count = count",
         ]
 

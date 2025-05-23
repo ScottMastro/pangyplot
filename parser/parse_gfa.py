@@ -237,7 +237,7 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 lenDict[segment["id"]] = segment["length"]
                 for c in ["x1", "y1", "x2", "y2"]:
                     segment[c] = layoutCoords[counter][c]
-                segment["is_ref"] = segment["id"] in refSet
+                segment["ref"] = segment["id"] in refSet
                 segments.append(segment)
                 counter += 1
 
@@ -273,7 +273,7 @@ def parse_graph(gfa, ref, positions, layoutCoords):
             link["haplotype"] = hex(mask)[2:]  # e.g., '2fa'
             link["frequency"] = bin(mask).count("1") / n
             link["reverse"] = hex(pathDict[keyReverse])[2:] if keyReverse in pathDict else "0"
-            link["is_ref"] = ((mask >> refIdx) & 1) == 1
+            link["ref"] = ((mask >> refIdx) & 1) == 1
         return links
 
     with get_reader(gfa) as gfaFile:
