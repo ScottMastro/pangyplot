@@ -57,6 +57,13 @@ def link_record(record):
         link["haplotype"] = "0"
     return link
 
+def link_record_gfa(record):
+    link = {"source": record.start_node["id"],
+            "target": record.end_node["id"],
+            "from_strand": record["from_strand"],
+            "to_strand": record["to_strand"],
+            "ref": record["ref"]}
+    return link
 
 def gene_annotation_record(record):
     data = {k: record[k] for k in record.keys()}

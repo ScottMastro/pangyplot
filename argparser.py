@@ -5,7 +5,7 @@ import db.modify.drop_data as drop
 
 import environment_setup as setup
 
-from parser.parse_gfa import parse_graph
+from parser.parse_gfa import parse_graph, parse_paths
 from parser.parse_layout import parse_layout
 from parser.parse_gff3 import parse_gff3
 from parser.parse_positions import parse_positions
@@ -13,6 +13,7 @@ from parser.parse_positions import parse_positions
 import preprocess.bubble_gun as bubble_gun
 from db.utils.check_status import get_status
 import db.insert.insert_metadata as metadata
+from db.query.query_metadata import query_gfa
 
 from db.modify.preprocess_modifications import chain_intermediate_segments
 
@@ -47,10 +48,14 @@ def parse_args(app):
         parser_add = subparsers.add_parser('add', help='Add a dataset.')
         parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB)
         parser_add.add_argument('--ref', help='Reference name', default=None, required=True)
-        parser_add.add_argument('--gfa', help='Path to the rGFA file', default=None, required=True)
+        parser_add.add_argument('--gfa', help='Path to the GFA file', default=None, required=True)
         parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
         parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=True)
         parser_add.add_argument('--update', help='If database name already exists, add to it.', action='store_true')
+
+        parser_paths = subparsers.add_parser('paths', help='Store all paths from a GFA file.')
+        parser_paths.add_argument('--db', help='Database name', default=DEFAULT_DB)
+        parser_paths.add_argument('--gfa', help='Path to the GFA file', default=None, required=True)
 
         parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
         parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
@@ -202,7 +207,7 @@ def parse_args(app):
 
                 print("Parsing layout...")
                 layoutCoords = parse_layout(args.layout)
-
+                
                 print("Parsing GFA...")
                 parse_graph(args.gfa, args.ref, positions, layoutCoords)
                 
@@ -214,8 +219,46 @@ def parse_args(app):
                 print("Calculating bubbles...")
                 bubble_gun.shoot()
 
-                #print("Calculating clusters...")
-                #cluster.generate_clusters()
-
                 print("Done.")
           
+    if args.command == "paths":
+        exists = db.db_init(args.db)
+
+        if not exists:
+            print(f'Database "{args.db}" does not exist. Use "pangyplot add" to first add GFA data.')
+            exit(0)
+
+        collections = query_gfa(args.gfa)
+        collection_id = None
+
+        if len(collections) == 0:
+            print(f'No data found for "{args.gfa}". Use "pangyplot add" to store the GFA first.')
+            exit(0)
+
+        elif len(collections) > 1:
+            print("Found multiple matching GFA files:")
+            for idx, col in enumerate(collections):
+                dt = col['datetime']
+                print(f"[{idx}] File: {col['file']} | Genome: {col['genome']} | Date: {dt.year}-{dt.month:02}-{dt.day:02} {dt.hour:02}:{dt.minute:02} | ID: {col['id']}")
+            
+            selection = input("Select the matching GFA file (enter index): ")
+            try:
+                selected_index = int(selection)
+                if selected_index < 0 or selected_index >= len(collections):
+                    raise ValueError
+                collection_id = collections[selected_index]['id']
+            except ValueError:
+                print("Invalid selection. Aborting.")
+                exit(1)
+        else:
+            collection_id = collections[0]['id']
+        
+        db.initiate_collection(collection_id)
+
+        # todo in the future: custom file format that avoids using neo4j
+        # https://chatgpt.com/share/6830c502-8d40-800b-bbbf-dc1ccc495171
+
+        print("Parsing GFA...")
+        parse_paths(args.gfa)
+
+        print("Done.")
