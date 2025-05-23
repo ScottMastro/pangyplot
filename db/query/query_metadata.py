@@ -1,4 +1,5 @@
 from db.neo4j_db import get_session
+import os
 
 def query_samples():
     with get_session() as (db, session):
@@ -23,3 +24,15 @@ def query_collections():
         return collections
     return []
 
+def query_gfa(filename):
+    basename = os.path.basename(filename)
+    with get_session() as (db, session):
+        query = """
+            MATCH (c:Collection {db: $db})
+            WHERE c.file ENDS WITH $basename
+            RETURN c
+        """
+        result = session.run(query, parameters={"db": db, "basename": basename})
+        collections = [dict(record["c"].items()) for record in result]
+        return collections
+    return []

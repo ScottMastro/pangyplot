@@ -38,7 +38,7 @@ def get_segments_in_range(genome, chrom, start, end):
                     AND n.start <= $end AND n.end >= $start
 
                 // 2. Collect any segments anchored to them (optionally)
-                OPTIONAL MATCH (n)<-[:ANCHOR]-(a:Segment)
+                OPTIONAL MATCH (n)<-[:ANCHOR]-(sg:Subgraph)<-[:SUBGRAPH]-(a:Segment)
                 WITH collect(DISTINCT n) + collect(DISTINCT a) AS nodes
 
                 // 3. Find all LINKS_TO relationships involving these nodes
@@ -54,7 +54,9 @@ def get_segments_in_range(genome, chrom, start, end):
 
         for result in results:
             nodes.extend([record.segment_record(n) for n in result["segments"]])
-            links.extend([record.link_record(r) for r in result["links"]])
+            links.extend([record.link_record_gfa(r) for r in result["links"]])
+    
+    links = integrity.remove_invalid_links(nodes, links, nodeids={node["id"] for node in nodes})
 
     return nodes, links
 

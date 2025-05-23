@@ -19,8 +19,9 @@ def deduplicate_nodes(nodes):
         dedup.append(node)
     return dedup
 
-def remove_invalid_links(nodes, links):
-    nodeids={node["nodeid"] for node in nodes}
+def remove_invalid_links(nodes, links, nodeids=None):
+    if nodeids is None:
+        nodeids={node["nodeid"] for node in nodes}
     keepLinks = []
     for link in links:
         if link["target"] not in nodeids or link["source"] not in nodeids:

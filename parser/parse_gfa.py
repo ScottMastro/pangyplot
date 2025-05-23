@@ -5,6 +5,8 @@ import parser.parse_utils as utils
 from statistics import mean
 from db.insert.insert_segment import insert_segments, insert_segment_links
 from db.insert.insert_metadata import insert_samples
+from db.insert.insert_path import insert_path
+
 
 def get_reader(gfa):
     if gfa.endswith(".gz"):
@@ -112,18 +114,6 @@ def parse_line_W(line):
 
     return result
 
-def get_path_positions(path, lenDict):
-    pos = int(path["start"])
-    positions = [pos]
-    for node in path["path"]:
-        positions.append(pos)
-        pos += lenDict[node]
-
-    #TODO: the coordinates seem to be a bit off with this technique.
-    #print(path["start"], positions[0], positions[-1], pos, path["end"])
-    path["position"] = positions
-    return path
-
 def path_id(path):
     suffix = "" if path["hap"] is None else "." + path["hap"]
     return path["sample"] + suffix
@@ -223,7 +213,7 @@ def parse_graph(gfa, ref, positions, layoutCoords):
 
     samples = [{"id": sample_name, "idx": sample_idx} for sample_name, sample_idx in sampleIdDict.items()]
     refIdx = get_ref_id(ref, sampleIdDict)
-    insert_samples(samples)
+    #insert_samples(samples)
     
     # ==== SEGMENTS ====
     segments = []
@@ -242,11 +232,11 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 counter += 1
 
                 if len(segments) > 100000:
-                    insert_segments(segments)
+                    #insert_segments(segments)
                     segments = []
                     write_update()
 
-    insert_segments(segments) ; segments = []
+    #insert_segments(segments) ; segments = []
     write_update(terminate=True)
 
     # ==== LINKS ====
@@ -285,15 +275,47 @@ def parse_graph(gfa, ref, positions, layoutCoords):
 
                 if len(links) > 100000:
                     links = process_path_information(links)
-                    insert_segment_links(links)
+                    #insert_segment_links(links)
                     links = []
                     write_update()
 
     links = process_path_information(links)
-    insert_segment_links(links); links = []
+    #insert_segment_links(links); links = []
     write_update(terminate=True)
 
     print("   💾 GFA elements stored in database.")
 
 
+def parse_paths(gfa):
 
+    counter = 0
+    startTime, printType = None,None
+
+    def write_update(string=None, type=None, terminate=False):
+        nonlocal startTime, counter, printType
+        if string is not None:
+            startTime = time.time()
+            printType = type
+            print( f"   {string}" )
+            return
+        
+        elapsed = time.time() - startTime
+        rate = counter / elapsed
+        if sys.stdout.isatty():
+            sys.stdout.write( f"\r      Inserted {counter:,} {printType} at {rate:,.1f}/sec." )
+            sys.stdout.flush()
+        if terminate:
+            sys.stdout.write( f"\r      Inserted {counter:,} {printType} at {rate:,.1f}/sec." )
+            print()
+
+    write_update("🧵 Inserting paths from GFA...", "paths")
+
+    with get_reader(gfa) as gfaFile:
+        for line in gfaFile:
+            if line[0] in "PW":
+                path = parse_line_P(line) if line[0] == "P" else parse_line_W(line)
+                insert_path(path)
+                counter += 1
+                write_update()
+
+    write_update(terminate=True)

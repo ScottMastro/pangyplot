@@ -142,3 +142,8 @@ def drop_annotations():
     with get_session() as (_, session):
         for type in types:
             drop_node_type(session, type)
+
+def drop_paths():
+    with get_session() as (db, session):
+        drop_node_type(session, "PathChunk", db)
+
