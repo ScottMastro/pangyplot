@@ -254,6 +254,9 @@ def parse_args(app):
             collection_id = collections[0]['id']
         
         db.initiate_collection(collection_id)
+        
+        #debugging: 
+        #drop.drop_paths()
 
         # todo in the future: custom file format that avoids using neo4j
         # https://chatgpt.com/share/6830c502-8d40-800b-bbbf-dc1ccc495171
