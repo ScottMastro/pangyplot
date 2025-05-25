@@ -6,7 +6,10 @@ from db.query.query_top_level import get_top_level
 from db.query.query_annotation import query_gene_range,text_search_gene
 from db.query.query_subgraph import get_subgraph, get_segments_in_range
 from db.query.query_all import query_all_chromosomes, query_all_genome
+from db.query.query_path import query_paths
+
 from db.query.query_metadata import query_samples
+from db.utils import gfa_writer as gfaer
 
 from argparser import parse_args
 
@@ -139,19 +142,22 @@ def gfa():
     end = request.args.get("end")
 
     nodes, links = get_segments_in_range(genome, chromosome, start, end)
+    gfa_lines = [gfaer.get_gfa_header()]
 
-    gfa_lines = ["H\tVN:Z:1.0"]
+    for node in nodes:
+        gfa_lines.append(gfaer.get_s_line(node))
 
-    for n in nodes:
-        # Fallback to `*` if sequence is missing
-        seq = n.get("sequence", "*")
-        line = f"S\t{n['id']}\t{seq}"
-        gfa_lines.append(line)
+    for link in links:
+        gfa_lines.append(gfaer.get_l_line(link))
 
-    for l in links:
-        gfa_lines.append(f"L\t{l['source']}\t{l['from_strand']}\t{l['target']}\t{l['to_strand']}\t*")
+    node_ids = {n["id"] for n in nodes}
+    collection = nodes[0]["collection"] if nodes else None
+    paths = query_paths(node_ids, collection)
 
-    gfa_text = "\n".join(gfa_lines) + "\n"
+    for path in paths:
+        gfa_lines.append(gfaer.get_p_line(path))
+        
+    gfa_text = "\n".join(gfa_lines)
 
     response = make_response(gfa_text)
     response.headers['Content-Type'] = 'text/plain'

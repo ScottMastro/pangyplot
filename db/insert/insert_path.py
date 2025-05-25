@@ -15,7 +15,7 @@ def chunk_path(path, chunk_size=99):
             offset = int(seg_id) - base_id
             direction = '>' if strand == '+' else '<'
             chunk_strs.append(f"{direction}{offset}")
-        chunks.append(''.join(chunk_strs))
+        chunks.append([''.join(chunk_strs), base_id])
     return chunks
 
 def insert_path(path, batch_size=1000):
@@ -25,11 +25,12 @@ def insert_path(path, batch_size=1000):
     with get_session(collection=True) as (db, collection, session):
 
         chunks = chunk_path(path["path"], chunk_size=50)
+        path_uuid = str(uuid.uuid4())
 
         chunk_data = []
-        for offset, chunk_str in enumerate(chunk_path(path["path"], chunk_size=50)):
+        for i, (chunk_str,offset) in enumerate(chunk_path(path["path"], chunk_size=50)):
             chunk_data.append({
-                "uuid": str(uuid.uuid4()),
+                "uuid": f"{path_uuid}:{str(i)}",
                 "chunk": chunk_str,
                 "sample": path["sample"],
                 "contig": path["contig"],
