@@ -100,10 +100,7 @@ def db_init(dbName=None):
 
         index.create_restraint(session, "Subgraph", ["db", "collection", "id"])
 
-
-
         compoundPosition = ["genome", "chrom", "start", "end"]
-
 
         index.create_index(session, "Annotation", compoundPosition)
         index.create_index(session, "Gene", compoundPosition)

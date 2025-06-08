@@ -1,8 +1,6 @@
 from db.neo4j_db import get_session
 from db.query.query_all import query_all_db
 
-from neo4j import GraphDatabase
-
 def get_status():
    
     dbs = query_all_db()
@@ -26,7 +24,6 @@ def get_status():
                 print(f"Type {record['type']}: {record['count']}")
         
             print(f"-----------------")
-
 
         nodes_query = f'MATCH (n) WHERE n.db IS NULL RETURN labels(n) AS labels, COUNT(n) AS count'
         nodes_result = session.run(nodes_query)

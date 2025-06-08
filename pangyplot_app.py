@@ -38,7 +38,7 @@ def initialize_app(db_name=None, port=None, development=True):
 
     if development:
         port = port if port else DEFAULT_PORT
-        print(f"Starting PangyPlot... http://127.0.0.1:{port}")
+        print(f"Starting PangyPlot (non-production environment)... http://127.0.0.1:{port}")
         app.run(port=port)
     
     return app
