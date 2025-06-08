@@ -48,7 +48,6 @@ def parse_args():
     parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
     parser_annotate.add_argument('--gff3', help='Path to the GFF3 file', default=None, required=True)
 
-
     parser_drop = subparsers.add_parser('drop', help='Drop data tables')
     parser_drop.add_argument('--db', help='Drop from this database.', default=DEFAULT_DB)
     parser_drop.add_argument('--drop-db', help='Drop the full database.', action='store_true')
@@ -78,7 +77,6 @@ def parse_args():
         exit()
 
     if args.command == 'drop':
-        db.db_init(args.db)
 
         if args.all:
             confirm = input("Are you sure you want to drop EVERYTHING? [y/N]: ")
@@ -86,6 +84,7 @@ def parse_args():
                 print("Aborted.")
                 exit()
             print(f"Dropping everything...")
+            db.db_init(args.db)
             drop.drop_all()
             exit()
 
@@ -95,6 +94,7 @@ def parse_args():
                 print("Aborted.")
                 exit()
             print(f'Dropping "{args.db}" data...')
+            db.db_init(args.db)
             drop.drop_db(args.db)
             exit()
 
@@ -104,15 +104,16 @@ def parse_args():
                 print("Aborted.")
                 exit()
             print(f'Dropping where collection={args.collection} in db {args.db}...')
+            db.db_init(args.db)
             drop.drop_collection(args.collection)
             exit()
-
 
         if args.annotations:
             confirm = input(f"""Are you sure you want to drop all annotations? [y/N]: """)
             if confirm.lower() != 'y':
                 print("Aborted.")
                 exit()
+            db.db_init(args.db)
             drop.drop_annotations()
             exit()
 
