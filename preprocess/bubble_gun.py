@@ -17,7 +17,7 @@ from db.insert.insert_subgraph import insert_subgraphs
 
 from collections import defaultdict
 
-import time, pickle
+import time
 
 def read_from_db():
     nodes = dict()

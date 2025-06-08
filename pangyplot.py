@@ -1,174 +1,242 @@
-import os
-from dotenv import load_dotenv
-from flask import Flask, render_template, request, jsonify, make_response
-import cytoband 
-from db.query.query_top_level import get_top_level
-from db.query.query_annotation import query_gene_range,text_search_gene
-from db.query.query_subgraph import get_subgraph, get_segments_in_range
-from db.query.query_all import query_all_chromosomes, query_all_genome
-from db.query.query_path import query_paths
+import os, argparse
+from pangyplot_app import DEFAULT_DB, DEFAULT_PORT, initialize_app
 
-from db.query.query_metadata import query_samples
-from db.utils import gfa_writer as gfaer
+import db.neo4j_db as db
+import db.modify.drop_data as drop
 
-from argparser import parse_args
+import environment_setup as setup
 
+from parser.parse_gfa import parse_graph, parse_paths
+from parser.parse_layout import parse_layout
+from parser.parse_gff3 import parse_gff3
+from parser.parse_positions import parse_positions
 
-app = Flask(__name__)
+import preprocess.bubble_gun as bubble_gun
+from db.utils.check_status import get_status
+import db.insert.insert_metadata as metadata
+from db.query.query_metadata import query_gfa
+
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
-@app.context_processor
-def inject_ga_tag_id():
-    load_dotenv()
-    # Get the Google Analytics tag ID from the environment variable
-    ga_tag_id = os.getenv('GA_TAG_ID', '')
-    return dict(ga_tag_id=ga_tag_id)
+def parse_args():
 
-@app.route('/default-genome', methods=['GET'])
-def get_default_genome():
+    parser = argparse.ArgumentParser(description="PangyPlot command line options.")
 
-    genome = query_all_genome()
-    if genome is None: genome ="???"
-    
-    return jsonify({"genome": genome})
+    subparsers = parser.add_subparsers(dest='command', help='Available commands', required=True)
+
+    parser_status = subparsers.add_parser('status', help='Check the database status.')
+
+    parser_setup = subparsers.add_parser('setup', help='Setup the environment for database connection.')
+
+    parser_run = subparsers.add_parser('run', help='Launch the software (development mode).')
+    parser_run.add_argument('--db', help='Database name', default=DEFAULT_DB)
+    parser_run.add_argument('--port', help='Port to run the app on', default=DEFAULT_PORT, type=int, required=False)
+
+    parser_add = subparsers.add_parser('add', help='Add a dataset.')
+    parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB)
+    parser_add.add_argument('--ref', help='Reference name', default=None, required=True)
+    parser_add.add_argument('--gfa', help='Path to the GFA file', default=None, required=True)
+    parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
+    parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=True)
+    parser_add.add_argument('--update', help='If database name already exists, add to it.', action='store_true')
+
+    parser_paths = subparsers.add_parser('paths', help='Store all paths from a GFA file.')
+    parser_paths.add_argument('--db', help='Database name', default=DEFAULT_DB)
+    parser_paths.add_argument('--gfa', help='Path to the GFA file', default=None, required=True)
+
+    parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
+    parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
+    parser_annotate.add_argument('--gff3', help='Path to the GFF3 file', default=None, required=True)
 
 
-@app.route('/select', methods=["GET"])
-def select():
-    genome = request.args.get("genome")
-    chrom = request.args.get("chromosome")
-    start = request.args.get("start")
-    end = request.args.get("end")
-    
-    start = int(start)
-    end = int(end)
-    resultDict = dict()
-    
-    #print(f"Getting clusters for {genome}#{chrom}:{start}-{end}...")
-    #resultDict = get_clusters(genome, chrom, start, end)
-    #resultDict["detailed"] = False 
+    parser_drop = subparsers.add_parser('drop', help='Drop data tables')
+    parser_drop.add_argument('--db', help='Drop from this database.', default=DEFAULT_DB)
+    parser_drop.add_argument('--drop-db', help='Drop the full database.', action='store_true')
+    parser_drop.add_argument('--collection', help='Drop from only one collection (provide collection id).', required=False)
+    parser_drop.add_argument('--annotations', help='Drop annotations.', action='store_true')
+    parser_drop.add_argument('--all', help='Drop all data from neo4j.', action='store_true')
 
-    #if abs(end-start) < 100_000:
-    print(f"Making graph for {genome}#{chrom}:{start}-{end}...")
-    rd2 = get_top_level(genome, chrom, start, end)
-    for key in rd2:
-        resultDict[key] = rd2[key] 
-    resultDict["detailed"] = True 
+    #parser_example = subparsers.add_parser('example', help='Adds exaple data.')
+    #parser_example.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
+    #parser_example.add_argument('--gencode', help='Add genocode annotations', action='store_true')
+    #parser.add_argument('--drb1', help='Use DRB1 demo data', action='store_true')
 
-    return resultDict, 200
+    args = parser.parse_args()
 
-@app.route('/samples', methods=["GET"])
-def get_samples():
-    samples = query_samples()    
-    return samples, 200
 
-@app.route('/genes', methods=["GET"])
-def genes():
-    genome = request.args.get("genome")
-    chrom = request.args.get("chromosome")
-    start = request.args.get("start")
-    end = request.args.get("end")
-    
-    start = int(start)
-    end = int(end)
-    
-    resultDict = {}
-    genes = query_gene_range(genome, chrom, start, end)
+    if args.command == 'setup':
+        setup.handle_setup_env()
+        exit()
 
-    print(f"Getting genes in: {genome}#{chrom}:{start}-{end}")
-    print(f"   Genes: {len(genes)}")
+    if args.command == 'status':
+        db.db_init(None)
+        get_status()
+        exit()
 
-    resultDict["genes"] = genes
-    resultDict["annotations"] = []
+    if args.command == 'run':
+        initialize_app(db_name=args.db, port=args.port)
+        exit()
 
-    return resultDict, 200
+    if args.command == 'drop':
+        db.db_init(args.db)
 
-@app.route('/subgraph', methods=["GET"])
-def subgraph():
-    uuid = request.args.get("uuid")
-    genome = request.args.get("genome")
-    chrom = request.args.get("chromosome")
-    start = request.args.get("start")
-    end = request.args.get("end")
+        if args.all:
+            confirm = input("Are you sure you want to drop EVERYTHING? [y/N]: ")
+            if confirm.lower() != 'y':
+                print("Aborted.")
+                exit()
+            print(f"Dropping everything...")
+            drop.drop_all()
+            exit()
 
-    start = int(start)
-    end = int(end)
+        if args.drop_db:
+            confirm = input(f"""Are you sure you want to drop the entire db "{args.db}"? [y/N]: """)
+            if confirm.lower() != 'y':
+                print("Aborted.")
+                exit()
+            print(f'Dropping "{args.db}" data...')
+            drop.drop_db(args.db)
+            exit()
 
-    print(f"Getting subgraph for {uuid}...")
+        if args.collection:
+            confirm = input(f"""Are you sure you want to drop the entire collection "{args.collection}"? [y/N]: """)
+            if confirm.lower() != 'y':
+                print("Aborted.")
+                exit()
+            print(f'Dropping where collection={args.collection} in db {args.db}...')
+            drop.drop_collection(args.collection)
+            exit()
 
-    resultDict = get_subgraph(uuid, genome, chrom, start, end)
-    return resultDict, 200
 
-@app.route('/chromosomes', methods=["GET"])
-def chromosomes():
-    genome = request.args.get("genome")
+        if args.annotations:
+            confirm = input(f"""Are you sure you want to drop all annotations? [y/N]: """)
+            if confirm.lower() != 'y':
+                print("Aborted.")
+                exit()
+            drop.drop_annotations()
+            exit()
 
-    canonical = cytoband.get_canonical()
-    noncanonicalOnly = request.args.get('noncanonical', 'false').lower() == 'true'
-    
-    chromosomes = query_all_chromosomes()
-    if noncanonicalOnly:
-        chromosomes = [chrom for chrom in chromosomes if chrom.split("#")[-1] not in canonical]
+        print("Nothing dropped. Please specify objects to drop.")
+        exit()
+
+    #todo (add positions file)
+    if args.command == "example":
+        if args.gencode:
+            args.command = "annotate"
+            args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
+            args.ref = "CHM13"
+
+        if args.drb1:
+            args.command = "add"
+            args.db = "DRB1-3123"
+            args.ref = None
+            args.gfa = "static/data/DRB1-3123_sorted.gfa"
+            args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
+            args.bubbles = "static/data/DRB1-3123_sorted.bubble.json"
+
+        if args.chrM:
+            args.command = "add"
+            args.db = "chrM"
+            args.gfa = "static/data/hprc-v1.0-mc-grch38.chrM.gfa"
+            args.ref = "GRCh38"
+            args.layout = "static/data/hprc-v1.0-mc-grch38.chrM.lay.tsv"
         
-    return chromosomes, 200
+    if args.command == 'annotate':
+        print("Adding annotations...")
+        db.db_init(None)
+        if args.gff3 and args.ref:
+            #todo: check if exists, check if should be dropped?
+            #drop.drop_annotations()
+            print("Parsing GFF3...")
+            parse_gff3(args.gff3, args.ref)
 
-@app.route('/search')
-def search():
-    type = request.args.get('type')
-    query = request.args.get('query')
-    
-    results = []
-
-    if type == "gene":
-        results = text_search_gene(query)
-        for gene in results:
-            gene["name"] = gene["gene"]
-
-    return jsonify(results)
-
-
-@app.route('/cytoband', methods=["GET"])
-def cytobands():
-    chromosome = request.args.get("chromosome")
-
-    resultDict = cytoband.get_cytoband(chromosome)
-    return resultDict, 200
-
-@app.route('/gfa', methods=["GET"])
-def gfa():
-    genome = request.args.get("genome")
-    chromosome = request.args.get("chromosome")
-    start = request.args.get("start")
-    end = request.args.get("end")
-
-    nodes, links = get_segments_in_range(genome, chromosome, start, end)
-    gfa_lines = [gfaer.get_gfa_header()]
-
-    for node in nodes:
-        gfa_lines.append(gfaer.get_s_line(node))
-
-    for link in links:
-        gfa_lines.append(gfaer.get_l_line(link))
-
-    node_ids = {n["id"] for n in nodes}
-    collection = nodes[0]["collection"] if nodes else None
-    paths = query_paths(node_ids, collection)
-
-    for path in paths:
-        gfa_lines.append(gfaer.get_p_line(path))
+    if args.command == "add":
+        exists = db.db_init(args.db)
         
-    gfa_text = "\n".join(gfa_lines)
+        if exists and not args.update:
 
-    response = make_response(gfa_text)
-    response.headers['Content-Type'] = 'text/plain'
-    response.headers['Content-Disposition'] = 'attachment; filename=graph.gfa'
-    return response
+            add_response = input(f'Database "{args.db}" already contains data. Add data to existing database? [y/n]: ').strip().lower()
+            if add_response != 'y':
+                delete_response = input(f'Drop and recreate {args.db}? [y/n]: ').strip().lower()
 
-@app.route('/')
-def index():
-    content = dict()
-    response = make_response(render_template("index.html", **content ))
-    return response
+                if delete_response == 'y':
+                    print(f'Dropping "{args.db}" data...')
+                    drop.drop_db(args.db)
+                else:
+                    print("Exiting. No changes made.")
+                    exit(0)
+
+        collection_id = metadata.insert_new_collection(args.gfa, args.ref)
+        db.initiate_collection(collection_id)
+
+        positions = dict()
+        if args.positions:
+            print("Parsing positions...")
+            positions = parse_positions(args.positions)
+
+        if args.gfa and args.ref and args.layout:
+
+            print("Parsing layout...")
+            layoutCoords = parse_layout(args.layout)
+            
+            print("Parsing GFA...")
+            parse_graph(args.gfa, args.ref, positions, layoutCoords)
+            
+            #debugging: 
+            #drop.drop_bubbles()
+            #drop.drop_anchors()
+            #drop.drop_subgraphs()
+
+            print("Calculating bubbles...")
+            bubble_gun.shoot()
+
+            print("Done.")
+        
+    if args.command == "paths":
+        exists = db.db_init(args.db)
+
+        if not exists:
+            print(f'Database "{args.db}" does not exist. Use "pangyplot add" to first add GFA data.')
+            exit(0)
+
+        collections = query_gfa(args.gfa)
+        collection_id = None
+
+        if len(collections) == 0:
+            print(f'No data found for "{args.gfa}". Use "pangyplot add" to store the GFA first.')
+            exit(0)
+
+        elif len(collections) > 1:
+            print("Found multiple matching GFA files:")
+            for idx, col in enumerate(collections):
+                dt = col['datetime']
+                print(f"[{idx}] File: {col['file']} | Genome: {col['genome']} | Date: {dt.year}-{dt.month:02}-{dt.day:02} {dt.hour:02}:{dt.minute:02} | ID: {col['id']}")
+            
+            selection = input("Select the matching GFA file (enter index): ")
+            try:
+                selected_index = int(selection)
+                if selected_index < 0 or selected_index >= len(collections):
+                    raise ValueError
+                collection_id = collections[selected_index]['id']
+            except ValueError:
+                print("Invalid selection. Aborting.")
+                exit(1)
+        else:
+            collection_id = collections[0]['id']
+        
+        db.initiate_collection(collection_id)
+        
+        #debugging: 
+        #drop.drop_paths()
+
+        # todo in the future: custom file format that avoids using neo4j
+        # https://chatgpt.com/share/6830c502-8d40-800b-bbbf-dc1ccc495171
+
+        print("Parsing GFA...")
+        parse_paths(args.gfa)
+
+        print("Done.")
+
 
 if __name__ == '__main__':
-    parse_args(app)
+    parse_args()
