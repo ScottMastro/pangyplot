@@ -73,11 +73,9 @@ function intToColor(seed, adjust=0) {
     var g = Math.min(255, Math.abs(rgb[1])+l)
     var b = Math.min(255, Math.abs(rgb[2])+l)
 
-    //console.log(r,g,b);
     let color = "rgba(" + r.toString() + "," 
                         + g.toString() + "," 
                         + b.toString() + ")";
-    //console.log(color)
     return color;
 }
 

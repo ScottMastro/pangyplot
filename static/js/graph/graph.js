@@ -152,7 +152,6 @@ function renderGraph(graph){
     colorUpdateLegend();
 }
 
-
 function processGraphData(rawGraph){
 
     const nodeResult = processNodes(rawGraph.nodes);
@@ -188,8 +187,6 @@ function fetchAndConstructGraph(genome, chrom, start, end){
     GRAPH_CHROM = chrom;
     GRAPH_START_POS = start;
     GRAPH_END_POS = end;
-
-    console.log("QUERY:", genome,chrom,start,end);
     
     annotationManagerFetch(genome, chrom, start, end);
     fetchGraph(genome, chrom, start, end);
@@ -236,7 +233,9 @@ document.addEventListener('DOMContentLoaded', function () {
     //full chr7
     //data = {genome: "GRCh38", chrom:"chr7", start:1, end:1427745640, genome: "GRCh38"};
 
+    //BRCA2
+    data = {genome: "GRCh38", chrom:"chr13", start:32315086-1000, end:32400268+1000};
+
     //document.dispatchEvent( new CustomEvent('selectedCoordinatesChanged', { detail: data }));
     document.dispatchEvent(new CustomEvent("constructGraph", { detail: data }));
-
 });

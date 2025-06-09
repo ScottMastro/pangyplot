@@ -237,7 +237,6 @@ function processSearchItemTemplate(template, data) {
         }
         
         if (item) {
-            console.log(item)
             updateSelectedGenePlaceholders(item);
             geneSearchBar.value = "";
             geneSearchSuggestions.classList.remove('active');

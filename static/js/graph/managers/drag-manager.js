@@ -1,5 +1,5 @@
 var DRAGGED_NODE = null;
-var FIX_AFTER_DRAG = false;
+var FIX_AFTER_DRAG = true;
 
 window.addEventListener('tool-setting-changed', (e) => {
     if (e.detail.type == "anchor"){

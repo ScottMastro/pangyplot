@@ -31,7 +31,6 @@ function triggerExplosionForce(forceGraph, protectedNodes, centerX, centerY, str
 
     //const strength = 200 * force;
     //const radius = 5000 + 500 * (force - 1);
-    console.log(strength)
     if (strength < 1){
         return;
     }

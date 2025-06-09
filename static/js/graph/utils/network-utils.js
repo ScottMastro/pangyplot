@@ -11,7 +11,6 @@ function fetchData(url, logLabel = '') {
             return response.json();
         })
         .then(data => {
-            console.log(logLabel, data);
             return data;
         })
         .catch(error => {

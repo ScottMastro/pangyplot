@@ -146,7 +146,6 @@ function simplifyGraph(forceGraph, size) {
                         width: EDGE_WIDTH                    
                     };
                     newLinks.push(newLink);
-                    //console.log(link, newLink)
                     affectedLinks.delete(link);
                 }
             });
