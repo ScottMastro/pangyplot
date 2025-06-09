@@ -140,7 +140,6 @@ function colorByLength(length) {
     const high = 5;
 
     if (length == null || isNaN(length) || length <= 0) {
-        console.log(length)
         return NULL_COLOR;
     }
 

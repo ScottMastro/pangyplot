@@ -39,7 +39,6 @@ function updateGraphInfo(nodeid) {
     document.getElementById('info-n-inside-container').style.display = "none";
   } else if (type === "bubble" || type === "chain") {
     const children = nodeInfo.children != null ? nodeInfo.children : '';
-    console.log("nInside", children);
     document.getElementById('info-number-inside').textContent = children;
     document.getElementById('info-n-inside-container').style.display = children ? "block" : "none";
     document.getElementById('info-full-sequence-container').style.display = "none";

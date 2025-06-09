@@ -233,7 +233,6 @@ function annotationManagerFetch(genome, chromosome, start, end) {
             gene.color = rgbStringToHex(stringToColor(gene.gene));
 
             GENE_ANNOTATIONS[gene.id] = gene;
-            //console.log(gene.gene, gene)
         });
     
     });

@@ -32,14 +32,12 @@ function graphSettingEngineSetup(forceGraph){
         const newValue = parseFloat(this.value); 
         forceGraph.d3VelocityDecay(newValue);
         forceGraph.d3ReheatSimulation()
-        console.log("friction", newValue)
     });
 
     document.getElementById('alpha-slider').addEventListener('input', function() {
         const newValue = parseFloat(this.value); 
         forceGraph.d3AlphaDecay(newValue);
         forceGraph.d3ReheatSimulation()
-        console.log("alpha", newValue)
     });
 
 
@@ -52,7 +50,6 @@ function graphSettingEngineSetup(forceGraph){
 
         forceGraph.d3Force('charge').strength(newValue).distanceMax(dist);
         forceGraph.d3ReheatSimulation()
-        console.log("attraction", newValue)
 
     });
 
@@ -61,7 +58,6 @@ function graphSettingEngineSetup(forceGraph){
         const newValue = parseFloat(this.value);
         forceGraph.d3Force('collide', d3.forceCollide(newValue).radius(newValue));
         forceGraph.d3ReheatSimulation()
-        console.log("collision", newValue)
 
     });
 
@@ -79,7 +75,6 @@ function graphSettingEngineSetup(forceGraph){
         const newValue = parseFloat(this.value);
         forceGraph.d3Force('link').distance(newValue).strength(0.9)
         forceGraph.d3ReheatSimulation()
-        console.log("pull", newValue)
 
     });
 }

@@ -38,8 +38,6 @@ function cacheDragSelectedForce(forceGraph, draggedNode) {
     for (const node of nodes) {
         if (node.isSelected) {
             cache.push({ node, depth: 0 });
-            console.log("SELECTED:",node)
-
         }
     }
 

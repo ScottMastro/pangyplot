@@ -58,7 +58,6 @@ function exportForceGraphToSVG(forceGraph) {
     const geneGroup = document.createElementNS(svgNS, "g");
 
     genes = geneRenderEngineDraw(ctx, graphData, true)
-    console.log(genes)
     genes.forEach(item => {
         if (item.type === 'node') {
             const circle = document.createElementNS(svgNS, "circle");

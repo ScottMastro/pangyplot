@@ -27,9 +27,7 @@ function decodeHaplotypeMask(hexString) {
     return bools;
 }
 
-
 function processLinks(rawLinks) {
-    console.log("before filtering links", rawLinks);
     rawLinks = filterBadLinks(rawLinks);
 
     let links = rawLinks.map(rawLink => ({
@@ -50,11 +48,13 @@ function processLinks(rawLinks) {
         width: LINK_WIDTH,
         annotations: []
     }));
-    console.log("after filtering links", links);
+
+    return links
 
     // Flip for -+ or -- direction          
     const adjustedLinks = links.map(link => {
         if (link.fromStrand === "-") {
+            console.log("flip", link)
             return flipLink(link);
         }
         return link;
