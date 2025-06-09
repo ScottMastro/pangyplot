@@ -213,7 +213,7 @@ def parse_graph(gfa, ref, positions, layoutCoords):
 
     samples = [{"id": sample_name, "idx": sample_idx} for sample_name, sample_idx in sampleIdDict.items()]
     refIdx = get_ref_id(ref, sampleIdDict)
-    #insert_samples(samples)
+    insert_samples(samples)
     
     # ==== SEGMENTS ====
     segments = []
@@ -232,11 +232,11 @@ def parse_graph(gfa, ref, positions, layoutCoords):
                 counter += 1
 
                 if len(segments) > 100000:
-                    #insert_segments(segments)
+                    insert_segments(segments)
                     segments = []
                     write_update()
 
-    #insert_segments(segments) ; segments = []
+    insert_segments(segments) ; segments = []
     write_update(terminate=True)
 
     # ==== LINKS ====
@@ -275,12 +275,12 @@ def parse_graph(gfa, ref, positions, layoutCoords):
 
                 if len(links) > 100000:
                     links = process_path_information(links)
-                    #insert_segment_links(links)
+                    insert_segment_links(links)
                     links = []
                     write_update()
 
     links = process_path_information(links)
-    #insert_segment_links(links); links = []
+    insert_segment_links(links); links = []
     write_update(terminate=True)
 
     print("   💾 GFA elements stored in database.")
