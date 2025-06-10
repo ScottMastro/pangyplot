@@ -92,24 +92,48 @@ function renderGraph(graph){
         // Disable center force (no gravitational centering)
         forceGraph.d3Force('center', null);
 
-        // Custom link distance function
         function link_force_distance(link) {
-            // You can adjust this if different types need different spacing
-            return link.force * 10;
+            if (link.class === "node") {
+                return link.length;
+            }
+            if (link.isDel){
+                return 200;
+            }
+
+            return 10; //"edge"
         }
 
-        // Link force: keeps connected nodes at a fixed distance
         forceGraph.d3Force('link')
-            .distance(link_force_distance)
-            .strength(0.9);
+            .distance(link_force_distance) // target link size
+            .strength(0.5); // tolerance to the link size is
+
 
         // Collision force: prevents node overlap
-        forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
+        //forceGraph.d3Force('collide', d3.forceCollide(50).radius(50));
 
-        // Charge force: repels nodes from each other (global push-apart)
+
+        function customCollisionRadius(node) {
+            if (node.class === "mid") {
+                return 20; 
+            }
+            return 50;
+        }
+
+        // Collision force: prevents node overlap, customized per node
+        forceGraph.d3Force('collide', d3.forceCollide()
+                                        .radius(customCollisionRadius)
+                                        .strength(1)
+                                        .iterations(2));
+
         forceGraph.d3Force('charge')
             .strength(-500)
-            .distanceMax(1000);
+            .distanceMax(1000);  // CONTROLS WAVEYNESS
+
+        calculateExtrema(forceGraph.graphData())
+
+        //forceGraph.d3Force('stress', stressForce(1));
+        //forceGraph.d3Force('expansion', expansionForce(0.1));
+
 
         // Custom force to repel from deleted links
         forceGraph.d3Force('repelFromDeletedLinks', repelFromDelLinksDegree);
@@ -157,7 +181,7 @@ function processGraphData(rawGraph){
     const nodeResult = processNodes(rawGraph.nodes);
     const links = processLinks(rawGraph.links);
 
-    anchorEndpointNodes(nodeResult.nodes, links)
+    //anchorEndpointNodes(nodeResult.nodes, links)
 
     let graph = {"nodes": nodeResult.nodes, "links": links.concat(nodeResult.nodeLinks)}
 

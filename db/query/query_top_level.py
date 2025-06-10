@@ -9,6 +9,15 @@ def get_top_level_data( genome, chrom, start, end):
 
         parameters = {"start": start, "end": end, "db": db, "genome": genome, "chrom": chrom}
 
+        count_query = """
+            MATCH (n:Segment)
+            WHERE n.db = $db AND n.genome = $genome AND n.chrom = $chrom 
+                AND n.start <= $end AND n.end >= $start
+            RETURN count(n) AS count
+        """
+        node_count = session.run(count_query, parameters).single()["count"]
+        print("TOTAL SEGMENTS IN RANGE:", node_count)
+
         bubble_query = """
                 MATCH (n:Segment|Bubble)
                 WHERE n.db = $db AND n.genome = $genome AND n.chrom = $chrom 
