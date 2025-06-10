@@ -76,10 +76,14 @@ function colorManagerNodeColor(node){
         case "position":
             return colorByPosition(node.start, node.end, node);
         case "solid":
-                return NODE_COLOR1;    
+                return colorByExtrema(node); //NODE_COLOR1;    
         default:
             return colorByType(node.type);
     }
+}
+
+function colorByExtrema(object){
+    return getGradientColor(object.extrema, 0, 1, [NODE_COLOR1, NODE_COLOR2, NODE_COLOR3]);
 }
 
 function colorByGC(count, total){

@@ -1,5 +1,5 @@
 REPEL_FROM_DEL_FORCE=-4000;
-REPEL_FROM_DEL_MAX_DIST=200;
+REPEL_FROM_DEL_MAX_DIST=400;
 
 function repelFromDelLinksAll(alpha) {
     const nodes = forceGraph.graphData().nodes;

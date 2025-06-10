@@ -2,7 +2,7 @@ var NODEIDS = {};
 var NODE_INFO = {};
 
 const KINK_SIZE = 100;
-const MAX_KINKS = 20;
+const MAX_KINKS = 10;
 const NODE_WIDTH=50;
 
 const SINGLE_NODE_THRESH = 6;

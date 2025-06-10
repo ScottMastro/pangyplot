@@ -156,6 +156,8 @@ function processSubgraphData(subgraph, originNode, forceGraph){
     //forceGraph = simplifyGraph(forceGraph, 1);
     //forceGraph = shrinkGraph(forceGraph, 1000); 
     
+    calculateExtrema(forceGraph.graphData())
+
     annotationManagerAnnotateGraph(forceGraph.graphData());
     searchSequenceEngineRerun();
     

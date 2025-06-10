@@ -83,6 +83,12 @@ function findNormalizedDistance(a, b, canvas) {
     return Math.sqrt((normDistX) ** 2 + (normDistY) ** 2);
 }
 
+function euclideanDist(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
 function findNearestNode(nodes, coordinates) {
     let nearestNode = null;
     let minDistance = Infinity;
