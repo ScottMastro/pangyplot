@@ -92,6 +92,7 @@ def db_init(dbName=None):
 
         for x in ["Segment", "Bubble", "Chain"]:
             index.create_restraint(session, x, "uuid")
+            index.create_index(session, x, "db")
             index.create_index(session, x, compoundCollection)
             index.create_index(session, x, compoundPosition)
 

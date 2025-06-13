@@ -55,7 +55,7 @@ def parse_args():
     parser_drop.add_argument('--annotations', help='Drop annotations.', action='store_true')
     parser_drop.add_argument('--all', help='Drop all data from neo4j.', action='store_true')
 
-    #parser_example = subparsers.add_parser('example', help='Adds exaple data.')
+    parser_example = subparsers.add_parser('example', help='Adds example DRB1 data.')
     #parser_example.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
     #parser_example.add_argument('--gencode', help='Add genocode annotations', action='store_true')
     #parser.add_argument('--drb1', help='Use DRB1 demo data', action='store_true')
@@ -120,28 +120,14 @@ def parse_args():
         print("Nothing dropped. Please specify objects to drop.")
         exit()
 
-    #todo (add positions file)
     if args.command == "example":
-        if args.gencode:
-            args.command = "annotate"
-            args.gff3 = "static/data/gencode.v43.basic.annotation.gff3.gz"
-            args.ref = "CHM13"
+        args.command = "add"
+        args.db = "example"
+        args.ref = "example"
+        args.gfa = "static/data/DRB1-3123_sorted.gfa"
+        args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
+        args.positions = "static/data/DRB1-3123_sorted.node_positions.txt"
 
-        if args.drb1:
-            args.command = "add"
-            args.db = "DRB1-3123"
-            args.ref = None
-            args.gfa = "static/data/DRB1-3123_sorted.gfa"
-            args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
-            args.bubbles = "static/data/DRB1-3123_sorted.bubble.json"
-
-        if args.chrM:
-            args.command = "add"
-            args.db = "chrM"
-            args.gfa = "static/data/hprc-v1.0-mc-grch38.chrM.gfa"
-            args.ref = "GRCh38"
-            args.layout = "static/data/hprc-v1.0-mc-grch38.chrM.lay.tsv"
-        
     if args.command == 'annotate':
         print("Adding annotations...")
         db.db_init(None)
