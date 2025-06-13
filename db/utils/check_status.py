@@ -1,36 +1,66 @@
 from db.neo4j_db import get_session
 from db.query.query_all import query_all_db
+from db.query.query_all import query_all_genome
+
+def format_datetime(dt):
+    dt_str = "N/A"
+    if dt:
+        try:
+            dt_str = dt.to_native().strftime("%b %d, %Y %H:%M")
+        except Exception:
+            dt_str = str(dt)
+    else:
+        dt_str = "N/A"
+    return dt_str
 
 def get_status():
-   
-    dbs = query_all_db()
+    dash="-----------------"
 
     with get_session() as (_, session):
-        for db in dbs:
-            print(F"DB: {db}\n-----------------")
 
-            nodes_query = f'MATCH (n) WHERE n.db = "{db}" RETURN labels(n) AS labels, COUNT(n) AS count'
-            nodes_result = session.run(nodes_query)
-            
-            edges_query = f'MATCH (n)-[r]->(m) WHERE n.db = "{db}" RETURN type(r) AS type, COUNT(r) AS count'
-            edges_result = session.run(edges_query)
-            
-            print("Nodes count by label:")
-            for record in nodes_result:
-                print(f"{record['labels'][0]}s: {record['count']}")
-            
-            print("\nRelationships count by type:")
-            for record in edges_result:
-                print(f"Type {record['type']}: {record['count']}")
-        
-            print(f"-----------------")
+        for db in query_all_db():
+            print(f"{dash}\ndb: {db}\n{dash}")
 
-        nodes_query = f'MATCH (n) WHERE n.db IS NULL RETURN labels(n) AS labels, COUNT(n) AS count'
-        nodes_result = session.run(nodes_query)
+            for t in ["Sample", "Segment", "Bubble", "Chain"]:
+                q = f'MATCH (n:{t}) WHERE n.db = $db RETURN COUNT(n) AS count'
+                r = session.run(q, {"db": db})
+                count = r.single()["count"]
+                print(f"🔹 {t}s: {count}")
+
+
+            q = f"MATCH (c:Collection) WHERE c.db = $db RETURN c"
+            r = session.run(q, {"db": db})
+
+            for record in r:
+                node = record["c"]
+                props = dict(node)
+
+                cid = props.get("id", "N/A")
+                genome = props.get("genome", "N/A")
+                dt = format_datetime(props.get("datetime"))
+
+                file = props.get("file", "N/A")
+
+                print(f"\n  collection: {cid} (genome={genome})")
+                print(f"  🔸 Uploaded: {dt}")
+                print(f"  🔸 Source: {file}")
         
-        print("Annotations:")
-        for record in nodes_result:
-            print(f"{record['labels'][0]}s: {record['count']}")
+            print("")
+
+        print(f"{dash}{dash}")
+        print("ANNOTATIONS\n")
+        
+        for genome in query_all_genome(all_dbs=True):
+
+            print(f"{dash}\ngenome: {genome}\n{dash}")
+
+            for t in ["Gene", "Transcript", "Exon"]:
+                q = f'MATCH (n:{t}) WHERE n.genome = $genome RETURN COUNT(n) AS count'
+                r = session.run(q, {"genome": genome})
+                count = r.single()["count"]
+                print(f"🔹 {t}s: {count}")
+
+
         
 
 

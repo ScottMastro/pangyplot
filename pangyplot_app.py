@@ -53,7 +53,7 @@ def inject_ga_tag_id():
 @app.route('/default-genome', methods=['GET'])
 def get_default_genome():
 
-    genome = query_all_genome()
+    genome = query_all_genome(top_result=True)
     if genome is None: genome ="???"
     
     return jsonify({"genome": genome})
