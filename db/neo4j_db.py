@@ -100,6 +100,7 @@ def db_init(dbName=None):
         index.create_index(session, "PathChunk", ["db", "collection", "offset"])
 
         index.create_restraint(session, "Subgraph", ["db", "collection", "id"])
+        index.create_restraint(session, "Subgraph", "uuid")
 
         compoundPosition = ["genome", "chrom", "start", "end"]
 

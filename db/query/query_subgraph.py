@@ -153,37 +153,6 @@ def get_subgraph_nodes(uuid, genome, chrom, start, end):
 
     return nodes, links
 
-
-def get_subgraph_simple(nodeid):
-    nodes,links = [],[]
-    with get_session() as (db, session):
-
-        query = """
-                MATCH (t)<-[:INSIDE*]-(n)
-                WHERE n.db = $db AND ID(t) = $i AND n.subtype <> "super" AND NOT EXISTS {
-                    MATCH (n)-[:INSIDE]->(m)
-                    WHERE m.subtype <> "super"
-                }
-                OPTIONAL MATCH (n)-[r:END]-(s:Segment)
-                RETURN n, s, labels(n) AS type, collect(DISTINCT r) AS ends
-                """
-        results = session.run(query, {"db": db, "i": nodeid})
-
-        for result in results:
-            node = record.node_record(result["n"], result["type"][0])
-            if node is not None:
-                nodes.append(node)
-            node = record.segment_record(result["s"])
-            if node is not None:
-                nodes.append(node)
-
-
-            for result in results["ends"]:
-                link = record.link_record_simple(result)
-                links.append(link)
-
-    print("nnodes", len(nodes))
-    return nodes, links
    
 
 def get_subgraph(uuid, genome, chrom, start, end):

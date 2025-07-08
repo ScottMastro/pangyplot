@@ -8,6 +8,7 @@ def insert_samples(samples):
             CREATE (:Sample {
                 db: $db,
                 id: sample.id,
+                uuid: sample.id,
                 index: sample.idx
             })
         """
@@ -19,6 +20,7 @@ def insert_collection(collection_id, filename, genome):
             CREATE (:Collection {
                 db: $db,
                 id: $id,
+                uuid: $id,
                 genome: $genome,
                 file: $file,
                 datetime: datetime()

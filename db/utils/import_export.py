@@ -4,93 +4,104 @@ from db.neo4j_db import db_init, get_session
 
 def import_dataset(input_path, batch_size=10000):
     db_init(None)
-
     open_func = gzip.open if input_path.endswith(".gz") else open
-
     print("  Uploading data...")
 
-    def batched_iter(file):
+    def insert_nodes(session, nodes):
+        label_groups = {}
+        for node in nodes:
+            labels = ":".join(node["labels"])
+            label_groups.setdefault(labels, []).append(node)
+
+        for labels, group in label_groups.items():
+            session.run(
+                f"""
+                UNWIND $batch AS row
+                MERGE (n:{labels} {{uuid: row.uuid}})
+                SET n += row.props
+                """,
+                batch=[{
+                    "uuid": n["properties"]["uuid"],
+                    "props": n["properties"]
+                } for n in group]
+            )
+
+    def insert_relationships(session, rels):
+        type_groups = {}
+        for rel in rels:
+            rel_type = rel["rel_type"]
+            type_groups.setdefault(rel_type, []).append(rel)
+
+        for rel_type, group in type_groups.items():
+            # Group by (source_labels, target_labels)
+            label_combos = {}
+            for rel in group:
+                sl = ":".join(rel.get("source_labels", []))
+                tl = ":".join(rel.get("target_labels", []))
+                label_combos.setdefault((sl, tl), []).append(rel)
+
+            for (sl, tl), batch_group in label_combos.items():
+                cypher = f"""
+                    UNWIND $batch AS row
+                    MATCH (a:{sl} {{uuid: row.source}}), (b:{tl} {{uuid: row.target}})
+                    MERGE (a)-[r:{rel_type}]->(b)
+                    SET r += row.props
+                """
+                session.run(
+                    cypher,
+                    batch=[{
+                        "source": r["source"],
+                        "target": r["target"],
+                        "props": r["properties"]
+                    } for r in batch_group]
+                )
+
+
+    with get_session() as (_, session), open_func(input_path, "rt") as f:
+        node_count = rel_count = 0
         batch = []
-        for line in file:
+
+        for line in f:
             if line.strip():
                 batch.append(json.loads(line))
                 if len(batch) >= batch_size:
-                    yield batch
+                    nodes = [i for i in batch if i["type"] == "node"]
+                    rels = [i for i in batch if i["type"] == "relationship"]
+                    insert_nodes(session, nodes)
+                    insert_relationships(session, rels)
+                    node_count += len(nodes)
+                    rel_count += len(rels)
+                    print(f"\r  📁 {node_count} nodes | 🗃️ {rel_count} relationships imported...", end="", flush=True)
                     batch = []
+
+        # Final flush
         if batch:
-            yield batch
+            nodes = [i for i in batch if i["type"] == "node"]
+            rels = [i for i in batch if i["type"] == "relationship"]
+            insert_nodes(session, nodes)
+            insert_relationships(session, rels)
+            node_count += len(nodes)
+            rel_count += len(rels)
 
-    with get_session() as (_, session), open_func(input_path, "rt") as f:
-        count = 0
-        for batch in batched_iter(f):
-            nodes = [item for item in batch if item["type"] == "node"]
-            if not nodes:
-                continue
-
-            label_groups = {}
-            for node in nodes:
-                labels = ":".join(node["labels"])
-                label_groups.setdefault(labels, []).append(node)
-
-            for labels, group in label_groups.items():
-                session.run(
-                    f"""
-                    UNWIND $batch AS row
-                    MERGE (n:{labels} {{id: row.id, db: row.db}})
-                    SET n += row.props
-                    """,
-                    batch=[{
-                        "id": n["properties"]["id"],
-                        "db": n["properties"]["db"],
-                        "props": n["properties"]
-                    } for n in group]
-                )
-
-            count += len(nodes)
-            print(f"\r  📁 {count} nodes imported...", end="", flush=True)
-        print(f"\r  📁 {count} nodes imported.       ")
-
-
-    with get_session() as (_, session), open_func(input_path, "rt") as f:
-        count = 0
-        for batch in batched_iter(f):
-            rels = [item for item in batch if item["type"] == "relationship"]
-            if not rels:
-                continue
-            for rel in rels:
-                session.run("""
-                    MATCH (a), (b)
-                    WHERE a.id = $start AND b.id = $end
-                    CREATE (a)-[r:%s]->(b) SET r = $props
-                """ % rel["rel_type"], {
-                    "start": rel["start"],
-                    "end": rel["end"],
-                    "props": rel["properties"]
-                })
-            count += len(rels)
-            print(f"\r  🗃️ {count} relationships imported...", end="", flush=True)
-        print(f"\r  🗃️ {count} relationships imported.       ")
-
-    print(f"\n  Import complete: {input_path}")
+        print(f"\r  📁 {node_count} nodes | 🗃️ {rel_count} relationships imported.       ")
+        print(f"\n  ✅ Import complete: {input_path}")
 
 
 def export_database(db_name, output_prefix, collection=None, batch_size=100000):
     db_init(db_name)
     output_path = f"{output_prefix}.txt.gz"
 
-    data = {"nodes": [], "relationships": []}
-
     with get_session() as (db, session), gzip.open(output_path, "wt") as f:
-        
+
         result = session.run(f"""
             MATCH (n:Sample) WHERE n.db = $db
-            RETURN id(n) as id, labels(n) as labels, properties(n) as props
+            RETURN n.uuid as uuid, labels(n) as labels, properties(n) as props
         """, db=db)
 
         for record in result:
             f.write(json.dumps({
                 "type": "node",
-                "id": record["id"],
+                "uuid": record["uuid"],
                 "labels": record["labels"],
                 "properties": record["props"]
             }) + "\n")
@@ -98,21 +109,22 @@ def export_database(db_name, output_prefix, collection=None, batch_size=100000):
 
         # Export nodes
         offset = 0
+        collection = int(collection) if collection is not None else None
         while True:
             result = session.run("""
                 MATCH (n)
                 WHERE n.db = $db AND NOT 'Sample' IN labels(n)
                       AND ($collection IS NULL OR n.collection = $collection)
-                RETURN id(n) as id, labels(n) as labels, properties(n) as props
+                RETURN n.uuid as uuid, labels(n) as labels, properties(n) as props
                 SKIP $offset LIMIT $batch
-            """, db=db_name, collection=int(collection), offset=offset, batch=batch_size)
+            """, db=db_name, collection=collection, offset=offset, batch=batch_size)
             nodes = result.data()
             if not nodes:
                 break
             for record in nodes:
                 f.write(json.dumps({
                     "type": "node",
-                    "id": record["id"],
+                    "uuid": record["uuid"],
                     "labels": record["labels"],
                     "properties": record["props"]
                 }) + "\n")
@@ -126,18 +138,21 @@ def export_database(db_name, output_prefix, collection=None, batch_size=100000):
             result = session.run("""
                 MATCH (a)-[r]->(b)
                 WHERE a.db = $db AND ($collection IS NULL OR a.collection = $collection)
-                RETURN id(r) as id, id(a) as start_id, id(b) as end_id, type(r) as type, properties(r) as props
+                RETURN a.uuid AS source_id, b.uuid AS target_id,
+                    labels(a) AS source_labels, labels(b) AS target_labels,
+                    type(r) AS type, properties(r) AS props
                 SKIP $offset LIMIT $batch
-            """, db=db_name, collection=int(collection), offset=offset, batch=batch_size)
+            """, db=db_name, collection=collection, offset=offset, batch=batch_size)
             rels = result.data()
             if not rels:
                 break
             for record in rels:
                 f.write(json.dumps({
                     "type": "relationship",
-                    "id": record["id"],
-                    "start": record["start_id"],
-                    "end": record["end_id"],
+                    "source": record["source_id"],
+                    "target": record["target_id"],
+                    "source_labels": record["source_labels"],
+                    "target_labels": record["target_labels"],
                     "rel_type": record["type"],
                     "properties": record["props"]
                 }) + "\n")
@@ -145,5 +160,4 @@ def export_database(db_name, output_prefix, collection=None, batch_size=100000):
             print(f"\r  📑 {offset} relationships exported...", end="", flush=True)
         print(f"\r  📑 {offset} relationships exported.       ")
 
-    print(f"  Export complete: {output_path}")
-
+    print(f"  ✅ Export complete: {output_path}")
