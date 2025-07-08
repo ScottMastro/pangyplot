@@ -3,6 +3,8 @@ from pangyplot_app import DEFAULT_DB, DEFAULT_PORT, initialize_app
 
 import db.neo4j_db as db
 import db.modify.drop_data as drop
+import db.utils.import_export as import_export
+import db.utils.check_status as db_status
 
 import environment_setup as setup
 
@@ -55,6 +57,14 @@ def parse_args():
     parser_drop.add_argument('--annotations', help='Drop annotations.', action='store_true')
     parser_drop.add_argument('--all', help='Drop all data from neo4j.', action='store_true')
 
+    parser_export = subparsers.add_parser('export', help='Export the processed database directly to a file.')
+    parser_export.add_argument('--db', help='Database name', required=True)
+    parser_export.add_argument('--collection', help='Export from only one collection (provide collection id).', required=False)
+    parser_export.add_argument('--out', help='Output file prefix', required=True)
+
+    parser_import = subparsers.add_parser('import', help='Import a processed database directly from a file (ie. produced by pangyplot export).')
+    parser_import.add_argument('--input', help='Input file path', required=True)
+
     parser_example = subparsers.add_parser('example', help='Adds example DRB1 data.')
     #parser_example.add_argument('--chrM', help='Use HPRC chrM data', action='store_true')
     #parser_example.add_argument('--gencode', help='Add genocode annotations', action='store_true')
@@ -62,21 +72,18 @@ def parse_args():
 
     args = parser.parse_args()
 
-
-    if args.command == 'setup':
-        setup.handle_setup_env()
-        exit()
-
-    if args.command == 'status':
-        db.db_init(None)
-        get_status()
-        exit()
-
     if args.command == 'run':
         initialize_app(db_name=args.db, port=args.port)
-        exit()
+    elif args.command == 'setup':
+        setup.handle_setup_env()
+    elif args.command == 'status':
+        db_status.get_status()
+    elif args.command == 'export':
+        import_export.export_database(args.db, args.out, args.collection)
+    elif args.command == 'import':
+        import_export.import_dataset(args.input)
 
-    if args.command == 'drop':
+    elif args.command == 'drop':
 
         if args.all:
             confirm = input("Are you sure you want to drop EVERYTHING? [y/N]: ")
@@ -120,7 +127,7 @@ def parse_args():
         print("Nothing dropped. Please specify objects to drop.")
         exit()
 
-    if args.command == "example":
+    elif args.command == "example":
         args.command = "add"
         args.db = "example"
         args.ref = "example"
@@ -128,7 +135,7 @@ def parse_args():
         args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
         args.positions = "static/data/DRB1-3123_sorted.node_positions.txt"
 
-    if args.command == 'annotate':
+    elif args.command == 'annotate':
         print("Adding annotations...")
         db.db_init(None)
         if args.gff3 and args.ref:
@@ -137,7 +144,7 @@ def parse_args():
             print("Parsing GFF3...")
             parse_gff3(args.gff3, args.ref)
 
-    if args.command == "add":
+    elif args.command == "add":
         exists = db.db_init(args.db)
         
         if exists and not args.update:
@@ -179,7 +186,7 @@ def parse_args():
 
             print("Done.")
         
-    if args.command == "paths":
+    elif args.command == "paths":
         exists = db.db_init(args.db)
 
         if not exists:
@@ -223,6 +230,9 @@ def parse_args():
         parse_paths(args.gfa)
 
         print("Done.")
+
+
+    exit(0)
 
 
 if __name__ == '__main__':

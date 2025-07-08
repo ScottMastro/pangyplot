@@ -1,4 +1,5 @@
-from db.neo4j_db import get_session
+from db.neo4j_db import get_session, db_init
+
 from db.query.query_all import query_all_db
 from db.query.query_all import query_all_genome
 
@@ -14,6 +15,7 @@ def format_datetime(dt):
     return dt_str
 
 def get_status():
+    db_init(None)
     dash="-----------------"
 
     with get_session() as (_, session):
