@@ -127,13 +127,6 @@ def parse_args():
         print("Nothing dropped. Please specify objects to drop.")
         exit()
 
-    elif args.command == "example":
-        args.command = "add"
-        args.db = "example"
-        args.ref = "example"
-        args.gfa = "static/data/DRB1-3123_sorted.gfa"
-        args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
-        args.positions = "static/data/DRB1-3123_sorted.node_positions.txt"
 
     elif args.command == 'annotate':
         print("Adding annotations...")
@@ -144,7 +137,18 @@ def parse_args():
             print("Parsing GFF3...")
             parse_gff3(args.gff3, args.ref)
 
-    elif args.command == "add":
+    elif args.command == "add" or args.command == "example":
+
+        if args.command == "example":
+            args.command = "add"
+            args.db = "example"
+            args.ref = "example"
+            args.update = False
+            args.gfa = "static/data/DRB1-3123_sorted.gfa"
+            args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
+            args.positions = "static/data/DRB1-3123_sorted.node_positions.txt"
+
+
         exists = db.db_init(args.db)
         
         if exists and not args.update:
