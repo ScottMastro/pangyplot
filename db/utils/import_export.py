@@ -14,7 +14,6 @@ def import_dataset(input_path, batch_size=1000):
             label_groups.setdefault(labels, []).append(node)
 
         for labels, group in label_groups.items():
-            print(labels, group)
             session.run(
                 f"""
                 UNWIND $batch AS row
