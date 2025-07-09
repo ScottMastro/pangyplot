@@ -31,7 +31,7 @@ def insert_collection(collection_id, filename, genome):
 def insert_new_collection(filename, genome, collection_id=None):
 
     with get_session() as (db, session):
-        if collection_id is not None:
+        if collection_id is None:
 
             query_max_id = """
                 MATCH (c:Collection {db: $db})
