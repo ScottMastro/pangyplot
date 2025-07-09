@@ -28,18 +28,30 @@ def insert_collection(collection_id, filename, genome):
         """
         session.run(query, parameters={"db": db, "id": collection_id, "genome": genome, "file": filename})
 
-def insert_new_collection(filename, genome):
-    collection_id = -1
-    with get_session() as (db, session):
-        query_max_id = """
-            MATCH (c:Collection {db: $db})
-            RETURN max(toInteger(c.id)) AS max_id
-        """
-        result = session.run(query_max_id, parameters={"db": db})
-        record = result.single()
-        max_id = record["max_id"] if record["max_id"] is not None else 0
+def insert_new_collection(filename, genome, collection_id=None):
 
-        collection_id = max_id + 1
+    with get_session() as (db, session):
+        if collection_id is not None:
+
+            query_max_id = """
+                MATCH (c:Collection {db: $db})
+                RETURN max(toInteger(c.id)) AS max_id
+            """
+            result = session.run(query_max_id, parameters={"db": db})
+            record = result.single()
+            max_id = record["max_id"] if record["max_id"] is not None else 0
+
+            collection_id = max_id + 1
+        else:
+            collection_id = int(collection_id)
+            # Check if ID already exists
+            query_exists = """
+                MATCH (c:Collection {db: $db, id: $id})
+                RETURN c LIMIT 1
+            """
+            result = session.run(query_exists, parameters={"db": db, "id": str(collection_id)})
+            if result.single() is not None:
+                return None
 
     insert_collection(collection_id, filename, genome)
     return collection_id
