@@ -39,6 +39,7 @@ def parse_args():
     parser_add.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
     parser_add.add_argument('--positions', help='Path to a position TSV file', default=None, required=True)
     parser_add.add_argument('--update', help='If database name already exists, add to it.', action='store_true')
+    parser_add.add_argument('--collection', help='Select collection integer id (not recommended)', default=None, required=False)
 
     parser_paths = subparsers.add_parser('paths', help='Store all paths from a GFA file.')
     parser_paths.add_argument('--db', help='Database name', default=DEFAULT_DB)
@@ -125,7 +126,6 @@ def parse_args():
         print("Nothing dropped. Please specify objects to drop.")
         exit()
 
-
     elif args.command == 'annotate':
         print("Adding annotations...")
         db.db_init(None)
@@ -162,7 +162,12 @@ def parse_args():
                     print("Exiting. No changes made.")
                     exit(0)
 
-        collection_id = metadata.insert_new_collection(args.gfa, args.ref)
+
+        collection_id = metadata.insert_new_collection(args.gfa, args.ref, args.collection)
+        if collection_id is None:
+            print(f'Failed to create a new collection. Terminating.')
+            exit(1)
+
         db.initiate_collection(collection_id)
 
         positions = dict()
