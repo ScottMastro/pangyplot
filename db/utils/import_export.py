@@ -2,7 +2,7 @@ import json
 import gzip
 from db.neo4j_db import db_init, get_session
 
-def import_dataset(input_path, batch_size=10000):
+def import_dataset(input_path, batch_size=1000):
     db_init(None)
     open_func = gzip.open if input_path.endswith(".gz") else open
     print("  Uploading data...")
@@ -14,10 +14,11 @@ def import_dataset(input_path, batch_size=10000):
             label_groups.setdefault(labels, []).append(node)
 
         for labels, group in label_groups.items():
+            print(labels, group)
             session.run(
                 f"""
                 UNWIND $batch AS row
-                MERGE (n:{labels} {{uuid: row.uuid}})
+                CREATE (n:{labels} {{uuid: row.uuid}})
                 SET n += row.props
                 """,
                 batch=[{
@@ -44,7 +45,7 @@ def import_dataset(input_path, batch_size=10000):
                 cypher = f"""
                     UNWIND $batch AS row
                     MATCH (a:{sl} {{uuid: row.source}}), (b:{tl} {{uuid: row.target}})
-                    MERGE (a)-[r:{rel_type}]->(b)
+                    CREATE (a)-[r:{rel_type}]->(b)
                     SET r += row.props
                 """
                 session.run(
@@ -87,7 +88,7 @@ def import_dataset(input_path, batch_size=10000):
         print(f"\n  ✅ Import complete: {input_path}")
 
 
-def export_database(db_name, output_prefix, collection=None, batch_size=100000):
+def export_database(db_name, output_prefix, collection=None, batch_size=10000):
     db_init(db_name)
     output_path = f"{output_prefix}.txt.gz"
 
