@@ -16,7 +16,7 @@ def drop_all():
 
         total_deleted = 0
         while True:
-            deleted = session.write_transaction(delete_in_batches, batch_size=100000)
+            deleted = session.write_transaction(delete_in_batches, batch_size=10000)
             if deleted == 0:
                 break
             total_deleted += deleted
@@ -39,7 +39,7 @@ def drop_db(db):
 
         total_deleted = 0
         while True:
-            deleted = session.write_transaction(delete_in_batches, batch_size=100000)
+            deleted = session.write_transaction(delete_in_batches, batch_size=10000)
             if deleted == 0:
                 break
             total_deleted += deleted
@@ -63,7 +63,7 @@ def drop_collection(cid):
 
         total_deleted = 0
         while True:
-            deleted = session.write_transaction(delete_in_batches, batch_size=100000)
+            deleted = session.write_transaction(delete_in_batches, batch_size=10000)
             if deleted == 0:
                 break
             total_deleted += deleted
@@ -93,7 +93,7 @@ def drop_node_type(session, type, db=None, print_info=True):
 
     total_deleted = 0
     while True:
-        deleted = session.write_transaction(delete, batch_size=100000)
+        deleted = session.write_transaction(delete, batch_size=10000)
         if deleted == 0:
             break
         total_deleted += deleted
@@ -115,7 +115,7 @@ def drop_relationship_type(session, type, db=None):
 
     total_deleted = 0
     while True:
-        deleted = session.write_transaction(delete, batch_size=100000)
+        deleted = session.write_transaction(delete, batch_size=10000)
         if deleted == 0:
             break
         total_deleted += deleted

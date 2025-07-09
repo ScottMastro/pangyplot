@@ -90,6 +90,15 @@ def import_dataset(input_path, batch_size=1000):
 def export_database(db_name, output_prefix, collection=None, batch_size=10000):
     db_init(db_name)
     output_path = f"{output_prefix}.txt.gz"
+    collection = int(collection) if collection is not None else None
+
+    def write_node(record, f):
+        f.write(json.dumps({
+            "type": "node",
+            "uuid": record["uuid"],
+            "labels": record["labels"],
+            "properties": record["props"]
+        }) + "\n")
 
     with get_session() as (db, session), gzip.open(output_path, "wt") as f:
 
@@ -99,21 +108,34 @@ def export_database(db_name, output_prefix, collection=None, batch_size=10000):
         """, db=db)
 
         for record in result:
-            f.write(json.dumps({
-                "type": "node",
+            write_node(record, f)
+        print("  👤 Sample nodes exported")
+
+        result = session.run("""
+            MATCH (n:Collection) WHERE n.db = $db 
+            RETURN n.uuid as uuid, labels(n) as labels, properties(n) as props
+            """, db=db)
+        for record in result:
+            if collection is not None:
+                props = record["props"]
+                if props.get("id") != collection:
+                    continue
+            
+            if "datetime" in props:
+                props["datetime"] = props["datetime"].isoformat()
+            write_node({
                 "uuid": record["uuid"],
                 "labels": record["labels"],
-                "properties": record["props"]
-            }) + "\n")
-        print("  👤 Sample nodes exported")
+                "props": props
+            }, f)
 
         # Export nodes
         offset = 0
-        collection = int(collection) if collection is not None else None
+        count = 0
         while True:
             result = session.run("""
                 MATCH (n)
-                WHERE n.db = $db AND NOT 'Sample' IN labels(n)
+                WHERE n.db = $db AND NOT 'Sample' IN labels(n) AND NOT 'Collection' IN labels(n)
                       AND ($collection IS NULL OR n.collection = $collection)
                 RETURN n.uuid as uuid, labels(n) as labels, properties(n) as props
                 SKIP $offset LIMIT $batch
@@ -121,19 +143,17 @@ def export_database(db_name, output_prefix, collection=None, batch_size=10000):
             nodes = result.data()
             if not nodes:
                 break
+            count += len(nodes)
             for record in nodes:
-                f.write(json.dumps({
-                    "type": "node",
-                    "uuid": record["uuid"],
-                    "labels": record["labels"],
-                    "properties": record["props"]
-                }) + "\n")
+                write_node(record, f)
+
             offset += batch_size
-            print(f"\r  📄 {offset} nodes exported...", end="", flush=True)
-        print(f"\r  📄 {offset} nodes exported.       ")
+            print(f"\r  📄 {count} nodes exported...", end="", flush=True)
+        print(f"\r  📄 {count} nodes exported.       ")
 
         # Export relationships
         offset = 0
+        count = 0
         while True:
             result = session.run("""
                 MATCH (a)-[r]->(b)
@@ -156,8 +176,9 @@ def export_database(db_name, output_prefix, collection=None, batch_size=10000):
                     "rel_type": record["type"],
                     "properties": record["props"]
                 }) + "\n")
+            count += len(rels)
             offset += batch_size
-            print(f"\r  📑 {offset} relationships exported...", end="", flush=True)
-        print(f"\r  📑 {offset} relationships exported.       ")
+            print(f"\r  📑 {count} relationships exported...", end="", flush=True)
+        print(f"\r  📑 {count} relationships exported.       ")
 
     print(f"  ✅ Export complete: {output_path}")
