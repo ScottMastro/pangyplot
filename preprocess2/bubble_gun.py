@@ -3,9 +3,13 @@ import BubbleGun.Graph as BubbleGunGraph
 import BubbleGun.find_bubbles as BubbleGunFindBubbles
 import BubbleGun.connect_bubbles as BubbleGunConnectBubbles
 import BubbleGun.find_parents as BubbleGunFindParents
+import preprocess2.compact_graph as compacter
+
+from preprocess2.BubbleData import BubbleData
+from preprocess2.BubbleIndex import BubbleIndex
 
 import preprocess2.bubble_gun_utils as utils
-import preprocess2.bubble_index as indexer
+from collections import defaultdict
 import time
 
 def to_bubblegun_obj(segments, links):
@@ -21,7 +25,8 @@ def to_bubblegun_obj(segments, links):
         info = {
             "ref": segment["ref"],
             "gc_count": segment["gc_count"],
-            "n_count": segment["n_count"]
+            "n_count": segment["n_count"],
+            "compacted": []
         }
         node.optional_info = info
         nodes[sid] = node
@@ -54,30 +59,35 @@ def to_bubblegun_obj(segments, links):
 
     return nodes
 
-def get_bubble_type(bubble):
-    if bubble.is_insertion():
-        return "insertion"
-    elif bubble.is_super():
-        return "super"
-    else:
-        return "simple"
+def find_siblings(bubbles):
+    siblings = defaultdict(set)
+    
+    for bubble in bubbles:
+        ends = bubble.ends
+        for end in ends:
+            siblings[end].add(bubble)
 
-def bubble_from_object(raw_bubble, chain_id):
-    bubble = {"id": f"b{raw_bubble.id}"}
-    bubble["chain"] = chain_id
-    bubble["subtype"] = get_bubble_type(raw_bubble)
+    for bubble in bubbles:
+        for end in bubble.ends:
+            for sibling in siblings[end]:
+                if sibling.id != bubble.id:
+                    bubble.add_sibling(sibling, end)
 
-    bubble["ends"] = [int(raw_bubble.source.id), int(raw_bubble.sink.id)]
-    inside = sorted([int(node.id) for node in raw_bubble.inside])
-    bubble["inside"] = inside
+def find_parent_children(bubbles):
+    bubble_dict = {bubble.id: bubble for bubble in bubbles}
+    # we want to put the parent object in each bubble first
+    for bubble in bubbles:
+        if bubble.parent_id:
+            bubble.parent = bubble_dict[bubble.parent_id]
 
-    bubble["parent"] = f"b{raw_bubble.parent_sb}" if raw_bubble.parent_sb else None
+    for bubble in bubbles:
+        if bubble.parent_id:
+            bubble.parent.add_child(bubble)
 
-    return bubble
 
-def postprocess(graph):
+def construct_bubble_index(graph):
 
-    bubble_dict = {}
+    bubbles = []
 
     for raw_chain in graph.b_chains:
         chain_id = f"c{raw_chain.id}"
@@ -88,21 +98,16 @@ def postprocess(graph):
 
         chain_bubbles = []
         for raw_bubble in raw_chain.sorted:
-            bubble = bubble_from_object(raw_bubble, chain_id)
-            utils.compute_bubble_properties(graph, bubble)
+            bubble = BubbleData(graph,raw_bubble, chain_id)
             chain_bubbles.append(bubble)
 
-        utils.find_siblings(chain_bubbles)
-        bubble_dict[bubble["id"]] = bubble
+        find_siblings(chain_bubbles)
+        bubbles.extend(chain_bubbles)
 
-        for bubble in chain_bubbles:
-            bubble_dict[bubble["id"]] = bubble
-        
-    utils.find_children(bubble_dict)
-    utils.assign_bubble_levels(bubble_dict)
-    utils.remove_nested_segments(bubble_dict)
+    find_parent_children(bubbles)
 
-    return bubble_dict
+    bubble_index = BubbleIndex(graph, bubbles)
+    return bubble_index
 
 def shoot(segments, links):
     print("➡️ Finding bubbles.")
@@ -114,7 +119,13 @@ def shoot(segments, links):
     graph.nodes = to_bubblegun_obj(segments, links)
     end_time = time.time()
     print(f" Done. Took {round(end_time - start_time,1)} seconds.")
-    print(f"      Segments Total: {len(graph.nodes)}.")
+    print(f"      {len(graph.nodes)} segments total.")
+
+    print("   🗜️ Compacting graph...")
+    before = len(graph.nodes)
+    compacter.compact_graph(graph)
+    after = len(graph.nodes)
+    print(f"      {before - after} segments were compacted.")
 
     print("   ⛓️  Finding bubbles and chains...", end="")
     start_time = time.time()
@@ -127,14 +138,13 @@ def shoot(segments, links):
     bubbleCount = graph.bubble_number()
     print("   🔘 Simple Bubbles: {}, Superbubbles: {}, Insertions: {}".format(bubbleCount[0], bubbleCount[1], bubbleCount[2]))
 
-    print("   🗃️ Processing bubbles and chains...", end="")
+    print("   🗃️ Constructing bubble index...", end="")
     start_time = time.time()
-    bubble_dict = postprocess(graph)
-    bubble_index = indexer.BubbleIndex(graph, bubble_dict)
+    bubble_index = construct_bubble_index(graph)
     end_time = time.time()
     print(f" Done. Took {round(end_time - start_time,1)} seconds.")
     
     #print("   Generating plot.")
-    #utils.plot_bubbles(bubble_dict, output_path="bubbles.plot.svg")
+    #utils.plot_bubbles(bubbles, output_path="bubbles.plot.svg")
 
     return bubble_index
