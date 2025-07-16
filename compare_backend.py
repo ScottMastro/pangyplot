@@ -22,12 +22,12 @@ def main():
 
     #skeleton.get_graph_skeleton(LAY)
 
-    recreate_index=True
+    recreate_index=False
 
     if recreate_index:
         layout_coords = parse_layout.parse_layout(LAY)
         segments, links, reference_path, sample_idx = parse_gfa.parse_graph(GFA, REF_PATH, layout_coords)
-        gfa_index = {"segments": segments, "links": links, "sample_idx": sample_idx}
+        gfa_index = {"S": segments, "L": links, "sample_idx": sample_idx}
         pkl.dump_pickle(gfa_index, "gfa_index.pkl")
 
         position_index = PathPositionIndex(segments, reference_path)
@@ -50,8 +50,8 @@ def main():
         START = random.randint(CHRY_START, CHRY_LENGTH)
         END = START + 10000
 
-        START=25640383
-        END=25650383
+        #START=25640383
+        #END=25650383
 
         print("""MATCH (start:Segment {id: "XXXXXX"})
               MATCH (start)-[:LINKS_TO*1..5]-(neighbor:Segment)
@@ -88,14 +88,13 @@ def main():
         print(f"FROM INDEX:")
 
         results = bubble_index.get_top_level_bubbles(start_node, end_node, as_chains=False)
-        
+                
         idx_node_ids = dict()
         idx_node_ids["segments"] = bubble_index.get_sibling_segments(results)
 
         idx_node_ids["bubbles"] = set()
         for bubble in results:
             idx_node_ids["bubbles"].update(bubble_index.get_descendant_ids(bubble))
-
 
         print("SEGMENTS:", sorted(list(idx_node_ids["segments"])))
         print("-")

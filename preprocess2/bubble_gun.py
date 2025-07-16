@@ -63,11 +63,11 @@ def find_siblings(bubbles):
     sib_dict = defaultdict(set)
     
     for bubble in bubbles:
-        for sid in bubble.ends:
+        for sid in bubble.get_sibling_segments():
             sib_dict[sid].add(bubble)
 
     for bubble in bubbles:
-        for sid in bubble.ends:
+        for sid in bubble.get_sibling_segments():
             for sibling in sib_dict[sid]:
                 if sibling.id != bubble.id:
                     bubble.add_sibling(sibling.id, sid)
@@ -101,6 +101,7 @@ def construct_bubble_index(graph):
     find_parent_children(bubbles)
 
     bubble_index = BubbleIndex(bubbles)
+
     return bubble_index
 
 def shoot(segments, links):

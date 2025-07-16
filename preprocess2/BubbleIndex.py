@@ -11,6 +11,20 @@ class BubbleIndex:
                 start, end = bubble.range
                 self.parent_tree[start:end + 1] = bubble.id
 
+    def __getitem__(self, bubble_id):
+        return self.bubble_dict[bubble_id]
+    
+    def containing_segment(self, seg_id):
+        matching_bubbles = []
+
+        for bubble in self.bubble_dict.values():
+            if bubble.range:
+                start, end = bubble.range
+                if start <= seg_id <= end:
+                    matching_bubbles.append(bubble)
+
+        return matching_bubbles
+
     def get_top_level_bubbles(self, qstart, qend, as_chains=False):
         results = []
 
@@ -97,7 +111,7 @@ class BubbleIndex:
 
                     if not curr_bubble.is_ref():
                         component.add(curr_bubble)
-                        for sib_id in bubble.get_siblings():
+                        for sib_id in curr_bubble.get_siblings():
                             stack.append(self.bubble_dict[sib_id])
 
                 if len(ref_sources) >= 2:
@@ -108,6 +122,6 @@ class BubbleIndex:
                         if b not in collected:
                             collected.add(b)
                             results.append(b)
-
+        
         return list(collected)
 
