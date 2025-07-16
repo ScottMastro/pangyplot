@@ -146,7 +146,6 @@ def parse_args():
             args.layout = "static/data/DRB1-3123_sorted.lay.tsv"
             args.positions = "static/data/DRB1-3123_sorted.node_positions.txt"
 
-
         exists = db.db_init(args.db)
         
         if exists and not args.update:
@@ -161,7 +160,6 @@ def parse_args():
                 else:
                     print("Exiting. No changes made.")
                     exit(0)
-
 
         collection_id = metadata.insert_new_collection(args.gfa, args.ref, args.collection)
         if collection_id is None:
