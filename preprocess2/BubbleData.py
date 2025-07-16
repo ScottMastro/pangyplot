@@ -16,6 +16,14 @@ class BubbleData:
         self.children = []
         self._siblings = []
         
+        source_node = raw_bubble.source
+        self._source = int(source_node.id)
+        self._compacted_source = [int(node.id) for node in source_node.optional_info["compacted"]]
+
+        sink_node = raw_bubble.sink
+        self._sink = int(sink_node.id)
+        self._compacted_sink = [int(node.id) for node in sink_node.optional_info["compacted"]]
+
         nodes = raw_bubble.inside
                 
         compacted_dict = defaultdict(list)
@@ -29,10 +37,6 @@ class BubbleData:
 
         self.inside = {int(node.id) for node in nodes+compacted_nodes}
         ref_ids = [int(node.id) for node in nodes if node.optional_info.get("ref")]
-
-        self.ends = [int(raw_bubble.source.id), int(raw_bubble.sink.id)]
-        compacted_ends = [int(compacted_dict[end].id) for end in self.ends if end in compacted_dict]
-        self.ends.extend(compacted_ends)
 
         self.range = None
         if len(ref_ids) == 1:
@@ -63,9 +67,31 @@ class BubbleData:
 
     def get_siblings(self):
         return [sib_id for sib_id, _ in self._siblings]
-    def get_sibling_segments(self):
-        return [seg_id for _, seg_id in self._siblings]
+    def get_sibling_segments(self, get_compacted_nodes=True):
+        return self.get_source(get_compacted_nodes) + self.get_sink(get_compacted_nodes)
 
+    def get_source(self, get_compacted_nodes=True):
+        if not get_compacted_nodes:
+            return [self._source]
+
+        return [self._source] + self._compacted_source
+    
+    def get_sink(self, get_compacted_nodes=True):
+        if not get_compacted_nodes:
+            return [self._sink]
+        
+        return [self._sink] + self._compacted_sink
+
+    def ends(self, get_compacted=True):
+        sources = [self._source]
+        sinks = [self._sink]
+
+        if get_compacted:
+            sources += self._compacted_source
+            sinks += self._compacted_sink        
+        
+        return (sources, sinks)
+    
     def contains(self, id1, id2):
         lower, upper = sorted((id1, id2))
         if self.range is None:
@@ -98,7 +124,7 @@ class BubbleData:
         return self._depth
 
     def __str__(self):
-        return f"Bubble(id={self.id}, range={self.range}, parent={self.parent}, children={len(self.children)}, siblings={len(self.get_siblings())})"
+        return f"Bubble(id={self.id}, range={self.range}, parent={self.parent}, children={len(self.children)}, siblings={self.get_siblings()}, inside={self.inside})"
 
     def __repr__(self):
         return f"Bubble({self.id}, range={self.range})"

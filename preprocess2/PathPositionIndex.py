@@ -8,7 +8,7 @@ class PathPositionIndex:
         self.starts = []
         self.ends = []
 
-        pos = 0
+        pos = 1
         for step in path["path"]:
             orient = step[-1]
             sid = int(step[:-1])
@@ -16,9 +16,9 @@ class PathPositionIndex:
             length = seg_lengths[sid]
             self.seg_ids.append(sid)
             self.starts.append(pos)
-            self.ends.append(pos + length)
-            pos += length +1
-
+            self.ends.append(pos + length -1)
+            pos += length
+            
     def query_bp(self, bp_position):
         i = bisect.bisect_right(self.starts, bp_position) - 1
         i = max(i, 0)
