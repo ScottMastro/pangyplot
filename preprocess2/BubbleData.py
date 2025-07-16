@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 class BubbleData:
-    def __init__(self, graph, raw_bubble, chain_id):
+    def __init__(self, raw_bubble, chain_id):
 
         self.id = f"b{raw_bubble.id}"
         self.chain = chain_id
@@ -12,8 +12,7 @@ class BubbleData:
         elif raw_bubble.is_super():
             self.type = "super"
 
-        self.parent_id = f"b{raw_bubble.parent_sb}" if raw_bubble.parent_sb else None
-        self.parent = None
+        self.parent = f"b{raw_bubble.parent_sb}" if raw_bubble.parent_sb else None
         self.children = []
         self._siblings = []
         
@@ -48,23 +47,24 @@ class BubbleData:
         self._height = None
         self._depth = None
 
-    def add_sibling(self, sibling, segment_id):
+    def add_sibling(self, sibling_id, segment_id):
         #potentially adjust for compacted nodes here
-        self._siblings.append((sibling, segment_id))
+        self._siblings.append((sibling_id, segment_id))
 
-    def _clean_inside(self, inside_ids):
+    def _clean_inside(self, inside_ids, bubble_dict):
         self.inside -= inside_ids
         if self.parent:
-            self.parent._clean_inside(self.inside)
+            parent_bubble = bubble_dict.get(self.parent)
+            parent_bubble._clean_inside(inside_ids, bubble_dict)
 
-    def add_child(self, child):
-        self.children.append(child)
-        self._clean_inside(child.inside)
+    def add_child(self, child, bubble_dict):
+        self.children.append(child.id)
+        self._clean_inside(child.inside, bubble_dict)
 
     def get_siblings(self):
-        return [sib for sib, _ in self._siblings]
-    def get_sibling_nodes(self):
-        return [node_id for _, node_id in self._siblings]
+        return [sib_id for sib_id, _ in self._siblings]
+    def get_sibling_segments(self):
+        return [seg_id for _, seg_id in self._siblings]
 
     def contains(self, id1, id2):
         lower, upper = sorted((id1, id2))

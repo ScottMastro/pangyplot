@@ -138,6 +138,8 @@ def parse_graph(gfa_file, ref_path, layout_coords):
 
         return idx
 
+    reference_path = None
+
     with get_reader(gfa_file) as gfa:
         for line in gfa:
             if line[0] in "PW":
@@ -147,10 +149,10 @@ def parse_graph(gfa_file, ref_path, layout_coords):
                 if ref_path in path["full_id"]:
                     matching_refs.append(path["full_id"])
                     ref_ids.update({int(p[:-1]) for p in path["path"]})
+                    reference_path = path
                     reference_idx = idx
 
     print(" Done.")
-
     verify_reference(ref_path, matching_refs)
 
     # ==== SEGMENTS ====
@@ -205,4 +207,4 @@ def parse_graph(gfa_file, ref_path, layout_coords):
 
     print(" Done.")
 
-    return segments, links, sample_idx
+    return segments, links, reference_path, sample_idx

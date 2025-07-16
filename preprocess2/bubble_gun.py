@@ -60,33 +60,27 @@ def to_bubblegun_obj(segments, links):
     return nodes
 
 def find_siblings(bubbles):
-    siblings = defaultdict(set)
+    sib_dict = defaultdict(set)
     
     for bubble in bubbles:
-        ends = bubble.ends
-        for end in ends:
-            siblings[end].add(bubble)
+        for sid in bubble.ends:
+            sib_dict[sid].add(bubble)
 
     for bubble in bubbles:
-        for end in bubble.ends:
-            for sibling in siblings[end]:
+        for sid in bubble.ends:
+            for sibling in sib_dict[sid]:
                 if sibling.id != bubble.id:
-                    bubble.add_sibling(sibling, end)
+                    bubble.add_sibling(sibling.id, sid)
 
 def find_parent_children(bubbles):
     bubble_dict = {bubble.id: bubble for bubble in bubbles}
-    # we want to put the parent object in each bubble first
-    for bubble in bubbles:
-        if bubble.parent_id:
-            bubble.parent = bubble_dict[bubble.parent_id]
 
     for bubble in bubbles:
-        if bubble.parent_id:
-            bubble.parent.add_child(bubble)
-
+        if bubble.parent:
+            bubble_parent = bubble_dict[bubble.parent]
+            bubble_parent.add_child(bubble, bubble_dict)
 
 def construct_bubble_index(graph):
-
     bubbles = []
 
     for raw_chain in graph.b_chains:
@@ -98,7 +92,7 @@ def construct_bubble_index(graph):
 
         chain_bubbles = []
         for raw_bubble in raw_chain.sorted:
-            bubble = BubbleData(graph,raw_bubble, chain_id)
+            bubble = BubbleData(raw_bubble, chain_id)
             chain_bubbles.append(bubble)
 
         find_siblings(chain_bubbles)
@@ -106,7 +100,7 @@ def construct_bubble_index(graph):
 
     find_parent_children(bubbles)
 
-    bubble_index = BubbleIndex(graph, bubbles)
+    bubble_index = BubbleIndex(bubbles)
     return bubble_index
 
 def shoot(segments, links):
