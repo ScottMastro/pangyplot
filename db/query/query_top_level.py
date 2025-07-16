@@ -16,7 +16,7 @@ def get_top_level_data( genome, chrom, start, end):
             RETURN count(n) AS count
         """
         node_count = session.run(count_query, parameters).single()["count"]
-        print("TOTAL SEGMENTS IN RANGE:", node_count)
+        #print("TOTAL SEGMENTS IN RANGE:", node_count)
 
         bubble_query = """
                 MATCH (n:Segment|Bubble)

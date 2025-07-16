@@ -1,6 +1,6 @@
 from flask import Flask
 import db.neo4j_db as db
-
+import random
 import preprocess2.bubble_gun as bubble_gun
 import preprocess2.pickle as pkl
 import preprocess2.position_index as posidx
@@ -25,7 +25,7 @@ def main():
 
     #skeleton.get_graph_skeleton(LAY)
 
-    recreate_index=False
+    recreate_index=True
 
     if recreate_index:
         layout_coords = parse_layout.parse_layout(LAY)
@@ -48,42 +48,70 @@ def main():
 
     ##################################################
 
-    START=22402050
-    END=22418970
-
-    print(f"Querying top-level bubbles for range {START}-{END}...")
-    #query.get_top_level_data(GFA, START, END)
-
-    db_nodes, db_links = get_top_level_data("GRCh38", "chrY", START, END)
-    db_bubbles = [node for node in db_nodes if node and node["type"] == "bubble"]
-
-    db_node_ids = dict()
-    db_node_ids["segments"] = {node["id"] for node in db_nodes if node and node["type"] == "segment"}
-
-    db_node_ids["bubbles"] = set()
-    for bubble in db_bubbles:
-        child_segment_ids = qnode.get_bubble_descendants(bubble["uuid"])
-        db_node_ids["bubbles"].update(child_segment_ids)
-
-    print("SEGMENTS:", sorted(list(db_node_ids["segments"])))
-    print("-")
-    print("BUBBLES:", sorted(list(db_node_ids["bubbles"])))
-
-    print("##################################################")
+    CHRY_LENGTH=26669912
+    CHRY_START=220904
+    while True:
     
+        START = random.randint(CHRY_START, CHRY_LENGTH)
+        END = START + 10000
 
-    start_node, end_node = position_index.query(START, END, debug=True)
-    result = bubble_index.get_top_level_bubbles(start_node, end_node, as_chains=False)
-    
-    idx_node_ids = set()
-    for bubble in result:
-        idx_node_ids.update(bubble_index.get_descendant_ids(bubble.id))
+        START=25640383
+        END=25650383
 
-    idx_node_ids = {str(nid) for nid in idx_node_ids}
-    print(sorted(list(idx_node_ids)))
+        print("""MATCH (start:Segment {id: "XXXXXX"})
+              MATCH (start)-[:LINKS_TO*1..5]-(neighbor:Segment)
+              RETURN DISTINCT neighbor""")
 
-    print("##################################################")
-    print(sorted(list(db_node_ids["bubbles"] - idx_node_ids)))
+
+        print("##################################################")
+        print(f"Querying top-level bubbles for range {START}-{END}...")
+
+        start_node, end_node = position_index.query(START, END, debug=True)
+
+        print("##################################################")
+        print(f"FROM NEO4J:")
+
+        db_nodes, db_links = get_top_level_data("GRCh38", "chrY", START, END)
+        db_bubbles = [node for node in db_nodes if node and node["type"] == "bubble"]
+
+        db_node_ids = dict()
+        db_node_ids["segments"] = {node["id"] for node in db_nodes if node and node["type"] == "segment"}
+
+        db_node_ids["bubbles"] = set()
+        for bubble in db_bubbles:
+            child_segment_ids = qnode.get_bubble_descendants(bubble["uuid"])
+            db_node_ids["bubbles"].update(child_segment_ids)
+
+        db_node_ids["bubbles"] = {int(nid) for nid in db_node_ids["bubbles"]}
+        db_node_ids["segments"] = {int(nid) for nid in db_node_ids["segments"]}
+
+        print("SEGMENTS:", sorted(list(db_node_ids["segments"])))
+        print("-")
+        print("BUBBLES:", sorted(list(db_node_ids["bubbles"])))
+        
+        print("##################################################")
+        print(f"FROM INDEX:")
+
+        results = bubble_index.get_top_level_bubbles(start_node, end_node, as_chains=False)
+        
+        idx_node_ids = dict()
+        idx_node_ids["segments"] = bubble_index.get_sibling_segments(results)
+
+        idx_node_ids["bubbles"] = set()
+        for bubble in results:
+            idx_node_ids["bubbles"].update(bubble_index.get_descendant_ids(bubble.id))
+
+
+        print("SEGMENTS:", sorted(list(idx_node_ids["segments"])))
+        print("-")
+        print("BUBBLES:", sorted(list(idx_node_ids["bubbles"])))
+
+        print("##################################################")
+        print("Comparing DB and Index node IDs...")
+        print("SEGMENTS:", sorted(list(db_node_ids["segments"] - idx_node_ids["segments"])))
+        print("BUBBLES:", sorted(list(db_node_ids["bubbles"] - idx_node_ids["bubbles"])))
+
+        input("Press Enter to continue...")
 
 if __name__ == "__main__":
     main()
