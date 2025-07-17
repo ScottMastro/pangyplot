@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 base_to_bits = {'A': 0b00, 'C': 0b01, 'G': 0b10, 'T': 0b11}
 
-@dataclass(slots=True)
+@dataclass
 class Link:
     from_id: int
     from_strand: str  # '+' or '-'
@@ -147,3 +147,106 @@ class GFAIndex:
         reverse_subgraph = constrained_bfs(end_id, start_id)
 
         return forward_subgraph | reverse_subgraph
+    
+    def bfs_steps(self, start_id, max_steps):
+        visited = set([start_id])
+        queue = deque([(start_id, 0)])
+
+        while queue:
+            current, steps = queue.popleft()
+            if steps >= max_steps:
+                continue
+            for neighbor in self.get_neighbors(current):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append((neighbor, steps + 1))
+        
+        return visited
+
+    def filter_ref(self, seg_ids, ref=True):
+        return [sid for sid in seg_ids if self.segments[sid]["ref"] == ref]
+
+    def plot_bfs_subgraph(self, start_id, save_path, max_steps=3, highlight_ids=None, secondary_highlight_ids=None):
+        import networkx as nx
+        import matplotlib.pyplot as plt
+
+        highlight_ids = set(highlight_ids or [])
+        secondary_highlight_ids = set(secondary_highlight_ids or [])
+
+        # Step 1: BFS to find reachable nodes
+        visited = self.bfs_steps(start_id, max_steps)
+
+        # Step 2: Build the graph
+        G = nx.DiGraph()
+
+        for node in visited:
+            neighbors = self.get_neighbors(node)
+            for neighbor in neighbors:
+                if neighbor in visited:
+                    G.add_edge(node, neighbor)
+
+        # Step 3: Node styling
+        node_colors = []
+        node_border_colors = []
+
+        for node in G.nodes:
+            seg = self.segments.get(node, {})
+            is_ref = seg.get("ref", False)
+            node_colors.append("orange" if is_ref else "lightgrey")
+
+            if node in highlight_ids:
+                node_border_colors.append("red")
+            elif node in secondary_highlight_ids:
+                node_border_colors.append("green")
+            else:
+                node_border_colors.append("black")
+
+        # Step 4: Plot
+        pos = {node: ((self.segments[node]["x1"]+self.segments[node]["x2"])/2, \
+                      (self.segments[node]["y1"]+self.segments[node]["y2"])/2) for node in G.nodes}
+        plt.figure(figsize=(15, 15))
+
+        nx.draw_networkx_nodes(
+            G, pos,
+            node_color=node_colors,
+            edgecolors=node_border_colors,
+            node_size=10,
+            linewidths=1
+        )
+
+        nx.draw_networkx_edges(
+            G, pos,
+            edge_color="gray",
+            arrows=False,
+            arrowsize=0
+        )
+
+        #nx.draw_networkx_labels(G, pos, font_size=1)
+        plt.title(f"BFS Subgraph from Node {start_id} (up to {max_steps} steps)")
+        plt.axis('off')
+        plt.savefig(save_path, bbox_inches='tight')
+        print(f"✅ Saved plot to: {save_path}")
+        plt.show()
+
+    def export_subgraph_to_gfa(self, start_id, save_path, max_steps=10):
+        """
+        Export the BFS subgraph from `start_id` up to `max_steps` steps to a GFA file.
+        Only segments and links are included (no paths).
+        """
+        visited = self.bfs_steps(start_id, max_steps)
+        visited = set(visited)
+
+        with open(save_path, 'w') as f:
+            f.write("H\tVN:Z:1.0\n")
+
+            for node_id in visited:
+                seg = self.segments[node_id]
+                seq = seg.get("sequence", "N")  # fallback if no sequence
+                f.write(f"S\t{node_id}\t{seq}\n")
+
+            # Write links
+            for link in self.links:
+                if link.from_id in visited and link.to_id in visited:
+                    f.write(f"L\t{link.from_id}\t{link.from_strand}\t{link.to_id}\t{link.to_strand}\t0M\n")
+
+        print(f"✅ Exported GFA subgraph to: {save_path}")
