@@ -78,7 +78,7 @@ class BubbleData:
         self._clean_inside(child.inside, bubble_dict)
 
     def get_siblings(self):
-        return [sib_id for sib_id, _ in self._siblings]
+        return list({sib_id for sib_id, _ in self._siblings})
     def get_sibling_segments(self, get_compacted_nodes=True):
         return self.get_source(get_compacted_nodes) + self.get_sink(get_compacted_nodes)
 
@@ -94,14 +94,15 @@ class BubbleData:
         
         return [self._sink] + self._compacted_sink
 
-    def ends(self, get_compacted=True):
+    def ends(self, get_compacted=True, as_list=False):
         sources = [self._source]
         sinks = [self._sink]
 
         if get_compacted:
             sources += self._compacted_source
             sinks += self._compacted_sink        
-        
+        if as_list:
+            return sources + sinks
         return (sources, sinks)
     
     def contains(self, id1, id2):
@@ -136,7 +137,7 @@ class BubbleData:
         return self._depth
 
     def __str__(self):
-        return f"Bubble(id={self.id}, range={self.range}, parent={self.parent}, children={len(self.children)}, siblings={self.get_siblings()}, inside={self.inside})"
+        return f"Bubble(id={self.id}, range={self.range}, parent={self.parent}, children={len(self.children)}, siblings={self.get_siblings()}, inside={self.inside}, extended_range={self.extended_range})"
 
     def __repr__(self):
         return f"Bubble({self.id}, range={self.range})"

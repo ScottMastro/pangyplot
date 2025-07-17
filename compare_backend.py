@@ -31,7 +31,6 @@ def main():
         segments, links, sample_idx, reference_path  = parse_gfa.parse_graph(GFA, REF_PATH, layout_coords)
         gfa_index = GFAIndex(segments, links, sample_idx)
         print(f"gfa_index size:      {asizeof.asizeof(gfa_index) / 1024**2:.2f} MB")
-
         pkl.dump_pickle(gfa_index, "gfa_index.pkl")
 
         position_index = PathPositionIndex(segments, reference_path)
@@ -93,6 +92,8 @@ def main():
         node_ids["segments"] = bubble_index.get_sibling_segments(bubble_results)
         node_ids["segments"].update(node_ids["subgraphs"])
 
+        node_ids["refs"] = {i for i in range(start_node, end_node)}
+
         node_ids["bubbles"] = set()
         for bubble in bubble_results:
             node_ids["bubbles"].update(bubble_index.get_descendant_ids(bubble))
@@ -111,13 +112,36 @@ def main():
         START_NODE, END_NODE = position_index.query(START, END, debug=False)
 
         jids = query_neo4j(START, END)
-        xids = query_index(START_NODE, END_NODE)
+        xids = query_index(START_NODE-3, END_NODE+3)
 
-        seg_ids = list(xids["segments"] - xids["segments"])
-        bub_ids = list(xids["bubbles"] - xids["bubbles"])
+        #bubbles = bubble_index.containing_segment(131565)
+        #for bubble in bubbles:
+        #    print(bubble_index[bubble.id])
 
-        if len(seg_ids) == 0 and len(bub_ids) == 0:
-            print(".", end="")
+        #print(bubble_index["b53850"])
+        #print(bubble_index["b53851"])
+        #print(bubble_index["b53852"])
+        #print(bubble_index["b53853"])
+        #print(bubble_index["b53854"])
+
+        j = jids["bubbles"]
+        j.update(jids["segments"])
+        
+        x = xids["bubbles"]
+        x.update(xids["segments"])
+        x.update(xids["refs"])
+
+        all_ids = list(j-x)
+
+        #gfa_index.plot_bfs_subgraph(131947, "subgraph.svg", max_steps=200, highlight_ids=all_ids, secondary_highlight_ids=x)
+
+        #gfa_index.export_subgraph_to_gfa(131947, "debug_subgraph.gfa", max_steps=200)
+        #print(j)
+        #print(gfa_index.filter_ref(j))
+        #print(all_ids)
+
+        if len(all_ids) == 0:
+            print(".", end="", flush=True)
             continue
 
         position_index.query(START, END, debug=True)
@@ -145,8 +169,7 @@ def main():
 
         print("##################################################")
         print("Comparing DB and Index node IDs...")
-        print("SEGMENTS:", seg_ids)
-        print("BUBBLES:", bub_ids)
+        print("DIFF:", all_ids)
 
         input("Press Enter to continue...")
 

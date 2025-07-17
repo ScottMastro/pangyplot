@@ -18,10 +18,10 @@ class BubbleIndex:
         matching_bubbles = []
 
         for bubble in self.bubble_dict.values():
-            if bubble.range:
-                start, end = bubble.range
-                if start <= seg_id <= end:
-                    matching_bubbles.append(bubble)
+            seg_ids = list(bubble.inside)
+            seg_ids.extend(bubble.extended_range)
+            if seg_id in seg_ids:
+                matching_bubbles.append(bubble)
 
         return matching_bubbles
 
@@ -80,6 +80,8 @@ class BubbleIndex:
         descendants = set()
 
         def traverse(bubble):
+            for sid in bubble.ends(as_list=True):
+                descendants.add(sid)
             for sid in bubble.inside:
                 descendants.add(sid)
             for child_id in bubble.children:
