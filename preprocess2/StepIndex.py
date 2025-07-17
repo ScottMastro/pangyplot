@@ -43,6 +43,6 @@ class StepIndex:
         res2 = self.query_bp(end)
         if debug:
             print(f"""[DEBUG] Position query results {start}-{end}. 
-                  START: step={res1[0]} / ref coords {res1[1]}-{res1[2]}
-                  END:   step={res2[0]} / ref coords {res2[1]}-{res2[2]}""")
+                  START: step={res1[0]} / ref coords {res1[1]}-{res1[2]} / nodes {self._step_to_segment[res1[0]]}
+                  END:   step={res2[0]} / ref coords {res2[1]}-{res2[2]} / nodes {self._step_to_segment[res2[0]]}""")
         return (res1[0],res2[0])
