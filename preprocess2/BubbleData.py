@@ -18,11 +18,13 @@ class BubbleData:
         
         source_node = raw_bubble.source
         self._source = int(source_node.id)
-        self._compacted_source = [int(node.id) for node in source_node.optional_info["compacted"]]
+        compacted_source_nodes = [node for node in source_node.optional_info["compacted"]]
+        self._compacted_source = [int(node.id) for node in compacted_source_nodes]
 
         sink_node = raw_bubble.sink
         self._sink = int(sink_node.id)
-        self._compacted_sink = [int(node.id) for node in sink_node.optional_info["compacted"]]
+        compacted_sink_nodes = [node for node in sink_node.optional_info["compacted"]]
+        self._compacted_sink = [int(node.id) for node in compacted_sink_nodes]
 
         nodes = raw_bubble.inside
                 
@@ -38,11 +40,22 @@ class BubbleData:
         self.inside = {int(node.id) for node in nodes+compacted_nodes}
         ref_ids = [int(node.id) for node in nodes if node.optional_info.get("ref")]
 
-        self.range = None
+        self.range = []
         if len(ref_ids) == 1:
             self.range = [ref_ids[0], ref_ids[0]]
         elif len(ref_ids) > 1:
             self.range = [min(ref_ids), max(ref_ids)]
+        
+        ref_source_ids = [int(node.id) for node in [source_node] + compacted_source_nodes \
+                           if node.optional_info.get("ref")]
+        ref_sink_ids = [int(node.id) for node in [sink_node] + compacted_sink_nodes \
+                           if node.optional_info.get("ref")]
+
+        self.extended_range = self.range
+        # we only want to "extend" the range if both source and sink are ref segments
+        if len(ref_source_ids) > 0 and len(ref_sink_ids) > 0:
+            erange = self.range + ref_source_ids + ref_sink_ids
+            self.extended_range = [min(erange), max(erange)]
 
         self.length = sum([n.seq_len for n in nodes])
         self.gc_count = sum([n.optional_info.get("gc_count", 0) for n in nodes])
@@ -52,7 +65,6 @@ class BubbleData:
         self._depth = None
 
     def add_sibling(self, sibling_id, segment_id):
-        #potentially adjust for compacted nodes here
         self._siblings.append((sibling_id, segment_id))
 
     def _clean_inside(self, inside_ids, bubble_dict):
@@ -94,12 +106,12 @@ class BubbleData:
     
     def contains(self, id1, id2):
         lower, upper = sorted((id1, id2))
-        if self.range is None:
+        if len(self.range) == 0:
             return False
         return self.range[0] <= lower and self.range[1] >= upper
     
     def is_ref(self):
-        return self.range is not None
+        return len(self.range) > 0
     
     def get_height(self):
         if self._height is not None:
