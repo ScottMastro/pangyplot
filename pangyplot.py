@@ -41,12 +41,19 @@ def parse_args():
     parser_add.add_argument('--update', help='If database name already exists, add to it.', action='store_true')
     parser_add.add_argument('--collection', help='Select collection integer id (not recommended)', default=None, required=False)
 
+    parser_index = subparsers.add_parser('index', help='Index a dataset.')
+    parser_index.add_argument('--db', help='Database name', default=DEFAULT_DB)
+    parser_index.add_argument('--chr', help='Chromosome name', required=True)
+    parser_index.add_argument('--ref', help='Reference name', default=None, required=True)
+    parser_index.add_argument('--gfa', help='Path to the GFA file', default=None, required=True)
+    parser_index.add_argument('--layout', help='Path to the odgi layout TSV file', default=None, required=True)
+
     parser_paths = subparsers.add_parser('paths', help='Store all paths from a GFA file.')
     parser_paths.add_argument('--db', help='Database name', default=DEFAULT_DB)
     parser_paths.add_argument('--gfa', help='Path to the GFA file', default=None, required=True)
 
     parser_annotate = subparsers.add_parser('annotate', help='Add annotation dataset.')
-    parser_annotate.add_argument('--ref', help='Reference name', default=None, required=True)
+    parser_annotate.add_argument('--ref', help='Reference path name (or substring)', default=None, required=True)
     parser_annotate.add_argument('--gff3', help='Path to the GFF3 file', default=None, required=True)
 
     parser_drop = subparsers.add_parser('drop', help='Drop data tables')
@@ -134,6 +141,37 @@ def parse_args():
             #drop.drop_annotations()
             print("Parsing GFF3...")
             parse_gff3(args.gff3, args.ref)
+
+    elif args.command == "index":
+        datastore_path = os.path.join(script_dir, "datastore")
+        os.mkdir(datastore_path)
+
+        datastore_path = os.path.join(datastore_path, args.db)
+        os.mkdir(datastore_path)
+
+        datastore_path = os.path.join(datastore_path, args.chr)
+        os.mkdir(datastore_path)
+        
+        print(f"Indexing GFA file {args.gfa}...")
+
+        import preprocess2.bubble_gun as bubble_gun
+        import preprocess2.pickle as pkl
+        from  preprocess2.StepIndex import StepIndex
+        from preprocess2.GFAIndex import GFAIndex
+        import preprocess2.parse_gfa as parse_gfa
+        import preprocess2.parse_layout as parse_layout
+        
+        layout_coords = parse_layout.parse_layout(args.layout)
+        segments, links, sample_idx, reference_path  = parse_gfa.parse_graph(args.gfa, args.ref, layout_coords)
+        gfa_index = GFAIndex(segments, links, sample_idx)
+
+        pkl.dump_pickle(gfa_index, os.path.join(datastore_path, "gfa_index.pkl"))
+
+        step_index = StepIndex(segments, reference_path)
+        pkl.dump_pickle(step_index, os.path.join(datastore_path, "step_index.pkl"))
+
+        bubble_index = bubble_gun.shoot(segments, links, step_index)
+        pkl.dump_pickle(bubble_index, os.path.join(datastore_path, "bubble_index.pkl"))
 
     elif args.command == "add" or args.command == "example":
 

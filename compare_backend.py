@@ -54,20 +54,26 @@ def main():
     CHRY_START=220904
     
     def query_neo4j(start, end):
-
         db_nodes, db_links = get_top_level_data("GRCh38", "chrY", start, end)
+
+        node_ids = {
+            "segments": {int(node["id"]) for node in db_nodes if node and node["type"] == "segment"},
+            "bubbles": set()
+        }
+
         db_bubbles = [node for node in db_nodes if node and node["type"] == "bubble"]
+        db_chains = [node for node in db_nodes if node and node["type"] == "chain"]
 
-        node_ids = dict()
-        node_ids["segments"] = {node["id"] for node in db_nodes if node and node["type"] == "segment"}
+        descendant_ids = set()
 
-        node_ids["bubbles"] = set()
         for bubble in db_bubbles:
-            child_segment_ids = qnode.get_bubble_descendants(bubble["uuid"])
-            node_ids["bubbles"].update(child_segment_ids)
+            descendant_ids.update(qnode.get_bubble_descendants(bubble["uuid"]))
 
-        node_ids["bubbles"] = {int(nid) for nid in node_ids["bubbles"]}
-        node_ids["segments"] = {int(nid) for nid in node_ids["segments"]}
+        for chain in db_chains:
+            descendant_ids.update(qnode.get_chain_descendants(chain["uuid"]))
+
+        node_ids["bubbles"].update(int(nid) for nid in descendant_ids)
+
         return node_ids
 
     #########################################################################################################
@@ -106,11 +112,12 @@ def main():
 
         #START=18671929 ; END=18681929 #70895+,70800-,70896+
         #START=24891714 ; END=24901714 # WAY TOO MANY NODES
-
+        #START=20198182 ; END=20208182 # large but seems to work
+        START = 11547952 ; END = 11557952
         START_STEP, END_STEP = step_index.query(START, END, debug=False)
         
         jids = query_neo4j(START, END)
-        xids = query_index(START_STEP-3, END_STEP+3)
+        xids = query_index(START_STEP, END_STEP)
 
         #bubbles = bubble_index.containing_segment(131565)
         #for bubble in bubbles:
@@ -129,17 +136,19 @@ def main():
         x.update(xids["segments"])
         
         all_ids = list(j-x)
-        if len(all_ids) > 0:
-            print(j)
-            print(gfa_index.filter_ref(j))
-            print(all_ids)
+        inv_all_ids = list(x-j)
 
-            gfa_index.export_subgraph_to_gfa(random.choice(all_ids), "debug_subgraph.gfa", max_steps=200)
+        if len(inv_all_ids) > -1:
+            print(x)
+            print(gfa_index.filter_ref(x))
+            print(inv_all_ids)
 
+            gfa_index.export_subgraph_to_gfa(random.choice(inv_all_ids), "debug_subgraph.gfa", max_steps=1000)
 
-        if len(all_ids) == 0:
+        if len(inv_all_ids) <= 100:
             print(".", end="", flush=True)
             continue
+
 
         step_index.query(START, END, debug=True)
 
@@ -166,7 +175,7 @@ def main():
 
         print("##################################################")
         print("Comparing DB and Index node IDs...")
-        print("DIFF:", all_ids)
+        print("DIFF:", inv_all_ids)
 
         input("Press Enter to continue...")
 
