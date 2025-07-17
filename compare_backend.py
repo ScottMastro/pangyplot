@@ -3,7 +3,7 @@ import random
 from pympler import asizeof
 import preprocess2.bubble_gun as bubble_gun
 import preprocess2.pickle as pkl
-from  preprocess2.PathPositionIndex import PathPositionIndex
+from  preprocess2.StepIndex import StepIndex
 from preprocess2.GFAIndex import GFAIndex
 import preprocess2.skeletonize as skeleton
 import preprocess2.parse_gfa as parse_gfa
@@ -33,18 +33,18 @@ def main():
         print(f"gfa_index size:      {asizeof.asizeof(gfa_index) / 1024**2:.2f} MB")
         pkl.dump_pickle(gfa_index, "gfa_index.pkl")
 
-        position_index = PathPositionIndex(segments, reference_path)
-        pkl.dump_pickle(position_index, "position_index.pkl")
+        step_index = StepIndex(segments, reference_path)
+        pkl.dump_pickle(step_index, "step_index.pkl")
 
-        bubble_index = bubble_gun.shoot(segments, links)
+        bubble_index = bubble_gun.shoot(segments, links, step_index)
         pkl.dump_pickle(bubble_index, "bubble_index.pkl")
 
-    position_index = pkl.load_pickle("position_index.pkl")
+    step_index = pkl.load_pickle("step_index.pkl")
     bubble_index = pkl.load_pickle("bubble_index.pkl")
     gfa_index = pkl.load_pickle("gfa_index.pkl")
 
 
-    print(f"position_index size: {asizeof.asizeof(position_index) / 1024**2:.2f} MB")
+    print(f"step_index size: {asizeof.asizeof(step_index) / 1024**2:.2f} MB")
     print(f"bubble_index size:   {asizeof.asizeof(bubble_index) / 1024**2:.2f} MB")
     print(f"gfa_index size:      {asizeof.asizeof(gfa_index) / 1024**2:.2f} MB")
 
@@ -72,17 +72,17 @@ def main():
 
     #########################################################################################################
 
-    def query_index(start_node, end_node):
-
-        bubble_results = bubble_index.get_top_level_bubbles(start_node, end_node, as_chains=False)
-        bubble_intervals = bubble_index.get_merged_intervals(bubble_results)
+    def query_index(start_step, end_step):
+        
+        bubble_results = bubble_index.get_top_level_bubbles(start_step, end_step, as_chains=False)
+        bubble_intervals = bubble_index.get_merged_intervals(bubble_results, start_step, end_step)
 
         subgraphs = []
         for i in range(len(bubble_intervals) - 1):
             gap_start = bubble_intervals[i][1]
             gap_end = bubble_intervals[i+1][0]
             #print("subgraph considered:", gap_start, "->", gap_end)
-            subgraphs.append(gfa_index.bfs_subgraph(gap_start, gap_end))
+            subgraphs.append(gfa_index.bfs_subgraph(gap_start, gap_end, step_index))
         
         node_ids = dict()
 
@@ -91,8 +91,6 @@ def main():
 
         node_ids["segments"] = bubble_index.get_sibling_segments(bubble_results)
         node_ids["segments"].update(node_ids["subgraphs"])
-
-        node_ids["refs"] = {i for i in range(start_node, end_node)}
 
         node_ids["bubbles"] = set()
         for bubble in bubble_results:
@@ -109,10 +107,10 @@ def main():
         #START=18671929 ; END=18681929 #70895+,70800-,70896+
         #START=24891714 ; END=24901714 # WAY TOO MANY NODES
 
-        START_NODE, END_NODE = position_index.query(START, END, debug=False)
-
+        START_STEP, END_STEP = step_index.query(START, END, debug=False)
+        
         jids = query_neo4j(START, END)
-        xids = query_index(START_NODE-3, END_NODE+3)
+        xids = query_index(START_STEP-3, END_STEP+3)
 
         #bubbles = bubble_index.containing_segment(131565)
         #for bubble in bubbles:
@@ -129,7 +127,6 @@ def main():
         
         x = xids["bubbles"]
         x.update(xids["segments"])
-        x.update(xids["refs"])
 
         all_ids = list(j-x)
 
@@ -144,7 +141,7 @@ def main():
             print(".", end="", flush=True)
             continue
 
-        position_index.query(START, END, debug=True)
+        step_index.query(START, END, debug=True)
 
         print("""MATCH (start:Segment {id: "XXXXXX"})
               MATCH (start)-[:LINKS_TO*1..5]-(neighbor:Segment)

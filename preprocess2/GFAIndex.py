@@ -116,38 +116,54 @@ class GFAIndex:
             path.append(current)
         return path
 
-    def bfs_subgraph(self, start_id, end_id):
+    def bfs_subgraph(self, start_step, end_step, step_index):
         # Constraint: cannot traverse through reference nodes that are
-        #    *outside* the range between start_id and end_id.
-
-        def constrained_bfs(start_id, end_id):
-            min_id = min(start_id, end_id)
-            max_id = max(start_id, end_id)
+        #    *outside* the range between start_step and end_step.
+        min_step = min(start_step, end_step)
+        max_step = max(start_step, end_step)
+        
+        def constrained_bfs(seed_step, target_step):
             visited = set()
-            queue = deque([start_id])
-            visited.add(start_id)
+            queue = deque()
+            
+            start_seg_id = step_index.get_segment(seed_step)
+            if start_seg_id is None:
+                raise ValueError(f"No segment found for start_step {seed_step}")
+
+            queue.append(start_seg_id)
+            visited.add(start_seg_id)
 
             while queue:
                 current = queue.popleft()
                 for neighbor in self.get_neighbors(current, direction=None):
                     if neighbor in visited:
                         continue
-                    seg = self.segments[neighbor]
-                    if seg["ref"] and not (min_id <= seg["id"] <= max_id):
+
+                    steps = step_index[neighbor]
+                    if not any(min_step <= s <= max_step for s in steps):
                         continue
+
                     visited.add(neighbor)
                     queue.append(neighbor)
+
             return visited
 
-        forward_subgraph = constrained_bfs(start_id, end_id)
-        if end_id in forward_subgraph:
-            return forward_subgraph
-        
-        # Fallback: reverse BFS
-        reverse_subgraph = constrained_bfs(end_id, start_id)
+        # Try forward BFS
+        forward_visited = constrained_bfs(start_step, end_step)
 
-        return forward_subgraph | reverse_subgraph
+        # Check if end_step is reached
+        end_seg_id = step_index.get_segment(end_step)
+        if end_seg_id is not None and end_seg_id in forward_visited:
+            return forward_visited
+
+        # Fallback: reverse BFS
+        reverse_visited = constrained_bfs(end_step, start_step)
+
+        return forward_visited | reverse_visited
     
+    def filter_ref(self, seg_ids, ref=True):
+        return [sid for sid in seg_ids if self.segments[sid]["ref"] == ref]
+
     def bfs_steps(self, start_id, max_steps):
         visited = set([start_id])
         queue = deque([(start_id, 0)])
@@ -162,71 +178,6 @@ class GFAIndex:
                     queue.append((neighbor, steps + 1))
         
         return visited
-
-    def filter_ref(self, seg_ids, ref=True):
-        return [sid for sid in seg_ids if self.segments[sid]["ref"] == ref]
-
-    def plot_bfs_subgraph(self, start_id, save_path, max_steps=3, highlight_ids=None, secondary_highlight_ids=None):
-        import networkx as nx
-        import matplotlib.pyplot as plt
-
-        highlight_ids = set(highlight_ids or [])
-        secondary_highlight_ids = set(secondary_highlight_ids or [])
-
-        # Step 1: BFS to find reachable nodes
-        visited = self.bfs_steps(start_id, max_steps)
-
-        # Step 2: Build the graph
-        G = nx.DiGraph()
-
-        for node in visited:
-            neighbors = self.get_neighbors(node)
-            for neighbor in neighbors:
-                if neighbor in visited:
-                    G.add_edge(node, neighbor)
-
-        # Step 3: Node styling
-        node_colors = []
-        node_border_colors = []
-
-        for node in G.nodes:
-            seg = self.segments.get(node, {})
-            is_ref = seg.get("ref", False)
-            node_colors.append("orange" if is_ref else "lightgrey")
-
-            if node in highlight_ids:
-                node_border_colors.append("red")
-            elif node in secondary_highlight_ids:
-                node_border_colors.append("green")
-            else:
-                node_border_colors.append("black")
-
-        # Step 4: Plot
-        pos = {node: ((self.segments[node]["x1"]+self.segments[node]["x2"])/2, \
-                      (self.segments[node]["y1"]+self.segments[node]["y2"])/2) for node in G.nodes}
-        plt.figure(figsize=(15, 15))
-
-        nx.draw_networkx_nodes(
-            G, pos,
-            node_color=node_colors,
-            edgecolors=node_border_colors,
-            node_size=10,
-            linewidths=1
-        )
-
-        nx.draw_networkx_edges(
-            G, pos,
-            edge_color="gray",
-            arrows=False,
-            arrowsize=0
-        )
-
-        #nx.draw_networkx_labels(G, pos, font_size=1)
-        plt.title(f"BFS Subgraph from Node {start_id} (up to {max_steps} steps)")
-        plt.axis('off')
-        plt.savefig(save_path, bbox_inches='tight')
-        print(f"✅ Saved plot to: {save_path}")
-        plt.show()
 
     def export_subgraph_to_gfa(self, start_id, save_path, max_steps=10):
         """
