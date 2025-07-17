@@ -30,11 +30,8 @@ class BubbleIndex:
 
         # Start with all overlapping parentless bubbles
         for iv in self.parent_tree[min_step:max_step+1]:
-            print(f"[DEBUG] Found parentless bubble {iv.data} in range {min_step}-{max_step}")
             parent_bubble = self.bubble_dict[iv.data]
-            print(f"[DEBUG] Bubble {parent_bubble.id} has range {parent_bubble.get_ranges(exclusive=False)}")
             result = self._traverse_descendants(parent_bubble, min_step, max_step)
-            print(f"[DEBUG] Found {len(result)} bubbles in range {min_step}-{max_step} with parentless bubble {parent_bubble.id}.")
 
             results.extend(result)
 
@@ -128,23 +125,31 @@ class BubbleIndex:
 
     def get_merged_intervals(self, bubbles, min_step=-1, max_step=math.inf):
         bubble_intervals = []
+
         for bubble in bubbles:
             for lo, hi in bubble.get_ranges(exclusive=False):
                 if hi < min_step or lo > max_step:
                     continue
-                bubble_intervals.append((max(lo, min_step) if min_step else lo,
-                                        min(hi, max_step) if max_step else hi))
+
+                lo = max(lo, min_step) if min_step != -1 else lo
+                hi = min(hi, max_step) if max_step != math.inf else hi
+
+                bubble_intervals.append((lo, hi))
 
         bubble_intervals.sort(key=lambda x: x[0])
         merged = []
+
         for interval in bubble_intervals:
             if not merged:
                 merged.append(interval)
             else:
                 last_start, last_end = merged[-1]
                 curr_start, curr_end = interval
+
                 if curr_start <= last_end + 1:
                     merged[-1] = (last_start, max(last_end, curr_end))
                 else:
                     merged.append(interval)
+
         return merged
+
