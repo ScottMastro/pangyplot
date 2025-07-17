@@ -5,7 +5,7 @@ import BubbleGun.connect_bubbles as BubbleGunConnectBubbles
 import BubbleGun.find_parents as BubbleGunFindParents
 import preprocess2.compact_graph as compacter
 
-from preprocess2.BubbleData import BubbleData
+from preprocess2.BubbleData import create_bubble_object
 from preprocess2.BubbleIndex import BubbleIndex
 
 import preprocess2.bubble_gun_utils as utils
@@ -80,7 +80,7 @@ def find_parent_children(bubbles):
             bubble_parent = bubble_dict[bubble.parent]
             bubble_parent.add_child(bubble, bubble_dict)
 
-def construct_bubble_index(graph):
+def construct_bubble_index(graph, step_index):
     bubbles = []
 
     for raw_chain in graph.b_chains:
@@ -92,7 +92,7 @@ def construct_bubble_index(graph):
 
         chain_bubbles = []
         for raw_bubble in raw_chain.sorted:
-            bubble = BubbleData(raw_bubble, chain_id)
+            bubble = create_bubble_object(raw_bubble, chain_id, step_index)
             chain_bubbles.append(bubble)
 
         find_siblings(chain_bubbles)
@@ -104,7 +104,7 @@ def construct_bubble_index(graph):
 
     return bubble_index
 
-def shoot(segments, links):
+def shoot(segments, links, step_index):
     print("➡️ Finding bubbles.")
 
     graph = BubbleGunGraph.Graph()
@@ -135,7 +135,7 @@ def shoot(segments, links):
 
     print("   🗃️ Constructing bubble index...", end="")
     start_time = time.time()
-    bubble_index = construct_bubble_index(graph)
+    bubble_index = construct_bubble_index(graph, step_index)
     end_time = time.time()
     print(f" Done. Took {round(end_time - start_time,1)} seconds.")
     

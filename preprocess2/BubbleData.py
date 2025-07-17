@@ -1,68 +1,103 @@
 from collections import defaultdict
 
+def create_bubble_object(raw_bubble, chain_id, step_index):
+    bubble = BubbleData()
+
+    bubble.id = f"b{raw_bubble.id}"
+    bubble.chain = chain_id
+
+    if raw_bubble.is_insertion():
+        bubble.type = "insertion"
+    elif raw_bubble.is_super():
+        bubble.type = "super"
+
+    bubble.parent = f"b{raw_bubble.parent_sb}" if raw_bubble.parent_sb else None
+
+    # Source and sink
+    source_node = raw_bubble.source
+    bubble._source = int(source_node.id)
+    compacted_source_nodes = list(source_node.optional_info.get("compacted", []))
+    bubble._compacted_source = [int(node.id) for node in compacted_source_nodes]
+
+    sink_node = raw_bubble.sink
+    bubble._sink = int(sink_node.id)
+    compacted_sink_nodes = list(sink_node.optional_info.get("compacted", []))
+    bubble._compacted_sink = [int(node.id) for node in compacted_sink_nodes]
+
+    # Inside nodes + compacted
+    nodes = raw_bubble.inside
+    compacted_dict = defaultdict(list)
+    for node in nodes:
+        if node.optional_info.get("compacted"):
+            compacted_dict[int(node.id)].extend(node.optional_info["compacted"])
+    compacted_nodes = [n for nodes in compacted_dict.values() for n in nodes]
+
+    bubble.inside = {int(n.id) for n in nodes + compacted_nodes}
+
+    # Step range
+    def get_steps(seg_ids):
+        steps = set()
+        for sid in seg_ids:
+            steps.update(step_index[sid])
+        return steps
+
+    inside_steps = get_steps(bubble.inside)
+    source_steps = get_steps([n.id for n in [source_node] + compacted_source_nodes])
+    sink_steps = get_steps([n.id for n in [sink_node] + compacted_sink_nodes])
+
+    def collapse_ranges(steps):
+        if not steps:
+            return []
+
+        sorted_steps = sorted([int(s) for s in steps])
+        ranges = []
+        start = prev = sorted_steps[0]
+
+        for step in sorted_steps[1:]:
+            if step == prev + 1:
+                prev = step
+            else:
+                ranges.append((start, prev))
+                start = prev = step
+
+        ranges.append((start, prev))
+        return ranges
+
+    bubble._range_exclusive = collapse_ranges(inside_steps)
+    bubble._range_inclusive = collapse_ranges(inside_steps.union(source_steps, sink_steps))
+
+    # Length and base content
+    bubble.length = sum(n.seq_len for n in nodes)
+    bubble.gc_count = sum(n.optional_info.get("gc_count", 0) for n in nodes)
+    bubble.n_counts = sum(n.optional_info.get("n_count", 0) for n in nodes)
+
+    return bubble
+
 class BubbleData:
-    def __init__(self, raw_bubble, chain_id):
-
-        self.id = f"b{raw_bubble.id}"
-        self.chain = chain_id
-
+    def __init__(self):
+        self.id = None
+        self.chain = None
         self.type = "simple"
-        if raw_bubble.is_insertion():
-            self.type = "insertion"
-        elif raw_bubble.is_super():
-            self.type = "super"
-
-        self.parent = f"b{raw_bubble.parent_sb}" if raw_bubble.parent_sb else None
+        self.parent = None
         self.children = []
         self._siblings = []
-        
-        source_node = raw_bubble.source
-        self._source = int(source_node.id)
-        compacted_source_nodes = [node for node in source_node.optional_info["compacted"]]
-        self._compacted_source = [int(node.id) for node in compacted_source_nodes]
 
-        sink_node = raw_bubble.sink
-        self._sink = int(sink_node.id)
-        compacted_sink_nodes = [node for node in sink_node.optional_info["compacted"]]
-        self._compacted_sink = [int(node.id) for node in compacted_sink_nodes]
+        self._source = None
+        self._compacted_source = []
+        self._sink = None
+        self._compacted_sink = []
 
-        nodes = raw_bubble.inside
-                
-        compacted_dict = defaultdict(list)
-        for node in nodes:
-            if node.optional_info.get("compacted"):
-                compacted_dict[int(node.id)].extend(node.optional_info["compacted"])
+        self.inside = set()
+        self._range_exclusive = []
+        self._range_inclusive = []
 
-        compacted_nodes = []
-        for _, nodes in compacted_dict.items():
-            compacted_nodes.extend(nodes)
-
-        self.inside = {int(node.id) for node in nodes+compacted_nodes}
-        ref_ids = [int(node.id) for node in nodes if node.optional_info.get("ref")]
-
-        self.range = []
-        if len(ref_ids) == 1:
-            self.range = [ref_ids[0], ref_ids[0]]
-        elif len(ref_ids) > 1:
-            self.range = [min(ref_ids), max(ref_ids)]
-        
-        ref_source_ids = [int(node.id) for node in [source_node] + compacted_source_nodes \
-                           if node.optional_info.get("ref")]
-        ref_sink_ids = [int(node.id) for node in [sink_node] + compacted_sink_nodes \
-                           if node.optional_info.get("ref")]
-
-        self.extended_range = self.range
-        # we only want to "extend" the range if both source and sink are ref segments
-        if len(ref_source_ids) > 0 and len(ref_sink_ids) > 0:
-            erange = self.range + ref_source_ids + ref_sink_ids
-            self.extended_range = [min(erange), max(erange)]
-
-        self.length = sum([n.seq_len for n in nodes])
-        self.gc_count = sum([n.optional_info.get("gc_count", 0) for n in nodes])
-        self.n_counts = sum([n.optional_info.get("n_count", 0) for n in nodes])
+        self.length = 0
+        self.gc_count = 0
+        self.n_counts = 0
 
         self._height = None
         self._depth = None
+
 
     def add_sibling(self, sibling_id, segment_id):
         self._siblings.append((sibling_id, segment_id))
@@ -105,14 +140,30 @@ class BubbleData:
             return sources + sinks
         return (sources, sinks)
     
-    def contains(self, id1, id2):
-        lower, upper = sorted((id1, id2))
-        if len(self.range) == 0:
-            return False
-        return self.range[0] <= lower and self.range[1] >= upper
+    def has_range(self, exclusive=True):
+        if exclusive:
+            return len(self._range_exclusive) > 0
+        return len(self._range_inclusive) > 0
     
+    def get_ranges(self, exclusive=True):
+        if exclusive:
+            return self._range_exclusive
+        return self._range_inclusive
+    
+    def is_contained(self, start_step, end_step, strict=False):
+        strict_check = any(start >= start_step and end <= end_step for start, end in self._range_exclusive)
+        if strict or strict_check:
+            return strict_check
+        return any(start >= start_step and end <= end_step for start, end in self._range_inclusive)
+
+    def contains(self, id1, id2, exclusive=True):
+        lower, upper = sorted((id1, id2))
+        if exclusive:
+            return any(lo <= lower and hi >= upper for lo, hi in self._range_exclusive)
+        return any(lo <= lower and hi >= upper for lo, hi in self._range_inclusive)
+
     def is_ref(self):
-        return len(self.range) > 0
+        return len(self._range_inclusive) > 0
     
     def get_height(self):
         if self._height is not None:
@@ -137,7 +188,7 @@ class BubbleData:
         return self._depth
 
     def __str__(self):
-        return f"Bubble(id={self.id}, range={self.range}, parent={self.parent}, children={len(self.children)}, siblings={self.get_siblings()}, inside={self.inside}, extended_range={self.extended_range})"
+        return f"Bubble(id={self.id}, parent={self.parent}, children={len(self.children)}, siblings={self.get_siblings()}, inside={self.inside}, inclusive range={self._range_inclusive})"
 
     def __repr__(self):
-        return f"Bubble({self.id}, range={self.range})"
+        return f"Bubble({self.id}, inclusive range={self._range_inclusive})"

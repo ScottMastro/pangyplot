@@ -1,15 +1,16 @@
 from intervaltree import IntervalTree
 from collections import defaultdict
-    
+import math
+
 class BubbleIndex:
     def __init__(self, bubbles):
         self.bubble_dict = {bubble.id: bubble for bubble in bubbles}
         self.parent_tree = IntervalTree()
 
         for bubble in bubbles:
-            if len(bubble.extended_range)>0 and (bubble.parent is None):
-                start, end = bubble.extended_range
-                self.parent_tree[start:end + 1] = bubble.id
+            if bubble.has_range(exclusive=False) and (bubble.parent is None):
+                for start,end in bubble.get_ranges(exclusive=False):
+                    self.parent_tree[start:end + 1] = bubble.id
 
     def __getitem__(self, bubble_id):
         return self.bubble_dict[bubble_id]
@@ -19,19 +20,22 @@ class BubbleIndex:
 
         for bubble in self.bubble_dict.values():
             seg_ids = list(bubble.inside)
-            seg_ids.extend(bubble.extended_range)
             if seg_id in seg_ids:
                 matching_bubbles.append(bubble)
 
         return matching_bubbles
 
-    def get_top_level_bubbles(self, qstart, qend, as_chains=False):
+    def get_top_level_bubbles(self, min_step, max_step, as_chains=False):
         results = []
 
         # Start with all overlapping parentless bubbles
-        for iv in self.parent_tree[qstart:qend+1]:
+        for iv in self.parent_tree[min_step:max_step+1]:
+            print(f"[DEBUG] Found parentless bubble {iv.data} in range {min_step}-{max_step}")
             parent_bubble = self.bubble_dict[iv.data]
-            result = self._traverse_descendants(parent_bubble, qstart, qend)
+            print(f"[DEBUG] Bubble {parent_bubble.id} has range {parent_bubble.get_ranges(exclusive=False)}")
+            result = self._traverse_descendants(parent_bubble, min_step, max_step)
+            print(f"[DEBUG] Found {len(result)} bubbles in range {min_step}-{max_step} with parentless bubble {parent_bubble.id}.")
+
             results.extend(result)
 
         non_ref_results = self._collect_non_ref(results)
@@ -45,24 +49,14 @@ class BubbleIndex:
 
         return results
 
-    def _fully_within(self, bubble, qstart, qend):
-        if len(bubble.range) > 0:
-            return bubble.range[0] >= qstart and bubble.range[1] <= qend
-        if len(bubble.extended_range) > 0:
-            return bubble.extended_range[0] >= qstart and bubble.extended_range[1] <= qend
-        
-        return False
-
-    def _traverse_descendants(self, bubble, qstart, qend):
-        # If this bubble is fully contained, return it as a result
-        if self._fully_within(bubble, qstart, qend):
+    def _traverse_descendants(self, bubble, min_step, max_step):
+        if bubble.is_contained(min_step, max_step):
             return [bubble]
-
         # Otherwise, recurse through children
         results = []
         for child_id in bubble.children:
             child = self.bubble_dict[child_id]
-            results.extend(self._traverse_descendants(child, qstart, qend))
+            results.extend(self._traverse_descendants(child, min_step, max_step))
         return results
 
     def get_sibling_segments(self, bubbles, inside_only=False):
@@ -132,10 +126,14 @@ class BubbleIndex:
         
         return list(collected)
 
-    def get_merged_intervals(self, bubbles):
+    def get_merged_intervals(self, bubbles, min_step=-1, max_step=math.inf):
         bubble_intervals = []
         for bubble in bubbles:
-            bubble_intervals.append(bubble.extended_range)
+            for lo, hi in bubble.get_ranges(exclusive=False):
+                if hi < min_step or lo > max_step:
+                    continue
+                bubble_intervals.append((max(lo, min_step) if min_step else lo,
+                                        min(hi, max_step) if max_step else hi))
 
         bubble_intervals.sort(key=lambda x: x[0])
         merged = []
@@ -145,7 +143,7 @@ class BubbleIndex:
             else:
                 last_start, last_end = merged[-1]
                 curr_start, curr_end = interval
-                if curr_start <= last_end:
+                if curr_start <= last_end + 1:
                     merged[-1] = (last_start, max(last_end, curr_end))
                 else:
                     merged.append(interval)
