@@ -127,15 +127,15 @@ def main():
         
         x = xids["bubbles"]
         x.update(xids["segments"])
-
+        
         all_ids = list(j-x)
+        if len(all_ids) > 0:
+            print(j)
+            print(gfa_index.filter_ref(j))
+            print(all_ids)
 
-        #gfa_index.plot_bfs_subgraph(131947, "subgraph.svg", max_steps=200, highlight_ids=all_ids, secondary_highlight_ids=x)
+            gfa_index.export_subgraph_to_gfa(random.choice(all_ids), "debug_subgraph.gfa", max_steps=200)
 
-        #gfa_index.export_subgraph_to_gfa(131947, "debug_subgraph.gfa", max_steps=200)
-        #print(j)
-        #print(gfa_index.filter_ref(j))
-        #print(all_ids)
 
         if len(all_ids) == 0:
             print(".", end="", flush=True)

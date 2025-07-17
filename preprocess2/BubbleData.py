@@ -42,8 +42,8 @@ def create_bubble_object(raw_bubble, chain_id, step_index):
         return steps
 
     inside_steps = get_steps(bubble.inside)
-    source_steps = get_steps([n.id for n in [source_node] + compacted_source_nodes])
-    sink_steps = get_steps([n.id for n in [sink_node] + compacted_sink_nodes])
+    source_steps = get_steps([int(n.id) for n in [source_node] + compacted_source_nodes])
+    sink_steps = get_steps([int(n.id) for n in [sink_node] + compacted_sink_nodes])
 
     def collapse_ranges(steps):
         if not steps:
