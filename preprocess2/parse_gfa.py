@@ -207,4 +207,4 @@ def parse_graph(gfa_file, ref_path, layout_coords):
 
     print(" Done.")
 
-    return segments, links, reference_path, sample_idx
+    return segments, links, sample_idx, reference_path,

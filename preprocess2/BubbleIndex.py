@@ -7,8 +7,8 @@ class BubbleIndex:
         self.parent_tree = IntervalTree()
 
         for bubble in bubbles:
-            if bubble.range and (bubble.parent is None):
-                start, end = bubble.range
+            if len(bubble.extended_range)>0 and (bubble.parent is None):
+                start, end = bubble.extended_range
                 self.parent_tree[start:end + 1] = bubble.id
 
     def __getitem__(self, bubble_id):
@@ -46,7 +46,12 @@ class BubbleIndex:
         return results
 
     def _fully_within(self, bubble, qstart, qend):
-        return bubble.range[0] >= qstart and bubble.range[1] <= qend
+        if len(bubble.range) > 0:
+            return bubble.range[0] >= qstart and bubble.range[1] <= qend
+        if len(bubble.extended_range) > 0:
+            return bubble.extended_range[0] >= qstart and bubble.extended_range[1] <= qend
+        
+        return False
 
     def _traverse_descendants(self, bubble, qstart, qend):
         # If this bubble is fully contained, return it as a result
@@ -96,13 +101,13 @@ class BubbleIndex:
                 
                 component = set()
                 stack = [sib]
-                ref_sources = {bubble}
+                anchors = {bubble}
 
                 while stack:
                     curr_bubble = stack.pop()
 
                     if curr_bubble in result_bubbles:
-                        ref_sources.add(curr_bubble)
+                        anchors.add(curr_bubble)
                         continue
                     elif curr_bubble in visited:
                         continue
@@ -114,9 +119,9 @@ class BubbleIndex:
                         for sib_id in curr_bubble.get_siblings():
                             stack.append(self.bubble_dict[sib_id])
 
-                if len(ref_sources) >= 2:
+                if len(anchors) >= 2:
                     if debug:
-                        print(f"[DEBUG] Recovered component with {len(component)} non-ref bubbles, ref sources: {[b.id for b in ref_sources]}")
+                        print(f"[DEBUG] Recovered component with {len(component)} non-ref bubbles, anchors: {[b.id for b in anchors]}")
 
                     for b in component:
                         if b not in collected:
@@ -125,3 +130,21 @@ class BubbleIndex:
         
         return list(collected)
 
+    def get_merged_intervals(self, bubbles):
+        bubble_intervals = []
+        for bubble in bubbles:
+            bubble_intervals.append(bubble.extended_range)
+
+        bubble_intervals.sort(key=lambda x: x[0])
+        merged = []
+        for interval in bubble_intervals:
+            if not merged:
+                merged.append(interval)
+            else:
+                last_start, last_end = merged[-1]
+                curr_start, curr_end = interval
+                if curr_start <= last_end:
+                    merged[-1] = (last_start, max(last_end, curr_end))
+                else:
+                    merged.append(interval)
+        return merged
