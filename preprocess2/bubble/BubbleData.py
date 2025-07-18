@@ -23,7 +23,6 @@ class BubbleData:
         self._height = None
         self._depth = None
 
-
     def add_sibling(self, sibling_id, segment_id):
         self._siblings.append((sibling_id, segment_id))
 

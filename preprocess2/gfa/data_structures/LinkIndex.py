@@ -1,5 +1,7 @@
 import os
 import sqlite3
+from array import array
+from collections import defaultdict
 
 NAME = "links.db"
 
@@ -21,7 +23,8 @@ def create_link_table(db_dir, sample_idx):
             haplotype TEXT NOT NULL,
             reverse TEXT NOT NULL,
             frequency REAL NOT NULL,
-            PRIMARY KEY (from_id, to_id)
+            PRIMARY KEY (from_id, from_strand, to_id, to_strand)
+
         );
     """)
 
@@ -41,10 +44,6 @@ def create_link_table(db_dir, sample_idx):
     conn.commit()
     return conn
 
-def read_sample_index(cur):
-    cur.execute("SELECT sample, idx FROM sample_index")
-    return {row["sample"]: row["idx"] for row in cur.fetchall()}
-
 def insert_link(cur, link):
     cur.execute("""
         INSERT INTO links (from_id, from_strand, to_id, to_strand, haplotype, reverse, frequency)
@@ -62,47 +61,104 @@ def insert_link(cur, link):
 class LinkIndex:
     def __init__(self, db_dir):
         db_path = os.path.join(db_dir, NAME)
-        
+
         self.conn = sqlite3.connect(db_path)
         self.conn.row_factory = sqlite3.Row
         self.cur = self.conn.cursor()
-        self.sample_idx = read_sample_index(self.cur)
 
+        self.sample_idx = self._read_sample_index()
+        
+        self.from_ids = array('I')
+        self.to_ids = array('I')
+        self.frequencies = array('f') # could be calculated from haplotype bitmask
+        self.from_strands = array('B')
+        self.to_strands = array('B')
+
+        self.seg_index_offsets = array('I')   # start index into self.seg_index_flat
+        self.seg_index_counts  = array('B')   # how many links per node
+        self.seg_index_flat    = array('I')   # flattened list of link indices
+
+        self.strand_map = {'+': 1, '-': 0}
+        self.rev_strand_map = {1: '+', 0: '-'}
+        self._load_links()
+
+
+    def _read_sample_index(self):
+        self.cur.execute("SELECT sample, idx FROM sample_index")
+        return {row["sample"]: row["idx"] for row in self.cur.fetchall()}
+        
     def __getitem__(self, key):
         if isinstance(key, tuple) and len(key) == 2:
-            # Case 1: (from_id, to_id)
             from_id, to_id = key
-            self.cur.execute("""
-                SELECT * FROM links WHERE from_id = ? AND to_id = ?
-            """, (from_id, to_id))
-            row = self.cur.fetchone()
-            if row is None:
-                raise KeyError(f"Link ({from_id}, {to_id}) not found")
-            return dict(row)
+            for i in self.from_index.get(from_id, []):
+                if self.to_ids[i] == to_id:
+                    return self.get_link_by_index(i)
+            raise KeyError(f"Link ({from_id}, {to_id}) not found")
 
         elif isinstance(key, int):
-            # Case 2: single node_id
-            node_id = key
-            self.cur.execute("SELECT * FROM links WHERE from_id = ?", (node_id,))
-            from_links = [dict(row) for row in self.cur.fetchall()]
+            return self.get_by_id(key)
 
-            self.cur.execute("SELECT * FROM links WHERE to_id = ?", (node_id,))
-            to_links = [dict(row) for row in self.cur.fetchall()]
-
-            return from_links, to_links
         else:
-            raise TypeError("Key must be an int (node_id) or a tuple of two ints (from_id, to_id)")
+            raise TypeError("Key must be int or tuple of two ints")
 
-    def get_by_from_id(self, from_id):
-        self.cur.execute("SELECT * FROM links WHERE from_id = ?", (from_id,))
-        return [dict(row) for row in self.cur.fetchall()]
+    def _load_links(self):
+        tmp = defaultdict(list)
+        max_seg_id = -1
 
+        self.cur.execute("SELECT * FROM links")
+        for i, row in enumerate(self.cur.fetchall()):
+            fid = row["from_id"]
+            tid = row["to_id"]
+
+            self.from_ids.append(fid)
+            self.to_ids.append(tid)
+            self.from_strands.append(self.strand_map[row["from_strand"]])
+            self.to_strands.append(self.strand_map[row["to_strand"]])
+            self.frequencies.append(row["frequency"])
+
+            tmp[fid].append(i)
+            tmp[tid].append(i)
+            max_seg_id = max(max_seg_id, fid, tid)
+
+        for i in range(max_seg_id + 1):
+            links = tmp.get(i, [])
+            self.seg_index_offsets.append(len(self.seg_index_flat))
+            self.seg_index_counts.append(len(links))
+            self.seg_index_flat.extend(links)
+
+    def get_link_by_index(self, i, with_hap=False):
+        link = {
+            "from_id": self.from_ids[i],
+            "from_strand": self.from_strands[i],
+            "to_id": self.to_ids[i],
+            "to_strand": self.to_strands[i],
+            "frequency": self.frequencies[i],
+        }
+
+        if with_hap:
+            self.cur.execute("""
+                SELECT haplotype, reverse FROM links 
+                WHERE from_id = ? AND to_id = ?
+            """, (link["from_id"], link["to_id"]))
+            row = self.cur.fetchone()
+            link["haplotype"] = row["haplotype"]
+            link["reverse"] = row["reverse"]
+
+        return link
+
+    def get_by_id(self, seg_id):
+        if seg_id >= len(self.seg_index_offsets) or seg_id < 0:
+            return []
+
+        offset = self.seg_index_offsets[seg_id]
+        count = self.seg_index_counts[seg_id]
+        return [self.get_link_by_index(self.seg_index_flat[offset + j]) for j in range(count)]
+    
     def get_by_range(self, start_id, end_id):
-        self.cur.execute("""
-            SELECT * FROM links
-            WHERE from_id BETWEEN ? AND ?
-        """, (start_id, end_id))
-        return [dict(row) for row in self.cur.fetchall()]
+        results = []
+        for node_id in range(start_id, end_id + 1):
+            results.extend(self.get_by_from_id(node_id))
+        return results
 
     def close(self):
         self.conn.close()

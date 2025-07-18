@@ -158,13 +158,13 @@ def parse_args():
         #    os.mkdir(datastore_path)
 
         chr_path = os.path.join(datastore_path, args.chr)
-        if os.path.exists(chr_path) and False:
+        if os.path.exists(chr_path):
             response = input(f"Index for '{args.chr}' already exists. Do you want to overwrite it? [y/N]: ").strip().lower()
             if response != 'y':
                 print("Aborting.")
                 exit(1)
-        #else:
-        #    os.mkdir(chr_path)
+        else:
+            os.mkdir(chr_path)
         
         print(f"Indexing GFA file {args.gfa}...")
 
@@ -185,25 +185,34 @@ def parse_args():
         from preprocess2.gfa.data_structures.LinkIndex import LinkIndex
         from preprocess2.StepIndex import StepIndex
         from preprocess2.bubble.BubbleIndex import BubbleIndex
-        from pympler import asizeof
+        from pympler.asizeof import asizeof
+
+        segment_index = dict()
+        link_index = dict()
+        step_index = dict()
+        bubble_index = dict()
 
         for chr in os.listdir(datastore_path):
 
             print(f"Loading: {chr}")
             chr_dir = os.path.join(datastore_path, chr)
 
-            segment_index = SegmentIndex(chr_dir)
-            print(f"segment_index size:      {asizeof.asizeof(segment_index) / 1024**2:.2f} MB")
+            segment_index[chr] = SegmentIndex(chr_dir)
+            print(f"segment_index size:      {asizeof(segment_index[chr]) / 1024**2:.2f} MB")
 
-            link_index = LinkIndex(chr_dir)
-            print(f"link_index size:      {asizeof.asizeof(link_index) / 1024**2:.2f} MB")
+            link_index[chr] = LinkIndex(chr_dir)
+            print(f"link_index size:      {asizeof(link_index[chr]) / 1024**2:.2f} MB")
 
-            step_index = StepIndex(chr_dir)
-            print(f"step_index size:      {asizeof.asizeof(step_index) / 1024**2:.2f} MB")
+            step_index[chr] = StepIndex(chr_dir)
+            print(f"step_index size:      {asizeof(step_index[chr]) / 1024**2:.2f} MB")
 
-            bubble_index = BubbleIndex(chr_dir)
-            print(f"bubble_index size:      {asizeof.asizeof(bubble_index) / 1024**2:.2f} MB")
+            bubble_index[chr] = BubbleIndex(chr_dir)
+            print(f"bubble_index size:      {asizeof(bubble_index[chr]) / 1024**2:.2f} MB")
 
+        print(f"segment_index size total:      {asizeof(segment_index) / 1024**2:.2f} MB")
+        print(f"link_index size total:      {asizeof(link_index) / 1024**2:.2f} MB")
+        print(f"step_index size total:      {asizeof(step_index) / 1024**2:.2f} MB")
+        print(f"bubble_index size total:      {asizeof(bubble_index) / 1024**2:.2f} MB")    
 
     elif args.command == "add" or args.command == "example":
 

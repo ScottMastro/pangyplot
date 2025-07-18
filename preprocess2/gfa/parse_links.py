@@ -43,15 +43,19 @@ def parse_links(gfa, sample_idx, path_dict, dir):
         # to avoid integer overflow in Neo4j Bolt protocol (>64-bit ints not supported)
         link["haplotype"] = hex(mask)[2:]  # e.g., '2fa'
         link["frequency"] = bin(mask).count("1") / n
-        link["reverse"] = hex(path_dict[keyReverse])[2:] if keyReverse in path_dict else "0"
-
+        link["reverse"] = hex(path_dict.get(keyReverse, 0))[2:]
+        return link
+    
     for line in gfa:
         if line[0] == "L":
             link = parse_line_L(line)
-            process_path_information(link)
+            link = process_path_information(link)
             db.insert_link(cur, link)
-            fid = int(link["from_id"])
-            tid = int(link["to_id"])
+            fid = link["from_id"]
+            tid = link["to_id"]
             link_dict[(fid,tid)] = link
 
+    conn.commit()
+    conn.close()
+    
     return link_dict
