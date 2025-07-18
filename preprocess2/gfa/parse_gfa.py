@@ -31,8 +31,8 @@ def parse_gfa(gfa_file, ref_path, layout_coords, dir):
     path_info, reference_info = parse_paths(get_reader(gfa_file), ref_path)
     sample_idx, path_dict = path_info
     reference_path, matching_refs = reference_info
-    verify_reference(ref_path, matching_refs)
     print(" Done.")
+    verify_reference(ref_path, matching_refs)
 
     # ==== SEGMENTS ====
     print("   🍡 Gathering segments from GFA...", end="", flush=True)
