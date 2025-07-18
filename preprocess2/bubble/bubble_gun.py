@@ -53,7 +53,7 @@ def to_bubblegun_obj(segments, links):
 
     return nodes
 
-def shoot(segments, links, step_index):
+def shoot(segments, links):
     print("➡️ Finding bubbles.")
 
     graph = BubbleGunGraph.Graph()
