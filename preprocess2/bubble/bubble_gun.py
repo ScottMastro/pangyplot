@@ -3,13 +3,8 @@ import BubbleGun.Graph as BubbleGunGraph
 import BubbleGun.find_bubbles as BubbleGunFindBubbles
 import BubbleGun.connect_bubbles as BubbleGunConnectBubbles
 import BubbleGun.find_parents as BubbleGunFindParents
-import preprocess2.compact_graph as compacter
+import preprocess2.bubble.compact_graph as compacter
 
-from preprocess2.BubbleData import create_bubble_object
-from preprocess2.BubbleIndex import BubbleIndex
-
-import preprocess2.bubble_gun_utils as utils
-from collections import defaultdict
 import time
 
 def to_bubblegun_obj(segments, links):
@@ -23,7 +18,6 @@ def to_bubblegun_obj(segments, links):
         node.seq = segment["seq"]
         node.seq_len = segment["length"]
         info = {
-            "ref": segment["ref"],
             "gc_count": segment["gc_count"],
             "n_count": segment["n_count"],
             "compacted": []
@@ -59,51 +53,6 @@ def to_bubblegun_obj(segments, links):
 
     return nodes
 
-def find_siblings(bubbles):
-    sib_dict = defaultdict(set)
-    
-    for bubble in bubbles:
-        for sid in bubble.get_sibling_segments():
-            sib_dict[sid].add(bubble)
-
-    for bubble in bubbles:
-        for sid in bubble.get_sibling_segments():
-            for sibling in sib_dict[sid]:
-                if sibling.id != bubble.id:
-                    bubble.add_sibling(sibling.id, sid)
-
-def find_parent_children(bubbles):
-    bubble_dict = {bubble.id: bubble for bubble in bubbles}
-
-    for bubble in bubbles:
-        if bubble.parent:
-            bubble_parent = bubble_dict[bubble.parent]
-            bubble_parent.add_child(bubble, bubble_dict)
-
-def construct_bubble_index(graph, step_index):
-    bubbles = []
-
-    for raw_chain in graph.b_chains:
-        chain_id = f"c{raw_chain.id}"
-        # note: raw_chain.ends not used (yet?)
-
-        if not raw_chain.sorted: 
-            raw_chain.sort()
-
-        chain_bubbles = []
-        for raw_bubble in raw_chain.sorted:
-            bubble = create_bubble_object(raw_bubble, chain_id, step_index)
-            chain_bubbles.append(bubble)
-
-        find_siblings(chain_bubbles)
-        bubbles.extend(chain_bubbles)
-
-    find_parent_children(bubbles)
-
-    bubble_index = BubbleIndex(bubbles)
-
-    return bubble_index
-
 def shoot(segments, links, step_index):
     print("➡️ Finding bubbles.")
 
@@ -131,15 +80,6 @@ def shoot(segments, links, step_index):
     print(f" Done. Took {round(end_time - start_time,1)} seconds.")
 
     bubbleCount = graph.bubble_number()
-    print("   🔘 Simple Bubbles: {}, Superbubbles: {}, Insertions: {}".format(bubbleCount[0], bubbleCount[1], bubbleCount[2]))
+    print("   🔘 Simple Bubbles: {}, Superbubbles: {}, Insertions: {}".format(bubbleCount[0], bubbleCount[1], bubbleCount[2]))    
 
-    print("   🗃️ Constructing bubble index...", end="")
-    start_time = time.time()
-    bubble_index = construct_bubble_index(graph, step_index)
-    end_time = time.time()
-    print(f" Done. Took {round(end_time - start_time,1)} seconds.")
-    
-    #print("   Generating plot.")
-    #utils.plot_bubbles(bubbles, output_path="bubbles.plot.svg")
-
-    return bubble_index
+    return graph

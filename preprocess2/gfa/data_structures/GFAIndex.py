@@ -1,7 +1,6 @@
 from collections import deque
 from dataclasses import dataclass
 
-base_to_bits = {'A': 0b00, 'C': 0b01, 'G': 0b10, 'T': 0b11}
 
 @dataclass
 class Link:
@@ -12,23 +11,6 @@ class Link:
     haplotype: int     # store as int, not hex string
     frequency: float
     ref: bool
-
-def encode_seq(seq):
-    encoded = bytearray((len(seq) + 3) // 4)
-    for i, base in enumerate(seq):
-        bits = base_to_bits.get(base, 0b00)  # N defaults to A (00)
-        encoded[i // 4] |= bits << (6 - 2 * (i % 4))
-    return bytes(encoded)
-
-bits_to_base = ['A', 'C', 'G', 'T']
-
-def decode_seq(encoded, length):
-    seq = []
-    for i in range(length):
-        byte = encoded[i // 4]
-        bits = (byte >> (6 - 2 * (i % 4))) & 0b11
-        seq.append(bits_to_base[bits])
-    return ''.join(seq)
 
 
 class GFAIndex:

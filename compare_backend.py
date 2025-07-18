@@ -1,12 +1,12 @@
 import db.neo4j_db as db
 import random
 from pympler import asizeof
-import preprocess2.bubble_gun as bubble_gun
+import preprocess2.bubble.bubble_gun as bubble_gun
 import preprocess2.pickle as pkl
 from  preprocess2.StepIndex import StepIndex
-from preprocess2.GFAIndex import GFAIndex
+from preprocess2.gfa.data_structures.GFAIndex import GFAIndex
 import preprocess2.skeletonize as skeleton
-import preprocess2.parse_gfa as parse_gfa
+import preprocess2.gfa.parse_gfa as parse_gfa
 import preprocess2.parse_layout as parse_layout
 from db.query.query_top_level import get_top_level_data
 import db.query.query_node as qnode

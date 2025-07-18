@@ -31,6 +31,9 @@ def parse_args():
     parser_run = subparsers.add_parser('run', help='Launch the software (development mode).')
     parser_run.add_argument('--db', help='Database name', default=DEFAULT_DB)
     parser_run.add_argument('--port', help='Port to run the app on', default=DEFAULT_PORT, type=int, required=False)
+    
+    parser_run2 = subparsers.add_parser('run2', help='Launch the software (development mode).')
+    parser_run2.add_argument('--db', help='Database name', default=DEFAULT_DB)
 
     parser_add = subparsers.add_parser('add', help='Add a dataset.')
     parser_add.add_argument('--db', help='Database name', default=DEFAULT_DB)
@@ -144,34 +147,63 @@ def parse_args():
 
     elif args.command == "index":
         datastore_path = os.path.join(script_dir, "datastore")
-        os.mkdir(datastore_path)
-
         datastore_path = os.path.join(datastore_path, args.db)
-        os.mkdir(datastore_path)
 
-        datastore_path = os.path.join(datastore_path, args.chr)
-        os.mkdir(datastore_path)
+        if os.path.exists(datastore_path) and False:
+            response = input(f"Do you want to add to database '{args.db}'? [y/N]: ").strip().lower()
+            if response != 'y':
+                print("Aborting.")
+                exit(1)
+        #else:
+        #    os.mkdir(datastore_path)
+
+        chr_path = os.path.join(datastore_path, args.chr)
+        if os.path.exists(chr_path) and False:
+            response = input(f"Index for '{args.chr}' already exists. Do you want to overwrite it? [y/N]: ").strip().lower()
+            if response != 'y':
+                print("Aborting.")
+                exit(1)
+        #else:
+        #    os.mkdir(chr_path)
         
         print(f"Indexing GFA file {args.gfa}...")
 
-        import preprocess2.bubble_gun as bubble_gun
+        import preprocess2.bubble.bubble_gun as bubble_gun
         import preprocess2.pickle as pkl
-        from  preprocess2.StepIndex import StepIndex
-        from preprocess2.GFAIndex import GFAIndex
-        import preprocess2.parse_gfa as parse_gfa
-        import preprocess2.parse_layout as parse_layout
-        
-        layout_coords = parse_layout.parse_layout(args.layout)
-        segments, links, sample_idx, reference_path  = parse_gfa.parse_graph(args.gfa, args.ref, layout_coords)
-        gfa_index = GFAIndex(segments, links, sample_idx)
+        from preprocess2.gfa.parse_gfa import parse_gfa
+        from preprocess2.bubble.construct_bubble_index import construct_bubble_index
 
-        pkl.dump_pickle(gfa_index, os.path.join(datastore_path, "gfa_index.pkl"))
+        layout_coords = parse_layout(args.layout)
+        segment_dict, link_dict  = parse_gfa(args.gfa, args.ref, layout_coords, chr_path)
+        bubble_gun_graph = bubble_gun.shoot(segment_dict, link_dict)
+        bubble_index = construct_bubble_index(bubble_gun_graph, chr_path)
 
-        step_index = StepIndex(segments, reference_path)
-        pkl.dump_pickle(step_index, os.path.join(datastore_path, "step_index.pkl"))
+    if args.command == "run2":
+        datastore_path = os.path.join(script_dir, "datastore")
+        datastore_path = os.path.join(datastore_path, args.db)
+        from preprocess2.gfa.data_structures.SegmentIndex import SegmentIndex
+        from preprocess2.gfa.data_structures.LinkIndex import LinkIndex
+        from preprocess2.StepIndex import StepIndex
+        from preprocess2.bubble.BubbleIndex import BubbleIndex
+        from pympler import asizeof
 
-        bubble_index = bubble_gun.shoot(segments, links, step_index)
-        pkl.dump_pickle(bubble_index, os.path.join(datastore_path, "bubble_index.pkl"))
+        for chr in os.listdir(datastore_path):
+
+            print(f"Loading: {chr}")
+            chr_dir = os.path.join(datastore_path, chr)
+
+            segment_index = SegmentIndex(chr_dir)
+            print(f"segment_index size:      {asizeof.asizeof(segment_index) / 1024**2:.2f} MB")
+
+            link_index = LinkIndex(chr_dir)
+            print(f"link_index size:      {asizeof.asizeof(link_index) / 1024**2:.2f} MB")
+
+            step_index = StepIndex(chr_dir)
+            print(f"step_index size:      {asizeof.asizeof(step_index) / 1024**2:.2f} MB")
+
+            bubble_index = BubbleIndex(chr_dir)
+            print(f"bubble_index size:      {asizeof.asizeof(bubble_index) / 1024**2:.2f} MB")
+
 
     elif args.command == "add" or args.command == "example":
 

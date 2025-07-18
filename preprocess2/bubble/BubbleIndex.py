@@ -1,9 +1,15 @@
+import os
 from intervaltree import IntervalTree
 from collections import defaultdict
+from preprocess2.bubble.bubble_index_utils import NAME, load_bubbles_from_json
 import math
 
+
 class BubbleIndex:
-    def __init__(self, bubbles):
+    def __init__(self, chr_dir):
+        filepath = os.path.join(chr_dir, NAME)
+        bubbles = load_bubbles_from_json(filepath)
+
         self.bubble_dict = {bubble.id: bubble for bubble in bubbles}
         self.parent_tree = IntervalTree()
 
