@@ -1,11 +1,6 @@
-import gzip
-import json
-import os
 from collections import defaultdict
 from preprocess2.bubble.BubbleData import BubbleData
 
-NAME="bubble_index.json.gz"
-
 def find_siblings(bubbles):
     sib_dict = defaultdict(set)
     
@@ -48,10 +43,10 @@ def find_parent_children(bubbles):
             bubble_parent = bubble_dict[bubble.parent]
             bubble_parent.add_child(bubble, bubble_dict)
 
-def create_bubble_object(raw_bubble, chain_id, step_index):
+def create_bubble_object(raw_bubble, chain_id, step_dict):
     bubble = BubbleData()
 
-    bubble.id = f"b{raw_bubble.id}"
+    bubble.id = raw_bubble.id
     bubble.chain = chain_id
 
     if raw_bubble.is_insertion():
@@ -59,7 +54,7 @@ def create_bubble_object(raw_bubble, chain_id, step_index):
     elif raw_bubble.is_super():
         bubble.type = "super"
 
-    bubble.parent = f"b{raw_bubble.parent_sb}" if raw_bubble.parent_sb else None
+    bubble.parent = raw_bubble.parent_sb if raw_bubble.parent_sb else None
 
     # Source and sink
     source_node = raw_bubble.source
@@ -86,7 +81,7 @@ def create_bubble_object(raw_bubble, chain_id, step_index):
     def get_steps(seg_ids):
         steps = set()
         for sid in seg_ids:
-            steps.update(step_index[sid])
+            steps.update(step_dict.get(sid, []))
         return steps
 
     inside_steps = get_steps(bubble.inside)
@@ -120,55 +115,3 @@ def create_bubble_object(raw_bubble, chain_id, step_index):
     bubble.n_counts = sum(n.optional_info.get("n_count", 0) for n in nodes)
 
     return bubble
-
-def bubble_to_dict(bubble):
-    return {
-        "id": bubble.id,
-        "chain": bubble.chain,
-        "type": bubble.type,
-        "parent": bubble.parent,
-        "children": bubble.children,
-        "_siblings": bubble._siblings,
-        "_source": bubble._source,
-        "_compacted_source": bubble._compacted_source,
-        "_sink": bubble._sink,
-        "_compacted_sink": bubble._compacted_sink,
-        "inside": list(bubble.inside),
-        "_range_exclusive": bubble._range_exclusive,
-        "_range_inclusive": bubble._range_inclusive,
-        "length": bubble.length,
-        "gc_count": bubble.gc_count,
-        "n_counts": bubble.n_counts,
-    }
-
-def write_bubbles_to_json(bubbles, chr_dir):
-    filepath = os.path.join(chr_dir, NAME)
-    with gzip.open(filepath, 'wt') as f:
-        json.dump([bubble_to_dict(b) for b in bubbles], f)
-
-def dict_to_bubble(d):
-    bubble = BubbleData()
-    bubble.id = d["id"]
-    bubble.chain = d["chain"]
-    bubble.type = d["type"]
-    bubble.parent = d["parent"]
-    bubble.children = d["children"]
-    bubble._siblings = d["_siblings"]
-    bubble._source = d["_source"]
-    bubble._compacted_source = d["_compacted_source"]
-    bubble._sink = d["_sink"]
-    bubble._compacted_sink = d["_compacted_sink"]
-    bubble.inside = set(d["inside"])
-    bubble._range_exclusive = d["_range_exclusive"]
-    bubble._range_inclusive = d["_range_inclusive"]
-    bubble.length = d["length"]
-    bubble.gc_count = d["gc_count"]
-    bubble.n_counts = d["n_counts"]
-    return bubble
-
-def load_bubbles_from_json(filepath):
-    with gzip.open(filepath, 'rt') as f:
-        data = json.load(f)
-        return [dict_to_bubble(d) for d in data]
-
-

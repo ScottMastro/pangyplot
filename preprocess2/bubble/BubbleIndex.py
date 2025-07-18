@@ -1,26 +1,58 @@
-import os
-from intervaltree import IntervalTree
 from collections import defaultdict
-from preprocess2.bubble.bubble_index_utils import NAME, load_bubbles_from_json
+import preprocess2.db.bubble_db as db
 import math
-
+from bisect import bisect_right
+from array import array
 
 class BubbleIndex:
-    def __init__(self, chr_dir):
-        filepath = os.path.join(chr_dir, NAME)
-        bubbles = load_bubbles_from_json(filepath)
+    def __init__(self, chr_dir, cache_size=1000):
+        self.conn = db.get_connection(chr_dir)
 
-        self.bubble_dict = {bubble.id: bubble for bubble in bubbles}
-        self.parent_tree = IntervalTree()
+        self.cache_size = cache_size
+        self.cached_bubbles = dict()  # bubble_id -> BubbleData
 
-        for bubble in bubbles:
-            if bubble.has_range(exclusive=False) and (bubble.parent is None):
-                for start,end in bubble.get_ranges(exclusive=False):
-                    self.parent_tree[start:end + 1] = bubble.id
+        self.starts = array('I')
+        self.ends = array('I')
+        self.ids = array('I')
+
+        self._load_parent_tree()
+
+    def _load_parent_tree(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM bubbles WHERE parent IS NULL")
+        rows = cur.fetchall()
+
+        ranges = []
+        for row in rows:
+            bubble = db.load_bubble(row)
+            for start, end in bubble.get_ranges(exclusive=False):
+                ranges.append((start, end, bubble.id))
+        
+        ranges.sort()
+        for start, end, bid in ranges:
+            self.starts.append(start)
+            self.ends.append(end)
+            self.ids.append(bid)
 
     def __getitem__(self, bubble_id):
-        return self.bubble_dict[bubble_id]
+        if bubble_id in self.cached_bubbles:
+            return self.cached_bubbles[bubble_id]
+
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM bubbles WHERE id = ?", (bubble_id,))
+        row = cur.fetchone()
+        if row is None:
+            return None
+
+        bubble = db.load_bubble(row)
+        self._cache_bubble(bubble_id, bubble)
+        return bubble
     
+    def _cache_bubble(self, bubble_id, bubble_obj):
+        if len(self.cached_bubbles) >= self.cache_size:
+            self.cached_bubbles.pop(next(iter(self.cached_bubbles)))  # Simple FIFO
+        self.cached_bubbles[bubble_id] = bubble_obj
+
     def containing_segment(self, seg_id):
         matching_bubbles = []
 
@@ -34,15 +66,16 @@ class BubbleIndex:
     def get_top_level_bubbles(self, min_step, max_step, as_chains=False):
         results = []
 
-        # Start with all overlapping parentless bubbles
-        for iv in self.parent_tree[min_step:max_step+1]:
-            parent_bubble = self.bubble_dict[iv.data]
-            result = self._traverse_descendants(parent_bubble, min_step, max_step)
-
+        i = bisect_right(self.starts, max_step)
+        for j in range(i - 1, -1, -1):
+            if self.ends[j] < min_step:
+                break
+            bubble_id = self.ids[j]
+            bubble = self[bubble_id]
+            result = self._traverse_descendants(bubble, min_step, max_step)
             results.extend(result)
 
-        non_ref_results = self._collect_non_ref(results)
-        results.extend(non_ref_results)
+        results.extend(self._collect_non_ref(results))
 
         if as_chains:
             chain_results = defaultdict(list)

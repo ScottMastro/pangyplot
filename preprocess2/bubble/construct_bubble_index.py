@@ -2,9 +2,12 @@ import os
 from preprocess2.StepIndex import StepIndex
 import preprocess2.bubble.bubble_index_utils as utils
 import matplotlib.pyplot as plt 
+import preprocess2.db.bubble_db as db
 
 def construct_bubble_index(bubble_gun_graph, chr_dir, plot=False):
     step_index = StepIndex(chr_dir)
+    step_dict = step_index.get_segment_to_steps_dict()
+
     bubbles = []
 
     for raw_chain in bubble_gun_graph.b_chains:
@@ -16,7 +19,7 @@ def construct_bubble_index(bubble_gun_graph, chr_dir, plot=False):
 
         chain_bubbles = []
         for raw_bubble in raw_chain.sorted:
-            bubble = utils.create_bubble_object(raw_bubble, chain_id, step_index)
+            bubble = utils.create_bubble_object(raw_bubble, chain_id, step_dict)
             chain_bubbles.append(bubble)
 
         utils.find_siblings(chain_bubbles)
@@ -24,7 +27,8 @@ def construct_bubble_index(bubble_gun_graph, chr_dir, plot=False):
 
     utils.find_parent_children(bubbles)
 
-    utils.write_bubbles_to_json(bubbles, chr_dir)
+    conn = db.create_bubble_tables(chr_dir)
+    db.insert_bubbles(conn, bubbles)
 
     if plot:
         plot_path = os.path.join(chr_dir, "bubbles.plot.svg")
