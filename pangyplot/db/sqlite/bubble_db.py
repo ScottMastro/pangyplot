@@ -1,6 +1,6 @@
 import json
-from objects.Bubble import Bubble
-from db.sqlite.common import get_connection
+from pangyplot.objects.Bubble import Bubble
+from pangyplot.db.sqlite.db_utils import get_connection
 
 DB_NAME = "bubbles.db"
 
@@ -68,7 +68,7 @@ def insert_bubbles(conn, bubbles):
         insert_bubble(cur, bubble)
     conn.commit()
 
-def load_bubble(row):
+def create_bubble(row):
     bubble = Bubble()
     bubble.id = row["id"]
     bubble.chain = row["chain"]
@@ -88,3 +88,14 @@ def load_bubble(row):
     bubble.gc_count = row["gc_count"]
     bubble.n_counts = row["n_counts"]
     return bubble
+
+def load_parentless_bubbles(cur):
+    cur.execute("SELECT * FROM bubbles WHERE parent IS NULL")
+    return [create_bubble(row) for row in cur.fetchall()]
+
+def get_bubble(cur, bubble_id):
+    cur.execute("SELECT * FROM bubbles WHERE id = ?", (bubble_id,))
+    row = cur.fetchone()
+    if row is None:
+        return None
+    return create_bubble(row)

@@ -2,8 +2,8 @@ from array import array
 from collections import defaultdict
 from bitarray import bitarray
 import time
-import db.sqlite.link_db as db
-from objects.Link import Link
+import pangyplot.db.sqlite.link_db as db
+from pangyplot.objects.Link import Link
 
 class LinkIndex:
     def __init__(self, db_dir):

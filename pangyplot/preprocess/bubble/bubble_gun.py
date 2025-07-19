@@ -3,8 +3,8 @@ import BubbleGun.Graph as BubbleGunGraph
 import BubbleGun.find_bubbles as BubbleGunFindBubbles
 import BubbleGun.connect_bubbles as BubbleGunConnectBubbles
 import BubbleGun.find_parents as BubbleGunFindParents
-import preprocess.bubble.compact_graph as compacter
-
+import pangyplot.preprocess.bubble.compact_graph as compacter
+import pangyplot.preprocess.bubble.construct_bubble_index as indexer
 import time
 
 def to_bubblegun_obj(segments, links):
@@ -53,7 +53,7 @@ def to_bubblegun_obj(segments, links):
 
     return nodes
 
-def shoot(segments, links):
+def shoot(segments, links, chr_path):
     print("➡️ Finding bubbles.")
 
     graph = BubbleGunGraph.Graph()
@@ -81,5 +81,9 @@ def shoot(segments, links):
 
     bubbleCount = graph.bubble_number()
     print("   🔘 Simple Bubbles: {}, Superbubbles: {}, Insertions: {}".format(bubbleCount[0], bubbleCount[1], bubbleCount[2]))    
+
+    print("   💾  Indexing bubbles...", end="")
+    indexer.construct_bubble_index(graph, chr_path)
+    print(f" Done.")
 
     return graph

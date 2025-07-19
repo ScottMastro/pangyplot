@@ -1,4 +1,4 @@
-from db.sqlite.common import get_connection
+from pangyplot.db.sqlite.db_utils import get_connection
 
 DB_NAME = "step_index.db"
 

@@ -1,5 +1,5 @@
 from collections import defaultdict
-import preprocess.gfa.data_structures.LinkIndex as db
+import pangyplot.db.sqlite.link_db as db
 
 def parse_line_L(line):
     link = dict()   

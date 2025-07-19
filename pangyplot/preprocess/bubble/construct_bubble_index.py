@@ -1,16 +1,16 @@
 import os
-from db.indexes.StepIndex import StepIndex
-import preprocess.bubble.bubble_index_utils as utils
-import matplotlib.pyplot as plt 
-import db.sqlite.bubble_db as db
+from pangyplot.db.indexes.StepIndex import StepIndex
+import pangyplot.preprocess.bubble.bubble_utils as utils
+import pangyplot.db.sqlite.bubble_db as db
+from pangyplot.utils.plot_bubbles import plot_bubbles
 
-def construct_bubble_index(bubble_gun_graph, chr_dir, plot=False):
+def construct_bubble_index(graph, chr_dir, plot=False):
     step_index = StepIndex(chr_dir)
     step_dict = step_index.segment_map()
 
     bubbles = []
 
-    for raw_chain in bubble_gun_graph.b_chains:
+    for raw_chain in graph.b_chains:
         chain_id = f"c{raw_chain.id}"
         # note: raw_chain.ends not used (do we need to?)
 
@@ -35,31 +35,3 @@ def construct_bubble_index(bubble_gun_graph, chr_dir, plot=False):
         plot_path = os.path.join(chr_dir, "bubbles.plot.svg")
         plot_bubbles(bubbles, output_path=plot_path)
 
-    return bubbles
-
-def plot_bubbles(bubbles, output_path, min_height=None):
-    bubble_dict = {bubble.id: bubble for bubble in bubbles}
-
-    plt.figure(figsize=(12, 6))
-
-    for bid, bubble in bubble_dict.items():
-        if len(bubble["range"]) < 2: 
-            continue
-        if min_height is not None and bubble["height"] < min_height:
-            continue
-        
-        x = bubble["range"]
-        if len(x) == 1: x = [x] * 2
-
-        y = [bubble["height"]] * 2
-        plt.plot(x, y, color="blue", lw=2)
-
-        #midpoint = sum(x) / 2
-        #plt.text(midpoint, y_val + 0.05, f"{bid}", color="black", fontsize=6, ha="center")
-
-    plt.xlabel("Reference Node ID")
-    plt.ylabel("Height")
-    plt.title("Bubbles over Reference Path")
-    plt.tight_layout()
-    plt.savefig(output_path)
-    print(f"[INFO] Plot saved to {output_path}")

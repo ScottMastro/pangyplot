@@ -1,5 +1,5 @@
-from db.sqlite.common import get_connection
-from objects.Segment import Segment
+from pangyplot.db.sqlite.db_utils import get_connection
+from pangyplot.objects.Segment import Segment
 
 DB_NAME="segments.db"
 

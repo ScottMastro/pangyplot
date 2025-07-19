@@ -1,5 +1,5 @@
 from collections import defaultdict
-from db.objects.Bubble import BubbleData
+from pangyplot.objects.Bubble import Bubble
 
 def find_siblings(bubbles):
     sib_dict = defaultdict(set)
@@ -51,7 +51,7 @@ def find_parent_children(bubbles):
             bubble_parent.add_child(bubble, bubble_dict)
 
 def create_bubble_object(raw_bubble, chain_id, chain_step, step_dict):
-    bubble = BubbleData()
+    bubble = Bubble()
 
     bubble.id = raw_bubble.id
     bubble.chain = chain_id

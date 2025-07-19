@@ -1,5 +1,5 @@
-from db.sqlite.common import get_connection
-from objects.Link import Link
+from pangyplot.db.sqlite.db_utils import get_connection
+from pangyplot.objects.Link import Link
 
 DB_NAME = "links.db"
 

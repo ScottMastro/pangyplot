@@ -1,5 +1,5 @@
 import gzip,os
-from db.insert.insert_annotation import add_annotations
+#from db.insert.insert_annotation import add_annotations
 
 def get_reader(gff3):
     if gff3.endswith(".gz"):
@@ -101,4 +101,4 @@ def parse_gff3(gff3, refGenome):
                 annotations.append(annotation)
 
     annotationDict = split_annotations_by_type(annotations)
-    add_annotations(refGenome, annotationDict)
+    #add_annotations(refGenome, annotationDict)

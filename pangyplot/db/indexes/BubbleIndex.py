@@ -1,13 +1,14 @@
 from collections import defaultdict
-import db.sqlite.bubble_db as db
 import math
 from bisect import bisect_right
 from array import array
+import pangyplot.db.sqlite.bubble_db as db
 
 class BubbleIndex:
     def __init__(self, chr_dir, cache_size=1000):
         self.conn = db.get_connection(chr_dir)
-
+        self.cur = self.conn.cursor()
+        
         self.cache_size = cache_size
         self.cached_bubbles = dict()  # bubble_id -> BubbleData
 
@@ -15,16 +16,10 @@ class BubbleIndex:
         self.ends = array('I')
         self.ids = array('I')
 
-        self._load_parent_tree()
-
-    def _load_parent_tree(self):
-        cur = self.conn.cursor()
-        cur.execute("SELECT * FROM bubbles WHERE parent IS NULL")
-        rows = cur.fetchall()
+        bubbles = db.load_parentless_bubbles(self.cur)
 
         ranges = []
-        for row in rows:
-            bubble = db.load_bubble(row)
+        for bubble in bubbles:
             for start, end in bubble.get_ranges(exclusive=False):
                 ranges.append((start, end, bubble.id))
         
@@ -37,14 +32,8 @@ class BubbleIndex:
     def __getitem__(self, bubble_id):
         if bubble_id in self.cached_bubbles:
             return self.cached_bubbles[bubble_id]
-
-        cur = self.conn.cursor()
-        cur.execute("SELECT * FROM bubbles WHERE id = ?", (bubble_id,))
-        row = cur.fetchone()
-        if row is None:
-            return None
-
-        bubble = db.load_bubble(row)
+        
+        bubble = db.get_bubble(self.cur, bubble_id)
         self._cache_bubble(bubble_id, bubble)
         return bubble
     

@@ -1,5 +1,1 @@
-import json
-from objects.Bubble import Bubble
-from db.sqlite.common import get_connection
-
-DB_NAME = "bubbles.db"
+from pangyplot.db.sqlite.db_utils import get_connection

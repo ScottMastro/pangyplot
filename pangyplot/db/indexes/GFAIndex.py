@@ -1,7 +1,6 @@
 from collections import deque
-from dataclasses import dataclass
-from db.indexes.LinkIndex import LinkIndex
-from db.indexes.SegmentIndex import SegmentIndex
+from pangyplot.db.indexes.LinkIndex import LinkIndex
+from pangyplot.db.indexes.SegmentIndex import SegmentIndex
 
 class GFAIndex:
     def __init__(self, db_dir):

@@ -1,5 +1,5 @@
 from collections import defaultdict
-import parser.parse_utils as utils
+import pangyplot.parser.gfa.parse_utils as utils
 
 def parse_line_P(line):
     path = dict()

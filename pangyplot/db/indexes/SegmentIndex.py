@@ -1,5 +1,5 @@
 from array import array
-import db.sqlite.segment_db as db
+import pangyplot.db.sqlite.segment_db as db
 
 class SegmentIndex:
     def __init__(self, chr_dir):

@@ -1,9 +1,9 @@
 import sys
 import gzip
-from db.sqlite.step_db import write_step_index
-from parser.gfa.parse_segments import parse_segments
-from parser.gfa.parse_links import parse_links
-from parser.gfa.parse_paths import parse_paths
+from pangyplot.db.sqlite.step_db import write_step_index
+from pangyplot.parser.gfa.parse_segments import parse_segments
+from pangyplot.parser.gfa.parse_links import parse_links
+from pangyplot.parser.gfa.parse_paths import parse_paths
 
 def get_reader(gfa_file):
     if gfa_file.endswith(".gz"):

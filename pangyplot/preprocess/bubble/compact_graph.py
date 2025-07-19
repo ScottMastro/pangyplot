@@ -1,5 +1,4 @@
 # Modified from the BubbleGun source code to track merges.
-
 from collections import defaultdict
 
 def merge_node(graph, n_id, direction="forward", merged_map=None):

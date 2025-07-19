@@ -1,7 +1,7 @@
 import bisect
 from collections import defaultdict
 from array import array
-import db.sqlite.step_db as db
+import pangyplot.db.sqlite.step_db as db
 
 class StepIndex:
     def __init__(self, chr_dir):

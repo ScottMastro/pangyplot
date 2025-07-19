@@ -1,5 +1,5 @@
-from objects.Segment import Segment
-import db.sqlite.segment_db as db
+from pangyplot.objects.Segment import Segment
+import pangyplot.db.sqlite.segment_db as db
 
 def parse_line_S(line):
     cols = line.strip().split("\t")
