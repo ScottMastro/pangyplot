@@ -76,6 +76,8 @@ def main():
     def query_index(start_step, end_step):
         
         bubble_results = bubble_index.get_top_level_bubbles(start_step, end_step, as_chains=False)
+        bubble_graph = bubble_index.to_bubble_graph(bubble_results)
+
         bubble_intervals = bubble_index.get_merged_intervals(bubble_results, start_step, end_step)
 
         subgraphs = []
@@ -129,9 +131,14 @@ def main():
         x = xids["bubbles"]
         x.update(xids["segments"])
         
-        all_ids = list(j-x)
-        inv_all_ids = list(x-j)
+        #all_ids = list(j-x)
+        #inv_all_ids = list(x-j)
+        
+        if len(xids["segments"]) > 1:
+            center = random.choice(list(xids["segments"]))
+            gfa_index.export_subgraph_to_gfa(center, "debug_subgraph.gfa", max_steps=1000)
 
+        '''
         if len(inv_all_ids) > 100:
             print(x)
             print(gfa_index.filter_path(x, step_index))
@@ -158,6 +165,7 @@ def main():
         print("-")
         print("BUBBLES:", sorted(list(jids["bubbles"])))
        
+        '''
         print("##################################################")
         print(f"FROM INDEX:")
         print("SUBGRAPHS:", sorted(list(xids["subgraphs"])))
@@ -165,10 +173,13 @@ def main():
         print("SEGMENTS:", sorted(list(xids["segments"])))
         print("-")
         print("BUBBLES:", sorted(list(xids["bubbles"])))
-
+        
+        '''
         print("##################################################")
         print("Comparing DB and Index node IDs...")
         print("DIFF:", inv_all_ids)
+        '''
+
 
         input("Press Enter to continue...")
 

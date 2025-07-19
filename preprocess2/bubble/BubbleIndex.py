@@ -182,3 +182,13 @@ class BubbleIndex:
 
         return merged
 
+    def to_bubble_graph(self, bubbles):
+        bubble_graph = {"nodes": [], "links": []}
+        bids = {bubble.id for bubble in bubbles}
+        
+        for bubble in bubbles:
+            bubble_graph["nodes"].append(bubble.serialize())
+            for rel in bubble.serialize_sibling_source(sib_filter=bids):
+                bubble_graph["links"].append(rel)
+
+        return bubble_graph
