@@ -1,6 +1,6 @@
 import sys
 import gzip
-from preprocess2.StepIndex import write_step_index
+from preprocess2.db.step_index_db import write_step_index
 from preprocess2.gfa.parse_segments import parse_segments
 from preprocess2.gfa.parse_links import parse_links
 from preprocess2.gfa.parse_paths import parse_paths

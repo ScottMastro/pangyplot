@@ -1,15 +1,13 @@
 import db.neo4j_db as db
 import random
-from pympler import asizeof
-import preprocess2.bubble.bubble_gun as bubble_gun
-import preprocess2.pickle as pkl
-from  preprocess2.StepIndex import StepIndex
-from preprocess2.gfa.data_structures.GFAIndex import GFAIndex
-import preprocess2.skeletonize as skeleton
+from pympler.asizeof import asizeof
 import preprocess2.gfa.parse_gfa as parse_gfa
-import preprocess2.parse_layout as parse_layout
+from parser.parse_layout import parse_layout
 from db.query.query_top_level import get_top_level_data
 import db.query.query_node as qnode
+import preprocess2.bubble.bubble_gun as bubble_gun
+from preprocess2.gfa.parse_gfa import parse_gfa
+from preprocess2.bubble.construct_bubble_index import construct_bubble_index
 
 def main():
 
@@ -21,32 +19,29 @@ def main():
     LAY="static/data/chrY/chrY.sorted.norm.layout.tsv.gz"
     GFA="static/data/chrY/chrY.sorted.norm.gfa.gz"
     REF_PATH="GRCh38#chrY"
+    CHR_PATH="datastore/hprc.clip/chrY"
 
     #skeleton.get_graph_skeleton(LAY)
 
     recreate_index=False
 
     if recreate_index:
-        layout_coords = parse_layout.parse_layout(LAY)
-        segments, links, sample_idx, reference_path  = parse_gfa.parse_graph(GFA, REF_PATH, layout_coords)
-        gfa_index = GFAIndex(segments, links, sample_idx)
-        print(f"gfa_index size:      {asizeof.asizeof(gfa_index) / 1024**2:.2f} MB")
-        pkl.dump_pickle(gfa_index, "gfa_index.pkl")
 
-        step_index = StepIndex(segments, reference_path)
-        pkl.dump_pickle(step_index, "step_index.pkl")
+        layout_coords = parse_layout(LAY)
+        segment_dict, link_dict  = parse_gfa(GFA, REF_PATH, layout_coords, CHR_PATH)
+        bubble_gun_graph = bubble_gun.shoot(segment_dict, link_dict)
+        bubble_index = construct_bubble_index(bubble_gun_graph, CHR_PATH)
 
-        bubble_index = bubble_gun.shoot(segments, links, step_index)
-        pkl.dump_pickle(bubble_index, "bubble_index.pkl")
+    from preprocess2.gfa.data_structures.GFAIndex import GFAIndex
+    from preprocess2.StepIndex import StepIndex
+    from preprocess2.bubble.BubbleIndex import BubbleIndex
 
-    step_index = pkl.load_pickle("step_index.pkl")
-    bubble_index = pkl.load_pickle("bubble_index.pkl")
-    gfa_index = pkl.load_pickle("gfa_index.pkl")
-
-
-    print(f"step_index size: {asizeof.asizeof(step_index) / 1024**2:.2f} MB")
-    print(f"bubble_index size:   {asizeof.asizeof(bubble_index) / 1024**2:.2f} MB")
-    print(f"gfa_index size:      {asizeof.asizeof(gfa_index) / 1024**2:.2f} MB")
+    gfa_index = GFAIndex(CHR_PATH)
+    print(f"GFAIndex size:      {asizeof(gfa_index) / 1024**2:.2f} MB")
+    step_index = StepIndex(CHR_PATH)
+    print(f"step_index size:      {asizeof(step_index) / 1024**2:.2f} MB")
+    bubble_index = BubbleIndex(CHR_PATH)
+    print(f"bubble_index size:      {asizeof(bubble_index) / 1024**2:.2f} MB")
 
     ##################################################
 
@@ -113,13 +108,12 @@ def main():
         #START=18671929 ; END=18681929 #70895+,70800-,70896+
         #START=24891714 ; END=24901714 # WAY TOO MANY NODES
         #START=20198182 ; END=20208182 # large but seems to work
-        START = 11547952 ; END = 11557952
+
         START_STEP, END_STEP = step_index.query(START, END, debug=False)
-        
+
         jids = query_neo4j(START, END)
         xids = query_index(START_STEP, END_STEP)
 
-        #bubbles = bubble_index.containing_segment(131565)
         #for bubble in bubbles:
         #    print(bubble_index[bubble.id])
 
@@ -138,9 +132,9 @@ def main():
         all_ids = list(j-x)
         inv_all_ids = list(x-j)
 
-        if len(inv_all_ids) > -1:
+        if len(inv_all_ids) > 100:
             print(x)
-            print(gfa_index.filter_ref(x))
+            print(gfa_index.filter_path(x, step_index))
             print(inv_all_ids)
 
             gfa_index.export_subgraph_to_gfa(random.choice(inv_all_ids), "debug_subgraph.gfa", max_steps=1000)
@@ -148,7 +142,6 @@ def main():
         if len(inv_all_ids) <= 100:
             print(".", end="", flush=True)
             continue
-
 
         step_index.query(START, END, debug=True)
 
