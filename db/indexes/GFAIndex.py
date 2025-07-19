@@ -21,13 +21,13 @@ class GFAIndex:
         neighbors = []
 
         for link in self.link_index[seg_id]:
-            if link["from_id"] == seg_id:
-                strand = link["from_strand"]
-                neighbor = link["to_id"]
+            if link.from_id == seg_id:
+                strand = link.from_strand
+                neighbor = link.to_id
                 dir_label = '+'  # going forward
             else:
-                strand = link["to_strand"]
-                neighbor = link["from_id"]
+                strand = link.to_strand
+                neighbor = link.from_id
                 dir_label = '-'  # coming backward
 
             if direction is None or direction == dir_label:

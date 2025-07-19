@@ -5,7 +5,7 @@ import db.neo4j.neo4j_db as db
 import db.modify.drop_data as drop
 import db.utils.import_export as import_export
 import db.utils.check_status as db_status
-import environment_setup as setup
+import utils.environment_setup as setup
 
 from parser.parse_gfa import parse_graph, parse_paths
 from parser.parse_layout import parse_layout

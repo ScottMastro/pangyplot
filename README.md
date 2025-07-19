@@ -40,5 +40,6 @@ For more detailed information about using PangyPlot, please refer to the [https:
 
 # License
 
-PangyPlot is licensed under XXX
-Acknowledgements
+PangyPlot is licensed under the MIT License
+
+# Acknowledgements
