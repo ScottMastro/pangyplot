@@ -2,7 +2,9 @@ class BubbleData:
     def __init__(self):
         self.id = None
         self.chain = None
-        self.type = "simple"
+        self.chain_step = -1
+
+        self.subtype = "simple"
         self.parent = None
         self.children = []
         self._siblings = []
@@ -23,8 +25,20 @@ class BubbleData:
         self._height = None
         self._depth = None
 
-    def add_sibling(self, sibling_id, segment_id):
-        self._siblings.append((sibling_id, segment_id))
+    def serialize(self):
+        return {
+            "id": f"b{self.id}",
+            "chain": self.chain,
+            "type": "bubble",
+            "subtype": self.subtype,
+            "size": len(self.inside),
+            "length": self.length,
+            "gc_count": self.gc_count,
+            "n_counts": self.n_counts
+        }
+    
+    def add_sibling(self, sibling_id, seg_ids):
+        self._siblings.append((sibling_id, seg_ids))
 
     def _clean_inside(self, inside_ids, bubble_dict):
         self.inside -= inside_ids
@@ -41,6 +55,20 @@ class BubbleData:
     def get_sibling_segments(self, get_compacted_nodes=True):
         return self.get_source(get_compacted_nodes) + self.get_sink(get_compacted_nodes)
 
+    def serialize_sibling_source(self, sib_filter=None):
+        data = []
+        for sib_id, seg_ids in self._siblings:
+            if sib_filter and sib_id not in sib_filter:
+                continue
+            if self._sink and self._sink in seg_ids:
+                data.append({"from_id": f"b{self.id}", 
+                             "to_id": f"b{sib_id}", 
+                             "from_strand": "+",
+                             "to_strand": "+",
+                             "segments": seg_ids
+                })
+        return data
+    
     def get_source(self, get_compacted_nodes=True):
         if not get_compacted_nodes:
             return [self._source]

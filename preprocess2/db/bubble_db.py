@@ -23,7 +23,8 @@ def create_bubble_tables(chr_dir):
         CREATE TABLE bubbles (
             id INTEGER PRIMARY KEY,
             chain TEXT,
-            type TEXT,
+            chain_step INTEGER,
+            subtype TEXT,
             parent INTEGER,
             children TEXT,
             siblings TEXT,
@@ -46,16 +47,17 @@ def create_bubble_tables(chr_dir):
 def _insert_bubble(cur, bubble):
     cur.execute("""
         INSERT INTO bubbles (
-            id, chain, type, parent,
+            id, chain, chain_step, subtype, parent,
             children, siblings,
             source, compacted_source, sink, compacted_sink,
             inside, range_exclusive, range_inclusive,
             length, gc_count, n_counts
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         bubble.id,
         bubble.chain,
-        bubble.type,
+        bubble.chain_step,
+        bubble.subtype,
         bubble.parent,
         json.dumps(bubble.children),
         json.dumps(bubble._siblings),
@@ -81,7 +83,8 @@ def load_bubble(row):
     bubble = BubbleData()
     bubble.id = row["id"]
     bubble.chain = row["chain"]
-    bubble.type = row["type"]
+    bubble.chain_step = row["chain_step"]
+    bubble.subtype = row["subtype"]
     bubble.parent = row["parent"]
     bubble.children = json.loads(row["children"])
     bubble._siblings = json.loads(row["siblings"])

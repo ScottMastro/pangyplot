@@ -23,17 +23,24 @@ def find_parent_children(bubbles):
             bubble_parent.add_child(bubble, bubble_dict)
 
 def find_siblings(bubbles):
-    sib_dict = defaultdict(set)
-    
-    for bubble in bubbles:
-        for sid in bubble.get_sibling_segments():
-            sib_dict[sid].add(bubble)
+    segment_to_bubbles = defaultdict(set)
+    shared_segments = defaultdict(set)
 
     for bubble in bubbles:
         for sid in bubble.get_sibling_segments():
-            for sibling in sib_dict[sid]:
+            segment_to_bubbles[sid].add(bubble)
+
+    for bubble in bubbles:
+        for sid in bubble.get_sibling_segments():
+            for sibling in segment_to_bubbles[sid]:
                 if sibling.id != bubble.id:
-                    bubble.add_sibling(sibling.id, sid)
+                    key = (bubble.id, sibling.id)
+                    shared_segments[key].add(sid)
+
+    # Apply sibling relationships
+    for (bid, sid), shared_sids in shared_segments.items():
+        b1 = next(b for b in bubbles if b.id == bid)
+        b1.add_sibling(sid, list(shared_sids))
 
 def find_parent_children(bubbles):
     bubble_dict = {bubble.id: bubble for bubble in bubbles}
@@ -43,16 +50,17 @@ def find_parent_children(bubbles):
             bubble_parent = bubble_dict[bubble.parent]
             bubble_parent.add_child(bubble, bubble_dict)
 
-def create_bubble_object(raw_bubble, chain_id, step_dict):
+def create_bubble_object(raw_bubble, chain_id, chain_step, step_dict):
     bubble = BubbleData()
 
     bubble.id = raw_bubble.id
     bubble.chain = chain_id
+    bubble.chain_step = chain_step
 
     if raw_bubble.is_insertion():
-        bubble.type = "insertion"
+        bubble.subtype = "insertion"
     elif raw_bubble.is_super():
-        bubble.type = "super"
+        bubble.subtype = "super"
 
     bubble.parent = raw_bubble.parent_sb if raw_bubble.parent_sb else None
 

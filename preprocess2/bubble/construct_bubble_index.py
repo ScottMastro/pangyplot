@@ -18,8 +18,9 @@ def construct_bubble_index(bubble_gun_graph, chr_dir, plot=False):
             raw_chain.sort()
 
         chain_bubbles = []
-        for raw_bubble in raw_chain.sorted:
-            bubble = utils.create_bubble_object(raw_bubble, chain_id, step_dict)
+        for chain_step, raw_bubble in enumerate(raw_chain.sorted):
+            bubble = utils.create_bubble_object(raw_bubble, chain_id, chain_step, step_dict)
+
             chain_bubbles.append(bubble)
 
         utils.find_siblings(chain_bubbles)
