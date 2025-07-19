@@ -1,0 +1,27 @@
+kbd {
+        font-size: 1.5em;
+        align-items: center;
+        border: 1px solid var(--dark-green);
+        border-bottom-width: 2px;
+        border-radius: 3px;
+        box-sizing: border-box;
+        display: inline-flex;
+        gap: 0 .5em;
+        justify-content: center;
+        margin: 0 .15em;
+        min-width: 24px;
+        padding: .15em .6em;
+}
+
+.k-info{
+    display: flex;
+    justify-content: space-between;
+}
+.k-label{
+    color: var(--text-color);
+}
+
+.k-header{
+    font-size: large;
+    font-weight: bold;
+}

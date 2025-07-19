@@ -1,0 +1,39 @@
+.tab-header{
+    font-size: large;
+}
+
+.tab-button {
+    background-color: var(--tab-box);
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+
+    i{
+        font-size: large;
+    }
+}
+
+.tab-button:hover {
+    background-color: var(--highlight);
+}
+
+.tab-content {
+    display: none; 
+    background-color: var(--tab-box);
+    max-width: 20vw;
+    padding: 10px;
+    border-radius: 5px;
+
+}
+
+.active-tab-button{
+    background-color: var(--highlight);
+
+}
+
+.active-tab-content {
+    display: block !important;
+}

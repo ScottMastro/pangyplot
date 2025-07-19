@@ -1,0 +1,38 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ui/tabs/graph-annotation.css') }}">
+<div class="tab-header">Gene Annotations</div>
+<hr>
+
+<div id="gene-annotation-tab-content" class="flex-1">
+
+    <p id="no-annotations-text">No annotations to show</p>
+    <div id="gene-annotations-table-container" class="hidden">
+        <table id="gene-annotations-table">
+            <thead>
+                <tr>
+                    <th>Gene Name </th>
+                    <th>Show Exons</th>
+                    <th>Color</th>
+                </tr>
+            </thead>
+            <tbody id="gene-annotations-body">
+                <!-- Dynamic content will be injected here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="gene-annotations-control-container" class="hidden flex-1">
+        <div class="flex-row">
+            <button id="select-all-gene-annotations" class="button-style flex-1">Select All</button>
+            <button id="deselect-all-gene-annotations" class="button-style flex-1">Deselect All</button>
+        </div>
+
+        <div class="flex-row">
+            <button id="set-all-colors-gene-annotations" class="button-style flex-1">Set All Colors</button>
+            <input id="set-color-picker-gene-annotations" type="color" class="color-picker flex-1"> 
+        </div>
+
+    </div>
+
+</div>
+
+<script src="{{url_for('static', filename='js/ui/tabs/graph-annotation.js')}}"></script>
