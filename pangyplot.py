@@ -1,7 +1,7 @@
 import os, argparse
 from pangyplot_app import DEFAULT_DB, DEFAULT_PORT, initialize_app
 
-import db.neo4j_db as db
+import db.neo4j.neo4j_db as db
 import db.modify.drop_data as drop
 import db.utils.import_export as import_export
 import db.utils.check_status as db_status
@@ -168,9 +168,9 @@ def parse_args():
         
         print(f"Indexing GFA file {args.gfa}...")
 
-        import preprocess2.bubble.bubble_gun as bubble_gun
-        from preprocess2.gfa.parse_gfa import parse_gfa
-        from preprocess2.bubble.construct_bubble_index import construct_bubble_index
+        import preprocess.bubble.bubble_gun as bubble_gun
+        from preprocess.gfa.parse_gfa import parse_gfa
+        from preprocess.bubble.construct_bubble_index import construct_bubble_index
 
         layout_coords = parse_layout(args.layout)
         segment_dict, link_dict  = parse_gfa(args.gfa, args.ref, layout_coords, chr_path)
@@ -180,10 +180,10 @@ def parse_args():
     if args.command == "run2":
         datastore_path = os.path.join(script_dir, "datastore")
         datastore_path = os.path.join(datastore_path, args.db)
-        from preprocess2.gfa.data_structures.SegmentIndex import SegmentIndex
-        from preprocess2.gfa.data_structures.LinkIndex import LinkIndex
-        from preprocess2.StepIndex import StepIndex
-        from preprocess2.bubble.BubbleIndex import BubbleIndex
+        from preprocess.gfa.data_structures.SegmentIndex import SegmentIndex
+        from preprocess.gfa.data_structures.LinkIndex import LinkIndex
+        from db.objects.StepIndex import StepIndex
+        from preprocess.bubble.BubbleIndex import BubbleIndex
         from pympler.asizeof import asizeof
 
         segment_index = dict()

@@ -1,5 +1,6 @@
+import re
 
-def parse_reference_string(str):
+def parse_reference_string(str, ref):
 
     if "|" in str:
         chrom = str.split("|")[-1]
@@ -15,7 +16,6 @@ def parse_reference_string(str):
 
     return {"chrom": chrom, "genome": genome}
 
-import re
 
 # 2 elements example:
 # CHM13#chr7

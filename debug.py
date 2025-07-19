@@ -1,6 +1,6 @@
 import argparse
 from flask import Flask
-import db.neo4j_db as db
+import db.neo4j.neo4j_db as db
 import preprocess.bubble_gun as bubble_gun
 import db.insert.insert_metadata as metadata
 import preprocess.bubble_gun_utils as bubble_utils

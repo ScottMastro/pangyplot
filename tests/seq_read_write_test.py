@@ -1,6 +1,6 @@
 import os
 import tempfile
-from preprocess2.gfa.data_structures.SeqReadWrite import SeqWriter, SeqReader
+from preprocess.gfa.data_structures.SeqReadWrite import SeqWriter, SeqReader
 
 def test_seq_read_write_roundtrip():
     test_seqs = [

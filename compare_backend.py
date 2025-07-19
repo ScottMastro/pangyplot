@@ -1,13 +1,12 @@
-import db.neo4j_db as db
+import db.neo4j.neo4j_db as db
 import random
 from pympler.asizeof import asizeof
-import preprocess2.gfa.parse_gfa as parse_gfa
+import parser.parse_gfa as parse_gfa
+import preprocess.bubble.bubble_gun as bubble_gun
+
 from parser.parse_layout import parse_layout
-from db.query.query_top_level import get_top_level_data
-import db.query.query_node as qnode
-import preprocess2.bubble.bubble_gun as bubble_gun
-from preprocess2.gfa.parse_gfa import parse_gfa
-from preprocess2.bubble.construct_bubble_index import construct_bubble_index
+from preprocess.bubble.construct_bubble_index import construct_bubble_index
+from utils.export_gfa import export_subgraph_to_gfa
 
 def main():
 
@@ -32,9 +31,9 @@ def main():
         bubble_gun_graph = bubble_gun.shoot(segment_dict, link_dict)
         bubble_index = construct_bubble_index(bubble_gun_graph, CHR_PATH)
 
-    from preprocess2.gfa.data_structures.GFAIndex import GFAIndex
-    from preprocess2.StepIndex import StepIndex
-    from preprocess2.bubble.BubbleIndex import BubbleIndex
+    from preprocess.gfa.data_structures.GFAIndex import GFAIndex
+    from db.objects.StepIndex import StepIndex
+    from preprocess.bubble.BubbleIndex import BubbleIndex
 
     gfa_index = GFAIndex(CHR_PATH)
     print(f"GFAIndex size:      {asizeof(gfa_index) / 1024**2:.2f} MB")
@@ -45,33 +44,6 @@ def main():
 
     ##################################################
 
-    CHRY_LENGTH=26669912
-    CHRY_START=220904
-    
-    def query_neo4j(start, end):
-        db_nodes, db_links = get_top_level_data("GRCh38", "chrY", start, end)
-
-        node_ids = {
-            "segments": {int(node["id"]) for node in db_nodes if node and node["type"] == "segment"},
-            "bubbles": set()
-        }
-
-        db_bubbles = [node for node in db_nodes if node and node["type"] == "bubble"]
-        db_chains = [node for node in db_nodes if node and node["type"] == "chain"]
-
-        descendant_ids = set()
-
-        for bubble in db_bubbles:
-            descendant_ids.update(qnode.get_bubble_descendants(bubble["uuid"]))
-
-        for chain in db_chains:
-            descendant_ids.update(qnode.get_chain_descendants(chain["uuid"]))
-
-        node_ids["bubbles"].update(int(nid) for nid in descendant_ids)
-
-        return node_ids
-
-    #########################################################################################################
 
     def query_index(start_step, end_step):
         
@@ -101,7 +73,10 @@ def main():
         return node_ids
 
     #########################################################################################################
-
+   
+    CHRY_LENGTH=26669912
+    CHRY_START=220904
+    
     while True:
 
         START = random.randint(CHRY_START, CHRY_LENGTH)
@@ -113,8 +88,7 @@ def main():
 
         START_STEP, END_STEP = step_index.query(START, END, debug=False)
 
-        jids = query_neo4j(START, END)
-        xids = query_index(START_STEP, END_STEP)
+        sids = query_index(START_STEP, END_STEP)
 
         #for bubble in bubbles:
         #    print(bubble_index[bubble.id])
@@ -125,18 +99,16 @@ def main():
         #print(bubble_index["b53853"])
         #print(bubble_index["b53854"])
 
-        j = jids["bubbles"]
-        j.update(jids["segments"])
-        
-        x = xids["bubbles"]
-        x.update(xids["segments"])
-        
+
+        x = sids["bubbles"]
+        x.update(sids["segments"])
+
         #all_ids = list(j-x)
         #inv_all_ids = list(x-j)
         
         if len(xids["segments"]) > 1:
             center = random.choice(list(xids["segments"]))
-            gfa_index.export_subgraph_to_gfa(center, "debug_subgraph.gfa", max_steps=1000)
+            export_subgraph_to_gfa(gfa_index, center, "debug_subgraph.gfa", search_distance=1000)
 
         '''
         if len(inv_all_ids) > 100:
