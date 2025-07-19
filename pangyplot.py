@@ -169,7 +169,6 @@ def parse_args():
         print(f"Indexing GFA file {args.gfa}...")
 
         import preprocess2.bubble.bubble_gun as bubble_gun
-        import preprocess2.pickle as pkl
         from preprocess2.gfa.parse_gfa import parse_gfa
         from preprocess2.bubble.construct_bubble_index import construct_bubble_index
 

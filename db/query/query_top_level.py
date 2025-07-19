@@ -29,8 +29,8 @@ def get_top_level_data( genome, chrom, start, end):
                 OPTIONAL MATCH (n:Segment)-[r2:LINKS_TO]-(s:Segment)
 
                 RETURN n, labels(n) AS type,
-                collect(DISTINCT r1) AS endlinks,
-                collect(DISTINCT r2) AS links
+                    [r IN collect(r1) WHERE r IS NOT NULL] AS endlinks,
+                    [r IN collect(r2) WHERE r IS NOT NULL] AS links
                 """
 
         results = session.run(bubble_query, parameters)

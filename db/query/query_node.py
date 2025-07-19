@@ -9,7 +9,7 @@ def get_bubble_descendants(bubble_uuid):
 
         query = """
         MATCH (root:Bubble {db: $db, uuid: $bubble_uuid})
-        CALL {
+        CALL (root){
             WITH root
             MATCH (child)-[:INSIDE*]->(root)
             WHERE child:Segment
@@ -33,7 +33,7 @@ def get_chain_descendants(chain_uuid):
 
         query = """
         MATCH (root:Chain {db: $db, uuid: $chain_uuid})
-        CALL {
+        CALL (root) {
             WITH root
             MATCH (child)-[:INSIDE*]->(root)
             WHERE child:Segment

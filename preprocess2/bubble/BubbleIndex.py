@@ -53,19 +53,9 @@ class BubbleIndex:
             self.cached_bubbles.pop(next(iter(self.cached_bubbles)))  # Simple FIFO
         self.cached_bubbles[bubble_id] = bubble_obj
 
-    def containing_segment(self, seg_id):
-        matching_bubbles = []
-
-        for bubble in self.bubble_dict.values():
-            seg_ids = list(bubble.inside)
-            if seg_id in seg_ids:
-                matching_bubbles.append(bubble)
-
-        return matching_bubbles
-
     def get_top_level_bubbles(self, min_step, max_step, as_chains=False):
         results = []
-
+        
         i = bisect_right(self.starts, max_step)
         for j in range(i - 1, -1, -1):
             if self.ends[j] < min_step:
@@ -91,7 +81,7 @@ class BubbleIndex:
         # Otherwise, recurse through children
         results = []
         for child_id in bubble.children:
-            child = self.bubble_dict[child_id]
+            child = self[child_id]
             results.extend(self._traverse_descendants(child, min_step, max_step))
         return results
 
@@ -115,7 +105,7 @@ class BubbleIndex:
             for sid in bubble.inside:
                 descendants.add(sid)
             for child_id in bubble.children:
-                traverse(self.bubble_dict[child_id])
+                traverse(self[child_id])
 
         traverse(bubble)
         return descendants
@@ -127,7 +117,7 @@ class BubbleIndex:
 
         for bubble in results:
             for sib_id in bubble.get_siblings():
-                sib = self.bubble_dict[sib_id]
+                sib = self[sib_id]
                 if sib.is_ref() or sib in visited:
                     continue
                 
@@ -149,7 +139,7 @@ class BubbleIndex:
                     if not curr_bubble.is_ref():
                         component.add(curr_bubble)
                         for sib_id in curr_bubble.get_siblings():
-                            stack.append(self.bubble_dict[sib_id])
+                            stack.append(self[sib_id])
 
                 if len(anchors) >= 2:
                     if debug:

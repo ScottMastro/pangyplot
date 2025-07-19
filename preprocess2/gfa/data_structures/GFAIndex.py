@@ -1,91 +1,37 @@
 from collections import deque
 from dataclasses import dataclass
-
-
-@dataclass
-class Link:
-    from_id: int
-    from_strand: str  # '+' or '-'
-    to_id: int
-    to_strand: str
-    haplotype: int     # store as int, not hex string
-    frequency: float
-    ref: bool
+from preprocess2.gfa.data_structures.LinkIndex import LinkIndex
+from preprocess2.gfa.data_structures.SegmentIndex import SegmentIndex
 
 
 class GFAIndex:
-    def __init__(self, segments, links, sample_idx):
-        self.segments = segments
-        self.links = []
-        self.sample_idx = sample_idx
-
-        self.forward_index = dict()
-        self.reverse_index = dict()
-
-        for _,link in links.items():
-            link_obj = Link(
-                from_id=link["from_id"],
-                from_strand=link["from_strand"],
-                to_id=link["to_id"],
-                to_strand=link["to_strand"],
-                haplotype=int(link["haplotype"], 16),
-                frequency=link["frequency"],
-                ref=link["ref"])
-            self.links.append(link_obj)
-
-
-        for (fid, tid), _ in links.items():
-            if fid not in self.forward_index:
-                self.forward_index[fid] = []
-            if tid not in self.reverse_index:
-                self.reverse_index[tid] = []
-            self.forward_index[fid].append(tid)
-            self.reverse_index[tid].append(fid)
+    def __init__(self, db_dir):
+        self.segment_index = SegmentIndex(db_dir)
+        self.link_index = LinkIndex(db_dir)
 
     def __getitem__(self, segment_id):
         return self.segments[segment_id]
 
-    def get_links(self, segment_id):
-        links = []
+    def get_links(self, seg_id):
+        return self.link_index[seg_id]
 
-        for neighbor_id in self.forward_index.get(segment_id, []):
-            link = self.links.get((segment_id, neighbor_id))
-            if link:
-                links.append(link)
+    def get_neighbors(self, seg_id, direction=None):
+        neighbors = []
 
-        for neighbor_id in self.reverse_index.get(segment_id, []):
-            link = self.links.get((neighbor_id, segment_id))
-            if link:
-                links.append(link)
+        for link in self.link_index[seg_id]:
+            if link["from_id"] == seg_id:
+                strand = link["from_strand"]
+                neighbor = link["to_id"]
+                dir_label = '+'  # going forward
+            else:
+                strand = link["to_strand"]
+                neighbor = link["from_id"]
+                dir_label = '-'  # coming backward
 
-        return links
+            if direction is None or direction == dir_label:
+                neighbors.append(neighbor)
 
-    def get_neighbors(self, segment_id, direction=None):
-        if direction is None:
-            return list(set(self.forward_index.get(segment_id, []) + 
-                            self.reverse_index.get(segment_id, [])))
-        elif direction == '+':
-            return self.forward_index.get(segment_id, [])
-        elif direction == '-':
-            return self.reverse_index.get(segment_id, [])
-        elif direction is None:
-            return list(set(self.forward_index.get(segment_id, []) + 
-                            self.reverse_index.get(segment_id, [])))
-        else:
-            raise ValueError("Direction must be '+', '-', or None")
-
-    def get_haplotype_presence(self, link, sample_name):
-        #todo: test and verify
-        if isinstance(link, tuple):
-            link = self.get_link(*link)
-        if not link:
-            return False
-        hap_str = link.get("haplotype", "0")
-        hap_int = int(hap_str, 16)
-        sample_idx = self.sample_idx.get(sample_name)
-        if sample_idx is None:
-            return False
-        return ((hap_int >> sample_idx) & 1) == 1
+        return neighbors
 
     def traverse(self, start_id, max_steps=10, direction=None):
         path = [start_id]
@@ -108,7 +54,7 @@ class GFAIndex:
             visited = set()
             queue = deque()
             
-            start_seg_id = step_index.get_segment(seed_step)
+            start_seg_id = step_index[seed_step]
             if start_seg_id is None:
                 raise ValueError(f"No segment found for start_step {seed_step}")
 
@@ -121,7 +67,7 @@ class GFAIndex:
                     if neighbor in visited:
                         continue
 
-                    steps = step_index[neighbor]
+                    steps = step_index.get_steps_for_segment(neighbor)
                     if not any(min_step <= s <= max_step for s in steps):
                         continue
 
@@ -134,7 +80,7 @@ class GFAIndex:
         forward_visited = constrained_bfs(start_step, end_step)
 
         # Check if end_step is reached
-        end_seg_id = step_index.get_segment(end_step)
+        end_seg_id = step_index[end_step]
         if end_seg_id is not None and end_seg_id in forward_visited:
             return forward_visited
 
@@ -143,8 +89,13 @@ class GFAIndex:
 
         return forward_visited | reverse_visited
     
-    def filter_ref(self, seg_ids, ref=True):
-        return [sid for sid in seg_ids if self.segments[sid]["ref"] == ref]
+    def filter_path(self, seg_ids, step_index, on_path=True):
+        keep = []
+        for sid in seg_ids:
+            check = len(step_index.get_steps_for_segment(sid)) > 0
+            if check == on_path:
+                keep.append(sid)
+        return keep
 
     def bfs_steps(self, start_id, max_steps):
         visited = set([start_id])
@@ -154,6 +105,7 @@ class GFAIndex:
             current, steps = queue.popleft()
             if steps >= max_steps:
                 continue
+    
             for neighbor in self.get_neighbors(current):
                 if neighbor not in visited:
                     visited.add(neighbor)
@@ -162,24 +114,29 @@ class GFAIndex:
         return visited
 
     def export_subgraph_to_gfa(self, start_id, save_path, max_steps=10):
-        """
-        Export the BFS subgraph from `start_id` up to `max_steps` steps to a GFA file.
-        Only segments and links are included (no paths).
-        """
+
         visited = self.bfs_steps(start_id, max_steps)
         visited = set(visited)
 
         with open(save_path, 'w') as f:
             f.write("H\tVN:Z:1.0\n")
+            segments = self.segment_index.get_by_ids(visited, with_seq=True)
+            seg_ids = {int(seg['id']) for seg in segments}
 
-            for node_id in visited:
-                seg = self.segments[node_id]
-                seq = seg.get("sequence", "N")  # fallback if no sequence
-                f.write(f"S\t{node_id}\t{seq}\n")
+            links = set()
+            for segment in segments:
+                sid = segment['id']
+                f.write(f"S\t{sid}\t{segment['seq']}\n")
 
-            # Write links
-            for link in self.links:
-                if link.from_id in visited and link.to_id in visited:
-                    f.write(f"L\t{link.from_id}\t{link.from_strand}\t{link.to_id}\t{link.to_strand}\t0M\n")
+                seg_links = self.link_index[sid]
+
+                for link in seg_links:
+                    if int(link['from_id']) not in seg_ids or int(link['to_id']) not in seg_ids:
+                        continue
+                    key = (link['from_id'], link['from_strand'], link['to_id'], link['to_strand'])
+                    links.add(key)
+
+            for (fr, fs, to, ts) in links:
+                f.write(f"L\t{fr}\t{fs}\t{to}\t{ts}\t0M\n")
 
         print(f"✅ Exported GFA subgraph to: {save_path}")
