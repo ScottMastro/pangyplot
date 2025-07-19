@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, make_response
 from dotenv import load_dotenv
 
-import os, cytoband
+import os, pangyplot.cytoband as cytoband
 import db.neo4j.neo4j_db as db
 from db.query.query_top_level import get_top_level
 from db.query.query_annotation import query_gene_range,text_search_gene
